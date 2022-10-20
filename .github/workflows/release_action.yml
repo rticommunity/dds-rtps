@@ -1,7 +1,6 @@
 name: release action
 on: 
-  release:
-    types:[published]
+  release
 jobs:
   create-executables-names-file:
     runs-on: ubuntu-latest
