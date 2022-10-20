@@ -1,0 +1,12 @@
+name: release action
+on: 
+  release:
+    types:[published]
+jobs:
+  create-executables-names-file:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./generate_names
+  
+        
+  
