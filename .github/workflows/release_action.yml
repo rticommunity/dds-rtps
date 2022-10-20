@@ -6,7 +6,7 @@ jobs:
   create-executables-names-file:
     runs-on: ubuntu-latest
     steps:
-      - run: sh generate_names.sh
+      - run: sh generate_names_prov.sh
   
         
   
