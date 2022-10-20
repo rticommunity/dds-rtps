@@ -10,7 +10,7 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - run: sh ./srcCxx/generate_names_prov.sh
+      - run: sh ./srcCxx/generate_names.sh
       
       
       
