@@ -13,7 +13,7 @@ jobs:
       - name: Install package
         run:  pip install xlsxwriter 
       - name: Run python script
-        run: python ./srcCxx/test_script.py
+        run: python ./srcCxx/test_script.py ./srcCxx/executables_names.txt
       - name: set user account email
         run: git config --global user.email "ariasmartinez@correo.ugr.es"
       - name: set user account name
