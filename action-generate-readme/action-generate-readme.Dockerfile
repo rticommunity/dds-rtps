@@ -9,6 +9,6 @@ LABEL "repository"="https://github.com/ariasmartinez/dds-rtps"
 LABEL "homepage"=""
 LABEL "maintainer"="Celia <ariasmartinez@correo.ugr.es>"
 
-ADD  ./src/generate_names.sh / generate_names.sh
+ADD  generate_names.sh / generate_names.sh
 ENTRYPOINT ["sh", "/generate_names.sh"]
 
