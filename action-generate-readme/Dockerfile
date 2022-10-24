@@ -1,4 +1,4 @@
-FROM python:3.8.1-alpine3.10
+FROM ubuntu:18.04
 
 LABEL "com.github.actions.name"="Generate Readme from data"
 LABEL "com.github.actions.description"="Automatically generate readme from the json data files"
