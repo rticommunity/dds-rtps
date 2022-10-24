@@ -9,7 +9,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Generate file executables_names
-        run: sh ./srcCXX/generate_names.sh
+        run: sh ./srcCxx/generate_names.sh
       - name: set user account email
         run: git config --global user.email "ariasmartinez@correo.ugr.es"
       - name: set user account name
