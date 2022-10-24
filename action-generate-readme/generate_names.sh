@@ -6,4 +6,4 @@ find ./ -type f -name "*" -not -name "*.o" -exec sh -c '
       MZ*) exit 0;;
       #!*/ocamlrun*)exit0;;
     esac
-exit 1' sh {} \; -fprint ./srcCxx/executables_names.txt
+exit 1' sh {} \; -print
