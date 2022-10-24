@@ -1,7 +1,12 @@
 import xlsxwriter
+import sys
+
+f = open(sys.argv[1], 'r')
+x = f.read().splitlines()
+contenido = x[0].split("/")
 
 # Create a workbook and add a worksheet.
-workbook = xlsxwriter.Workbook('Expenses01.xlsx')
+workbook = xlsxwriter.Workbook(contenido[2]+'.xlsx')
 worksheet = workbook.add_worksheet()
 
 # Some data we want to write to the worksheet.
