@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref_name }}
       - name: Generate file executables_names
         run: sh ./srcCxx/generate_names.sh
       - name: Install package
