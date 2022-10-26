@@ -25,6 +25,8 @@ jobs:
         run: git add .
       - name: commit changed files
         run: git commit -m "Interoperability checked automatically"
+      - name: check branch
+        run: git branch
       - name: Push changes                               
         uses: ad-m/github-push-action@master
         with:
