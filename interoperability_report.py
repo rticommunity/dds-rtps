@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-
-
 from ctypes import c_char_p
 from enum import Enum
 from multiprocessing import Process, Queue, Value, Array
@@ -13,7 +11,6 @@ import pexpect
 import sys
 import multiprocessing 
 import numpy as np
-
 
 class ErrorCode(Enum):
     TOPIC_NOT_CREATED = 0
@@ -69,25 +66,28 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
         time_out : time pexpect will wait until it finds a pattern
         code : this variable will be overwritten with the obtained ErrorCode
         data : this variable will be overwritten with the obtained data
+            (only uses if we have compiled with the new shape_main.cxx)
+        event : object event from multiprocessing 
+        check_order : boolean value used for checking reliability
+        check_color : boolean value used for ownership
+        check_strength : boolean value used for ownership
 
         The function will run the executable with the Qos as a Subscriber.
         It will follow the next steps until it does not find the pattern 
         and it will save the ErrorCode found:
             * Wait until the topic is created
             * Wait until the reader is created
-            * Wait until the reader matchs with a writer
+            * Wait until the reader matches with a writer
             * Wait until the reader detects the writer as alive
             * Wait until the reader receives data
 
-        If at a each point the step is not achieved succesfully, 
+        If at a each point the step is not achieved successfully, 
         the function will stop and the ErrorCode will be saved.
     
     """
 
     # Step 1 : run the executable
     child_sub = pexpect.spawn('%s -S %s' % (name_executable, parameters))
-
-    #child_sub.logfile = sys.stdout
 
     # Step 2 : Check if the topic is created
     index = child_sub.expect(
@@ -119,9 +119,8 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
         elif index == 2:
             code[0] = ErrorCode.FILTER_NOT_CREATED
         
-
         elif index == 0:
-            # Step 4 : Check if the reader matchs the writer
+            # Step 4 : Check if the reader matches the writer
             index = child_sub.expect(
                 [
                     'on_subscription_matched()', 
@@ -132,11 +131,9 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
             )
             if index == 1:
                 code[0] = ErrorCode.WRITER_NOT_MATCHED
-             
             elif index == 2:
                 code[0] = ErrorCode.INCOMPATIBLE_QOS
                 
-
             elif index == 0:
                 # Step 5: Check if the reader detects the writer as alive 
                 index = child_sub.expect(
@@ -147,8 +144,7 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
                     time_out
                 )
                 if index == 1:
-                    code[0] = ErrorCode.WRITER_NOT_ALIVE
-                    
+                    code[0] = ErrorCode.WRITER_NOT_ALIVE 
                 
                 elif index == 0:
                     #Step 6 : Check if the reader receives the samples
@@ -189,7 +185,6 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
                         else:
                             code[0] = ErrorCode.OK
                            
-
                     elif index == 1:
                         code[0] = ErrorCode.DATA_NOT_RECEIVED
                          
@@ -197,7 +192,6 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
     return
 
 
-#opcion -debug a un fichero de texto o -verbose
 def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
                 check_order=False, check_color=False, check_strength=False):
     """ Run the executable with the parameters and save the error code obtained
@@ -207,23 +201,27 @@ def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
         time_out : time pexpect will wait until it finds a pattern
         code : this variable will be overwritten with the obtained ErrorCode
         data : this variable will be overwritten with the obtained data
+            (only uses if we have compiled with the new shape_main.cxx)
+        event : object event from multiprocessing 
+        check_order : boolean value used for checking reliability
+        check_color : boolean value used for ownership
+        check_strength : boolean value used for ownership
 
         The function will run the executable with the Qos as a Publisher.
         It will follow the next steps until it does not find the pattern 
         and it will save the ErrorCode found:
             * Wait until the topic is created
             * Wait until the writer is created
-            * Wait until the writer matchs with a reader
+            * Wait until the writer matches with a reader
             * Wait until the writer sends data
 
-        If at a each point the step is not achieved succesfully, 
+        If at a each point the step is not achieved successfully, 
         the function will stop and the ErrorCode will be saved.
     
     """
     
     # Step 1 : run the executable
     child_pub = pexpect.spawn('%s -P %s'% (name_executable, parameters))
-    #child_pub.logfile = sys.stdout
 
     # Step 2 : Check if the topic is created
     index = child_pub.expect(
@@ -237,10 +235,8 @@ def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
     )
     if index == 1 or index == 2:
         code[id_pub] = ErrorCode.TOPIC_NOT_CREATED
-        
     elif index == 3:
         code[id_pub] = ErrorCode.UNRECOGNIZED_VALUE
-        
     
     elif index == 0:
         # Step 3 : Check if the writer is created
@@ -254,9 +250,8 @@ def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
         if index == 1:
             code[id_pub] = ErrorCode.WRITER_NOT_CREATED
             
-    
         elif index == 0:
-            # Step 4 : Check if the writer matchs the readers
+            # Step 4 : Check if the writer matches the reader
             index = child_pub.expect(
                 [
                     'on_publication_matched()',
@@ -267,19 +262,14 @@ def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
             )
             if index == 1:      
                 code[id_pub] = ErrorCode.READER_NOT_MATCHED
-               
             elif index == 2:
                 code[id_pub] = ErrorCode.INCOMPATIBLE_QOS
-                
-
             elif index == 0:
                 code[id_pub] = ErrorCode.OK
             
-
     event.wait()                
     return
 
-# mirar si poner las descripciones con will o con que
 
 def run_test(key, param_pub, param_sub, 
                 expected_code_pub, expected_code_sub, 
@@ -287,15 +277,18 @@ def run_test(key, param_pub, param_sub,
                 check_strength=False):
     """ Run the Publisher and the Subscriber and check the ErrorCode
 
-        expected_code_pub : Errorcode the Publisher will obtain if 
+        expected_code_pub : ErrorCode the Publisher will obtain if 
                         everything goes as expected
-        expected_code_sub : Errorcode the Subscriber will obtain if 
+        expected_code_sub : ErrorCode the Subscriber will obtain if 
                         everything goes as expected
         param_pub : qos for the Publisher
         param_sub : qos for the Subscriber
         time_out : timeout for pexpect # should be optional
+        check_order : boolean value used for checking reliability
+        check_color : boolean value used for Test_Ownership_3
+        check_strength : boolean value used for Test_Ownership_3
 
-        The funcion will run in two different Processes
+        The function will run in two different Processes
         the Publisher and the Subscriber. 
         Then it will check that the code obtained is the one
         we expected.
@@ -331,6 +324,25 @@ def run_test(key, param_pub, param_sub,
 def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_pub1, 
                         expected_code_pub2, expected_code_sub, time_out, 
                         check_order=False, check_color=False, check_strength=False):
+    """ Run two Publisher and one Subscriber and check the ErrorCode
+
+        expected_code_pub : ErrorCode the Publisher will obtain if 
+                        everything goes as expected
+        expected_code_sub : ErrorCode the Subscriber will obtain if 
+                        everything goes as expected
+        param_pub : qos for the Publisher
+        param_sub : qos for the Subscriber
+        time_out : timeout for pexpect # should be optional
+        check_order : boolean value used for checking reliability
+        check_color : boolean value used for Test_Ownership_3
+        check_strength : boolean value used for Test_Ownership_3
+
+        The function will run in two different Processes
+        the Publisher and the Subscriber. 
+        Then it will check that the code obtained is the one
+        we expected.
+    """
+
     name_executable = '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux '
     manager = multiprocessing.Manager()
     code = manager.list(range(3))
@@ -363,8 +375,8 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
         print ('%s : Ok' %key)
     else:
         print('Error in : %s' % (key))
-        print('Pub1 expected code: %s; Code found: %s' % (expected_code_pub1, code[1]))
-        print('Pub2 expected code: %s; Code found: %s' % (expected_code_pub2, code[2]))
+        print('Pub_1 expected code: %s; Code found: %s' % (expected_code_pub1, code[1]))
+        print('Pub_2 expected code: %s; Code found: %s' % (expected_code_pub2, code[2]))
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
 
 
