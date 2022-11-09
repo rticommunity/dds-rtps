@@ -57,8 +57,7 @@ QOS = Enum('QOS',
         ])
 
 
-def subscriber(name_executable, parameters, time_out, code, data, event,
-                check_order=False, check_color=False, check_strength=False):
+def subscriber(name_executable, parameters, key, time_out, code, data, event):
     """ Run the executable with the parameters and save the error code obtained
 
         name_executable : name of the executable to run as a Subscriber
@@ -68,9 +67,7 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
         data : this variable will be overwritten with the obtained data
             (only uses if we have compiled with the new shape_main.cxx)
         event : object event from multiprocessing 
-        check_order : boolean value used for checking reliability
-        check_color : boolean value used for ownership
-        check_strength : boolean value used for ownership
+        key : test we are testing
 
         The function will run the executable with the Qos as a Subscriber.
         It will follow the next steps until it does not find the pattern 
@@ -157,7 +154,7 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
                         )
                     if index == 0:
                         
-                        if check_color:
+                        if key == 'Test_Ownership_3':
                             red_received = False
                             blue_received = False
                             code[0] = ErrorCode.RECEIVING_FROM_ONE
@@ -192,8 +189,7 @@ def subscriber(name_executable, parameters, time_out, code, data, event,
     return
 
 
-def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
-                check_order=False, check_color=False, check_strength=False):
+def publisher(name_executable, parameters, key, time_out, code, data, id_pub, event):
     """ Run the executable with the parameters and save the error code obtained
 
         name_executable : name of the executable to run as a Publisher
@@ -203,9 +199,7 @@ def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
         data : this variable will be overwritten with the obtained data
             (only uses if we have compiled with the new shape_main.cxx)
         event : object event from multiprocessing 
-        check_order : boolean value used for checking reliability
-        check_color : boolean value used for ownership
-        check_strength : boolean value used for ownership
+        key : test we are testing
 
         The function will run the executable with the Qos as a Publisher.
         It will follow the next steps until it does not find the pattern 
@@ -273,8 +267,7 @@ def publisher(name_executable, parameters, time_out, code, data, id_pub, event,
 
 def run_test(key, param_pub, param_sub, 
                 expected_code_pub, expected_code_sub, 
-                time_out=20, check_order=False, check_color=False, 
-                check_strength=False):
+                time_out=20):
     """ Run the Publisher and the Subscriber and check the ErrorCode
 
         expected_code_pub : ErrorCode the Publisher will obtain if 
@@ -284,9 +277,7 @@ def run_test(key, param_pub, param_sub,
         param_pub : qos for the Publisher
         param_sub : qos for the Subscriber
         time_out : timeout for pexpect # should be optional
-        check_order : boolean value used for checking reliability
-        check_color : boolean value used for Test_Ownership_3
-        check_strength : boolean value used for Test_Ownership_3
+        key : test we are testing
 
         The function will run in two different Processes
         the Publisher and the Subscriber. 
@@ -301,11 +292,9 @@ def run_test(key, param_pub, param_sub,
     event = multiprocessing.Event()
     
     pub = Process(target=publisher, 
-                    args=[name_executable, param_pub, time_out, code, data,1, event,
-                    check_order])
+                    args=[name_executable, param_pub, key, time_out, code, data,1, event])
     sub = Process(target=subscriber, 
-                    args=[name_executable, param_sub, time_out, code, data, event,
-                    check_order])
+                    args=[name_executable, param_sub, key, time_out, code, data, event])
     sub.start()
     pub.start()
     sub.join()
@@ -322,8 +311,7 @@ def run_test(key, param_pub, param_sub,
 
 
 def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_pub1, 
-                        expected_code_pub2, expected_code_sub, time_out, 
-                        check_order=False, check_color=False, check_strength=False):
+                        expected_code_pub2, expected_code_sub, time_out):
     """ Run two Publisher and one Subscriber and check the ErrorCode
 
         expected_code_pub : ErrorCode the Publisher will obtain if 
@@ -333,9 +321,7 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
         param_pub : qos for the Publisher
         param_sub : qos for the Subscriber
         time_out : timeout for pexpect # should be optional
-        check_order : boolean value used for checking reliability
-        check_color : boolean value used for Test_Ownership_3
-        check_strength : boolean value used for Test_Ownership_3
+        key : test we are testing
 
         The function will run in two different Processes
         the Publisher and the Subscriber. 
@@ -351,14 +337,13 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
    
     if key == 'Test_Ownership_3':
         pub1 = Process(target=publisher, 
-                        args=[name_executable, param_pub1, time_out, code, data,
-                        1, event, False, True, False])
+                        args=[name_executable, param_pub1, key, time_out, code, data,
+                        1, event])
         pub2 = Process(target=publisher, 
-                        args=[name_executable, param_pub2, time_out, code, data,
-                        2, event, False, True, False])                
+                        args=[name_executable, param_pub2, key, time_out, code, data,
+                        2, event])                
         sub = Process(target=subscriber, 
-                        args=[name_executable, param_sub, time_out, code, data, event,
-                        False, True, False])
+                        args=[name_executable, param_sub, key, time_out, code, data, event])
 
     sub.start()
     pub1.start()
@@ -619,12 +604,9 @@ dict_param_expected_code_timeout = {
 
 def main():
     for k, v in dict_param_expected_code_timeout.items():
-        # change this so time_out can be optional
-        if k == 'Test_Ownership_3':
-            run_test_pub_pub_sub(k, v[0], v[1], v[2],v[3], v[4], v[5], v[6], 
-            check_color=True)
-            continue
-
+        # celia : change this so time_out can be optional
+        if k ==  'Test_Ownership_3':
+            run_test_pub_pub_sub(k,v[0], v[1], v[2], v[3], v[4], v[5], v[6])
         else:
             run_test(k,v[0], v[1], v[2], v[3], v[4])
 
