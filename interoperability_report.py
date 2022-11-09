@@ -319,11 +319,12 @@ def run_test(key, param_pub, param_sub,
     pub.join()
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
-        print ('ok')
+        print ('%s : Ok' %key)
     else:
+        print('Error in : %s' % (key))
         print('Pub expected code: %s; Code found: %s' % (expected_code_pub, code[1]))
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
-    print('Test: %s' % (key))
+    
 
 
 
@@ -336,7 +337,7 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
     data = Queue()
     event = multiprocessing.Event()
    
-    if key == "Ownership_03":
+    if key == 'Test_Ownership_3':
         pub1 = Process(target=publisher, 
                         args=[name_executable, param_pub1, time_out, code, data,
                         1, event, False, True, False])
@@ -346,16 +347,7 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
         sub = Process(target=subscriber, 
                         args=[name_executable, param_sub, time_out, code, data, event,
                         False, True, False])
-    if key == "Ownership_04":
-        pub1 = Process(target=publisher, 
-                        args=[name_executable, param_pub1, time_out, code, Queue(),
-                        1, event,False, False, True])
-        pub2 = Process(target=publisher, 
-                        args=[name_executable, param_pub2, time_out, code, data,
-                        2, event, False, False, True])                
-        sub = Process(target=subscriber, 
-                        args=[name_executable, param_sub, time_out, code, data, event,
-                        False, False, True])
+
     sub.start()
     pub1.start()
     time.sleep(1)
@@ -368,250 +360,246 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
 
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
-        print ('ok')
+        print ('%s : Ok' %key)
     else:
+        print('Error in : %s' % (key))
         print('Pub1 expected code: %s; Code found: %s' % (expected_code_pub1, code[1]))
         print('Pub2 expected code: %s; Code found: %s' % (expected_code_pub2, code[2]))
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
-    print('Test: %s ' % (key))
 
 
 short_timeout = 5
 long_timeout = 20
 
-#lista o fichero con parametros y codigo que esperamos (mirar struct)
 
-# importar desde otro fichero
-# anadir test antes de cada nombre
-# quitar el primer cero
 dict_param_expected_code_timeout = {
     # DOMAIN
-    "Domain_00" :
+    'Test_Domain_0' :
         ['-t Square', '-t Square', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout], 
-    "Domain_01" :
+    'Test_Domain_1' :
         ['-t Square', '-t Square -d 1', 
                 ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED, 
                 short_timeout],
-    "Domain_02":
+    'Test_Domain_2':
         ['-t Square -d 1', '-t Square', 
                 ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED,  
                 short_timeout],
-    "Domain_03":
+    'Test_Domain_3':
         ['-t Square -d 1', '-t Square -d 1', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
 
     # RELIABILITY
-    "Reliability_00":
+    'Test_Reliability_0':
         ['-t Square -b', '-t Square -b', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Reliability_01":
+    'Test_Reliability_1':
         ['-t Square -b', '-t Square -r', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
-    "Reliability_02":
+    'Test_Reliability_2':
         ['-t Square -r', '-t Square -b', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Reliability_03":
+    'Test_Reliability_3':
     # reliable, but we only check that they exchange data       
         ['-t Square -r -k 3', '-t Square -r', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
 
     # DEADLINE
-    "Deadline_00":
+    'Test_Deadline_0':
         ['-t Square -f 3', '-t Square -f 5', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Deadline_01":
+    'Test_Deadline_1':
         ['-t Square -f 5', '-t Square -f 5', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Deadline_02":
+    'Test_Deadline_2':
         ['-t Square -f 7', '-t Square -f 5', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
     
     # OWNERSHIP
-    "Ownership_00":
+    'Test_Ownership_0':
         ['-t Square -s -1', '-t Square -s -1', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Ownership_01":
+    'Test_Ownership_1':
         ['-t Square -s -1', '-t Square -s 3', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, 
                 short_timeout],
-    "Ownership_02":
+    'Test_Ownership_2':
         ['-t Square -s 3', '-t Square -s -1', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, 
                 short_timeout],
-    "Ownership_03":
+    'Test_Ownership_3':
         ['-t Square -s 3 -c BLUE', '-t Square -s 4 -c RED',
                     '-t Square -s 2 -r -k 3', 
                 ErrorCode.OK, ErrorCode.OK, ErrorCode.RECEIVING_FROM_BOTH, 
                 long_timeout],
 
     # TOPIC
-    "Topic_00":
+    'Test_Topic_0':
         ['-t Square', '-t Square', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Topic_01":
+    'Test_Topic_1':
         ['-t Square', '-t Circle', 
                 ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED,  
                 short_timeout],
-    "Topic_02":
+    'Test_Topic_2':
         ['-t Circle', '-t Square', 
                 ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED,
                 short_timeout],
-    "Topic_03":
+    'Test_Topic_3':
         ['-t Circle', '-t Circle', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
 
     # COLOR
-    "Color_00":
+    'Test_Color_0':
         ['-t Square -c BLUE', '-t Square -c BLUE', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Color_01":
+    'Test_Color_1':
         ['-t Square -c BLUE', '-t Square -c RED', 
                 ErrorCode.OK, ErrorCode.DATA_NOT_RECEIVED,  
                 short_timeout],
-    "Color_02":
+    'Test_Color_2':
         ['-t Square -c BLUE', '-t Square', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Color_03":
+    'Test_Color_3':
         ['-t Square -c RED', '-t Square -c BLUE', 
                 ErrorCode.OK, ErrorCode.DATA_NOT_RECEIVED,  
                 short_timeout],
-    "Color_04":
+    'Test_Color_4':
         ['-t Square -c RED', '-t Square -c RED', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Color_05":
+    'Test_Color_5':
         ['-t Square -c RED', '-t Square', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Color_06":
+    'Test_Color_6':
         ['-t Square', '-t Square -c BLUE', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Color_07":
+    'Test_Color_7':
         ['-t Square', '-t Square -c RED', 
                 ErrorCode.OK, ErrorCode.DATA_NOT_RECEIVED,  
                 short_timeout],
-    "Color_08":
+    'Test_Color_8':
         ['-t Square', '-t Square', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
 
     # PARTITION
-    "Partition_00":
+    'Test_Partition_0':
         ['-t Square -p "p1"', '-t Square -p "p1"', 
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Partition_01":
+    'Test_Partition_1':
         ['-t Square -p "p1"', '-t Square -p "p2"',  
                 ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED, 
                 short_timeout],
-    "Partition_02":
+    'Test_Partition_2':
         ['-t Square -p "p2"', '-t Square -p "p1"', 
                 ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED,  
                 short_timeout],
-    "Partition_03":
+    'Test_Partition_3':
         ['-t Square -p "p2"', '-t Square -p "p2"',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
 
     # DURABILITY
-    "Durability_00":
+    'Test_Durability_0':
         [ '-t Square -D v', '-t Square -D v', 
                 ErrorCode.OK, ErrorCode.OK, 
                 long_timeout],
-    "Durability_01":
+    'Test_Durability_1':
         ['-t Square -D v', '-t Square -D l', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
-    "Durability_02":
+    'Test_Durability_2':
         ['-t Square -D v', '-t Square -D t', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
-    "Durability_03":
+    'Test_Durability_3':
         ['-t Square -D v', '-t Square -D p', 
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
 
-    "Durability_10":
+    'Test_Durability_4':
         [ '-t Square -D l', '-t Square -D v',
                 ErrorCode.OK, ErrorCode.OK, 
                 long_timeout],
-    "Durability_11":
+    'Test_Durability_5':
         ['-t Square -D l', '-t Square -D l',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_12":
+    'Test_Durability_6':
         ['-t Square -D l', '-t Square -D t',
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
-    "Durability_13":
+    'Test_Durability_7':
         ['-t Square -D l', '-t Square -D p',
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS,  
                 short_timeout],
 
-    "Durability_20":
+    'Test_Durability_8':
         ['-t Square -D t', '-t Square -D v',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_21":
+    'Test_Durability_9':
         ['-t Square -D t', '-t Square -D l',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_22":
+    'Test_Durability_10':
         ['-t Square -D t', '-t Square -D t',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_23":
+    'Test_Durability_11':
         ['-t Square -D t', '-t Square -D p',
                 ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, 
                 short_timeout],
 
-    "Durability_30":
+    'Test_Durability_12':
         ['-t Square -D p', '-t Square -D v',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_31":
+    'Test_Durability_13':
         ['-t Square -D p', '-t Square -D l',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_32":
+    'Test_Durability_14':
         ['-t Square -D p', '-t Square -D t',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
-    "Durability_33":
+    'Test_Durability_15':
         ['-t Square -D p', '-t Square -D p',
                 ErrorCode.OK, ErrorCode.OK,  
                 long_timeout],
 
     # HISTORY
-    "History_00":
+    'Test_History_0':
     [ '-t Square -k 3', '-t Square -k 3',
             ErrorCode.OK, ErrorCode.OK, 
             long_timeout],
-    "History_01":
+    'Test_History_1':
     ['-t Square -k 3', '-t Square -k 0',
             ErrorCode.OK, ErrorCode.OK,  
             long_timeout],
-    "History_02":
+    'Test_History_2':
     ['-t Square -k 0', '-t Square -k 3',
             ErrorCode.OK, ErrorCode.OK,  
             long_timeout],
-    "History_03":
+    'Test_History_3':
     ['-t Square -k 0', '-t Square -k 0',
             ErrorCode.OK, ErrorCode.OK,  
             long_timeout],
@@ -620,7 +608,7 @@ dict_param_expected_code_timeout = {
 def main():
     for k, v in dict_param_expected_code_timeout.items():
         # change this so time_out can be optional
-        if k == "Ownership_03":
+        if k == 'Test_Ownership_3':
             run_test_pub_pub_sub(k, v[0], v[1], v[2],v[3], v[4], v[5], v[6], 
             check_color=True)
             continue
@@ -629,7 +617,5 @@ def main():
             run_test(k,v[0], v[1], v[2], v[3], v[4])
 
     
-
-# poner el main en otro fichero (?)
 if __name__ == '__main__':
     main()
