@@ -5,12 +5,14 @@ from ctypes import c_char_p
 from multiprocessing import Process, Queue, Value, Array
 from operator import truediv
 
+
 import time
 import re
 import pexpect
 import sys
 import multiprocessing 
 import numpy as np
+import argparse
 
 from qos import dict_param_expected_code_timeout, ErrorCode
 
@@ -223,7 +225,7 @@ def publisher(name_executable, parameters, key, time_out, code, data, id_pub, ev
     return
 
 
-def run_test(key, param_pub, param_sub, 
+def run_test(name_pub, name_sub, key, param_pub, param_sub, 
                 expected_code_pub, expected_code_sub, 
                 time_out=20):
     """ Run the Publisher and the Subscriber and check the ErrorCode
@@ -250,9 +252,9 @@ def run_test(key, param_pub, param_sub,
     event = multiprocessing.Event()
     
     pub = Process(target=publisher, 
-                    args=[name_executable, param_pub, key, time_out, code, data,1, event])
+                    args=[name_pub, param_pub, key, time_out, code, data,1, event])
     sub = Process(target=subscriber, 
-                    args=[name_executable, param_sub, key, time_out, code, data, event])
+                    args=[name_sub, param_sub, key, time_out, code, data, event])
     sub.start()
     pub.start()
     sub.join()
@@ -268,7 +270,7 @@ def run_test(key, param_pub, param_sub,
 
 
 
-def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_pub1, 
+def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub, expected_code_pub1, 
                         expected_code_pub2, expected_code_sub, time_out):
     """ Run two Publisher and one Subscriber and check the ErrorCode
 
@@ -295,13 +297,13 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
    
     if key == 'Test_Ownership_3':
         pub1 = Process(target=publisher, 
-                        args=[name_executable, param_pub1, key, time_out, code, data,
+                        args=[name_pub, param_pub1, key, time_out, code, data,
                         1, event])
         pub2 = Process(target=publisher, 
-                        args=[name_executable, param_pub2, key, time_out, code, data,
+                        args=[name_pub, param_pub2, key, time_out, code, data,
                         2, event])                
         sub = Process(target=subscriber, 
-                        args=[name_executable, param_sub, key, time_out, code, data, event])
+                        args=[name_sub, param_sub, key, time_out, code, data, event])
 
     sub.start()
     pub1.start()
@@ -323,13 +325,33 @@ def run_test_pub_pub_sub(key, param_pub1, param_pub2, param_sub, expected_code_p
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
 
 
+
 def main():
+    parser = argparse.ArgumentParser(description='Interoperability test.')
+    parser.add_argument('-P', 
+                default=None,
+                required=True,
+                type=str, # Celia : is it okey?
+                nargs=1, 
+                help='path of the publisher')
+    parser.add_argument('-S', 
+                default=None,
+                required=True,
+                type=str, # Celia : is it okey?
+                nargs=1, 
+                help='path of the subscriber')
+    parser.add_argument("-v","--verbose",
+                action="store_true",
+                default=False,
+                help="Print more information to stdout.")
+    args = parser.parse_args()
+    print(args.P[0])
     for k, v in dict_param_expected_code_timeout.items():
         # celia : change this so time_out can be optional
         if k ==  'Test_Ownership_3':
-            run_test_pub_pub_sub(k,v[0], v[1], v[2], v[3], v[4], v[5], v[6])
+            run_test_pub_pub_sub(args.P[0], args.S[0], k,v[0], v[1], v[2], v[3], v[4], v[5], v[6])
         else:
-            run_test(k,v[0], v[1], v[2], v[3], v[4])
+            run_test(args.P[0], args.S[0], k,v[0], v[1], v[2], v[3], v[4])
 
     
 if __name__ == '__main__':
