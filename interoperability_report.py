@@ -1,38 +1,34 @@
 #!/usr/bin/python
 
-from ctypes import c_char_p
-
 from multiprocessing import Process, Queue, Value, Array
-from operator import truediv
-
 
 import time
 import re
 import pexpect
-import sys
 import multiprocessing 
-import numpy as np
 import argparse
 import os
 
 from qos import dict_param_expected_code_timeout, ErrorCode, names
 
 
-def subscriber(name_executable, parameters, key, time_out, code, data, event, event2):
+def subscriber(name_executable, parameters, key, time_out, code, 
+                subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save the error code obtained
 
         name_executable : name of the executable to run as a Subscriber
         parameters : QOS to use
-        time_out : time pexpect will wait until it finds a pattern
+        key : test is being tested (from dict_param_expected_code_timeout)
+        time_out : time pexpect waits until it finds a pattern
         code : this variable will be overwritten with the obtained ErrorCode
-        data : this variable will be overwritten with the obtained data
-            (only uses if we have compiled with the new shape_main.cxx)
-        event : object event from multiprocessing 
-        key : test we are testing
+        subscriber_finished : object event from multiprocessing that is set
+            when the subscriber is finished
+        publisher_finished : object event from multiprocessing that is set
+            when the publisher is finished
 
-        The function will run the executable with the Qos as a Subscriber.
-        It will follow the next steps until it does not find the pattern 
-        and it will save the ErrorCode found:
+        The function runs the executable with the Qos as a Subscriber.
+        It follows the next steps until it does not find the pattern 
+        and it saves the ErrorCode found:
             * Wait until the topic is created
             * Wait until the reader is created
             * Wait until the reader matches with a writer
@@ -40,13 +36,15 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
             * Wait until the reader receives data
 
         If at a each point the step is not achieved successfully, 
-        the function will stop and the ErrorCode will be saved.
+        the function stops and the ErrorCode is saved.
     
     """
 
     # Step 1 : run the executable
     child_sub = pexpect.spawn('%s %s' % (name_executable, parameters))
-    msg_sub_verbose = open('log_sub.txt', 'w')
+
+    # Save the output of the child in the file created
+    msg_sub_verbose = open('log_sub.txt', 'w') 
     child_sub.logfile = msg_sub_verbose
     
     # Step 2 : Check if the topic is created
@@ -63,7 +61,6 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
         code[0] = ErrorCode.TOPIC_NOT_CREATED
     elif index == 3:
         code[0] = ErrorCode.UNRECOGNIZED_VALUE
-        #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
     elif index == 0:
         # Step 3 : Check if the reader is created
         index = child_sub.expect(
@@ -76,11 +73,8 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
         )
         if index == 1:
             code[0] = ErrorCode.READER_NOT_CREATED
-            #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
         elif index == 2:
-            code[0] = ErrorCode.FILTER_NOT_CREATED
-            #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
-        
+            code[0] = ErrorCode.FILTER_NOT_CREATED        
         elif index == 0:
             # Step 4 : Check if the reader matches the writer
             index = child_sub.expect(
@@ -93,11 +87,8 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
             )
             if index == 1:
                 code[0] = ErrorCode.WRITER_NOT_MATCHED
-                #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
             elif index == 2:
-                code[0] = ErrorCode.INCOMPATIBLE_QOS
-                #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
-                
+                code[0] = ErrorCode.INCOMPATIBLE_QOS                
             elif index == 0:
                 # Step 5: Check if the reader detects the writer as alive 
                 index = child_sub.expect(
@@ -109,8 +100,6 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
                 )
                 if index == 1:
                     code[0] = ErrorCode.WRITER_NOT_ALIVE 
-                    #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
-                
                 elif index == 0:
                     #Step 6 : Check if the reader receives the samples
                     index = child_sub.expect(
@@ -138,7 +127,6 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
 
                                 if blue_received and red_received:
                                     code[0] = ErrorCode.RECEIVING_FROM_BOTH
-                                    #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
                                     break
                                 child_sub.expect(
                                             [
@@ -150,47 +138,50 @@ def subscriber(name_executable, parameters, key, time_out, code, data, event, ev
                                 
                         else:
                             code[0] = ErrorCode.OK
-                            #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
                            
                     elif index == 1:
                         code[0] = ErrorCode.DATA_NOT_RECEIVED
-                        #msg_sub_verbose.put(child_sub.before + str(child_sub.after))
                          
-    event.set()
-    event2.wait()   
+    subscriber_finished.set() 
+    publisher_finished.wait()   # wait for publisher to finish
     return
 
 
-def publisher(name_executable, parameters, key, time_out, code, data, id_pub, event, event2):
+def publisher(name_executable, parameters, time_out, code, id_pub, 
+                subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save the error code obtained
 
         name_executable : name of the executable to run as a Publisher
         parameters : QOS to use
-        time_out : time pexpect will wait until it finds a pattern
+        time_out : time pexpect waits until it finds a pattern
         code : this variable will be overwritten with the obtained ErrorCode
-        data : this variable will be overwritten with the obtained data
-            (only uses if we have compiled with the new shape_main.cxx)
-        event : object event from multiprocessing 
-        key : test we are testing
+        id_pub : id of the Publisher (1 or 2)
+        subscriber_finished : object event from multiprocessing that is set
+            when the subscriber is finished
+        publisher_finished : object event from multiprocessing that is set
+            when the publisher is finished
 
-        The function will run the executable with the Qos as a Publisher.
-        It will follow the next steps until it does not find the pattern 
-        and it will save the ErrorCode found:
+        The function runs the executable with the Qos as a Publisher.
+        It follows the next steps until it does not find the pattern 
+        and it saves the ErrorCode found:
             * Wait until the topic is created
             * Wait until the writer is created
             * Wait until the writer matches with a reader
             * Wait until the writer sends data
 
         If at a each point the step is not achieved successfully, 
-        the function will stop and the ErrorCode will be saved.
+        the function stops and the ErrorCode is saved.
     
     """
     
     # Step 1 : run the executable
     child_pub = pexpect.spawn('%s %s'% (name_executable, parameters))
+
+    # Save the output of the child in the file created
     file = 'log_pub_'+str(id_pub)+'.txt'
     msg_pub_verbose = open(file, 'w')
     child_pub.logfile = msg_pub_verbose
+
     # Step 2 : Check if the topic is created
     index = child_pub.expect(
         [
@@ -204,10 +195,8 @@ def publisher(name_executable, parameters, key, time_out, code, data, id_pub, ev
     
     if index == 1 or index == 2:
         code[id_pub] = ErrorCode.TOPIC_NOT_CREATED
-        #msg_pub_verbose.put(child_pub.before + str(child_pub.after))
     elif index == 3:
         code[id_pub] = ErrorCode.UNRECOGNIZED_VALUE
-        #msg_pub_verbose.put(child_pub.before + str(child_pub.after))
     elif index == 0:
         # Step 3 : Check if the writer is created
         index = child_pub.expect(
@@ -219,7 +208,6 @@ def publisher(name_executable, parameters, key, time_out, code, data, id_pub, ev
         )
         if index == 1:
             code[id_pub] = ErrorCode.WRITER_NOT_CREATED
-            #msg_pub_verbose.put(child_pub.before + str(child_pub.after))
         elif index == 0:
             # Step 4 : Check if the writer matches the reader
             index = child_pub.expect(
@@ -229,20 +217,16 @@ def publisher(name_executable, parameters, key, time_out, code, data, id_pub, ev
                     'on_offered_incompatible_qos'
                 ], 
                 time_out
-            )
-            
+            ) 
             if index == 1:      
                 code[id_pub] = ErrorCode.READER_NOT_MATCHED
-                #msg_pub_verbose.put(child_pub.before + str(child_pub.after))
             elif index == 2:
                 code[id_pub] = ErrorCode.INCOMPATIBLE_QOS
-                #msg_pub_verbose.put(child_pub.before + str(child_pub.after))
             elif index == 0:
                 code[id_pub] = ErrorCode.OK
-                #msg_pub_verbose.put(child_pub.before + str(child_pub.after))
             
-    event.wait()
-    event2.set()                
+    subscriber_finished.wait() # wait for subscriber to finish
+    publisher_finished.set()                
     return
 
 
@@ -251,37 +235,42 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
                 time_out=20):
     """ Run the Publisher and the Subscriber and check the ErrorCode
 
-        expected_code_pub : ErrorCode the Publisher will obtain if 
-                        everything goes as expected
-        expected_code_sub : ErrorCode the Subscriber will obtain if 
-                        everything goes as expected
+        name_pub : name of the executable to run as a Publisher
+        name_sub : name of the executable to run as a Subscriber
+        key : test is being tested (from dict_param_expected_code_timeout)
         param_pub : qos for the Publisher
         param_sub : qos for the Subscriber
-        time_out : timeout for pexpect # should be optional
-        key : test we are testing
+        expected_code_pub : ErrorCode the Publisher will obtain in a non error 
+                            situation
+        expected_code_sub : ErrorCode the Subscriber will obtain in a non error
+                            situation
+        verbose : boolean. True means the output of the Publisher and Subscriber 
+                will be shown on the console if there is an error.
+        time_out : timeout for pexpect. Optional, default value = 20.
 
-        The function will run in two different Processes
+        The function runs in two different Processes
         the Publisher and the Subscriber. 
-        Then it will check that the code obtained is the one
+        Then it checks that the code obtained is the one
         we expected.
     """
-    #name_executable = # /home/carias/shape_main/opendds3.21_shape_main_linux
-    name_executable = '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux '
     manager = multiprocessing.Manager()
-    code = manager.list(range(2))
-    data = Queue()
-    event = multiprocessing.Event()
-    event2 = multiprocessing.Event()
+    code = manager.list(range(2)) # used for storing the obtained ErrorCode (from Publisher and Subscriber)
+
+    subscriber_finished = multiprocessing.Event()
+    publisher_finished = multiprocessing.Event()
 
     pub = Process(target=publisher, 
-                    args=[name_pub, param_pub, key, time_out, code, data,1, event, event2])
+                    args=[name_pub, param_pub, time_out, code, 1, 
+                          subscriber_finished, publisher_finished])
     sub = Process(target=subscriber, 
-                    args=[name_sub, param_sub, key, time_out, code, data, event, event2])
+                    args=[name_sub, param_sub, key, time_out, code,
+                          subscriber_finished, publisher_finished])
     sub.start()
     pub.start()
     sub.join()
     pub.join()
 
+    # temporal files
     msg_pub_verbose = open('log_pub_1.txt', 'r')
     msg_sub_verbose = open('log_sub.txt', 'r')
 
@@ -293,62 +282,69 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
         if verbose:
             if expected_code_pub !=  code[1]:
-                print('####################################################################################')
+                print('#############################################################')
                 print('Information about the Publisher:')
-                print('%s' % msg_pub_verbose.read(500))
-                print('####################################################################################')
+                print('%s' % msg_pub_verbose.read(500)) # read only 500 characters because the output of the Publisher is too long
+                print('#############################################################')
             if expected_code_sub !=  code[0]:
-                print('####################################################################################')
+                print('#############################################################')
                 print('Information about the Subscriber:')
                 print('%s' % msg_sub_verbose.read())
-                print('####################################################################################')
+                print('#############################################################')
     
+    # Delete the temporal files
     os.remove('log_pub_1.txt')
     os.remove('log_sub.txt')
 
-def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub, expected_code_pub1, 
-                        expected_code_pub2, expected_code_sub, verbose, time_out):
+def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub,
+                         expected_code_pub1, expected_code_pub2, expected_code_sub, 
+                         verbose, time_out):
     """ Run two Publisher and one Subscriber and check the ErrorCode
 
-        expected_code_pub : ErrorCode the Publisher will obtain if 
-                        everything goes as expected
-        expected_code_sub : ErrorCode the Subscriber will obtain if 
-                        everything goes as expected
-        param_pub : qos for the Publisher
+        name_pub : name of the executable to run as a Publisher
+        name_sub : name of the executable to run as a Subscriber
+        key : test that is being tested (from dict_param_expected_code_timeout)
+        param_pub1 : qos for the Publisher 1
+        param_pub2 : qos for the Publisher 2
         param_sub : qos for the Subscriber
-        time_out : timeout for pexpect # should be optional
-        key : test we are testing
+        expected_code_pub1 : ErrorCode the Publisher 1 will obtain in a non error 
+                            situation
+        expected_code_pub2 : ErrorCode the Publisher 2 will obtain in a non error 
+                            situation
+        expected_code_sub : ErrorCode the Subscriber will obtain in a non error
+                            situation
+        verbose : boolean. True means the output of the Publisher and Subscriber 
+                will be shown on the console if there is an error.
+        time_out : timeout for pexpect. Optional, default value = 20.
 
-        The function will run in two different Processes
-        the Publisher and the Subscriber. 
-        Then it will check that the code obtained is the one
+        The function runs in three different Processes
+        the first Publisher, the second Publisher and the Subscriber. 
+        Then it checks that the code obtained is the one
         we expected.
     """
-
-    name_executable = '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux '
     manager = multiprocessing.Manager()
-    code = manager.list(range(3))
-    data = Queue()
-    event = multiprocessing.Event()
-    event2 = multiprocessing.Event()
+    code = manager.list(range(3)) # used for storing the obtained ErrorCode (from Publisher 1, Publisher 2 and Subscriber)
+
+    subscriber_finished = multiprocessing.Event()
+    publisher_finished = multiprocessing.Event()
 
 
     if key == 'Test_Ownership_3':
         pub1 = Process(target=publisher, 
-                        args=[name_pub, param_pub1, key, time_out, code, data,
-                        1, event, event2])
+                        args=[name_pub, param_pub1, time_out, code, 1, 
+                              subscriber_finished, publisher_finished])
         pub2 = Process(target=publisher, 
-                        args=[name_pub, param_pub2, key, time_out, code, data,
-                        2, event, event2])                
+                        args=[name_pub, param_pub2, time_out, code, 2, 
+                              subscriber_finished, publisher_finished])                
         sub = Process(target=subscriber, 
-                        args=[name_sub, param_sub, key, time_out, code, data, event, event2])
-    
-    #msg_pub_verbose = open('log_pub.txt', 'r')
-    #msg_sub_verbose = open('log_sub.txt', 'r')
+                        args=[name_sub, param_sub, key, time_out, code, 
+                              subscriber_finished, publisher_finished])
 
     sub.start()
     pub1.start()
-    time.sleep(1)
+    time.sleep(1) # used to simulate the manual execution. In the case where the ownership strength is being tested
+                  # if the second Publisher starts first we could receive samples from it, but it means that 
+                  # the first Publisher is not created yet, not that the strength of the second is bigger
     pub2.start()
     
     
@@ -356,6 +352,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     pub1.join()
     pub2.join()
 
+    # temporal files
     msg_pub1_verbose = open('log_pub_1.txt', 'r')
     msg_pub2_verbose = open('log_pub_2.txt', 'r')
     msg_sub_verbose = open('log_sub.txt', 'r')
@@ -370,21 +367,22 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
         if verbose:
             if expected_code_pub1 !=  code[1]:
-                print('####################################################################################')
+                print('#############################################################')
                 print('Information about the Publisher 1:')
-                print('%s' % msg_pub1_verbose.read(500))
-                print('####################################################################################')
+                print('%s' % msg_pub1_verbose.read(500)) # read only 500 characters because the output of the Publisher is too long
+                print('#############################################################')
             if expected_code_pub2 !=  code[2]:
-                print('####################################################################################')
+                print('#############################################################')
                 print('Information about the Publisher 2:')
-                print('%s' % msg_pub2_verbose.read(500))
-                print('####################################################################################')
+                print('%s' % msg_pub2_verbose.read(500)) # read only 500 characters because the output of the Publisher is too long
+                print('#############################################################')
             if expected_code_sub !=  code[0]:
-                print('####################################################################################')
+                print('#############################################################')
                 print('Information about the Subscriber:')
                 print('%s' % msg_sub_verbose.read())
-                print('####################################################################################')
+                print('#############################################################')
 
+    # Delete the temporal files
     os.remove('log_pub_1.txt')
     os.remove('log_pub_2.txt')
     os.remove('log_sub.txt')
@@ -392,18 +390,16 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
 def main():
     parser = argparse.ArgumentParser(description='Interoperability test.')
     parser.add_argument('-P', 
-                metavar='publisher_name', #cambiar a que tambien se pueda llamar asi con --
                 choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
                 default=None,
                 required=True,
-                type=str, # Celia : is it okey?
+                type=str, 
                 help='Path of the publisher')
-    parser.add_argument('-S', #cambiar a que tambien se pueda llamar asi con --
-                metavar='subscriber_name',
+    parser.add_argument('-S', 
                 choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
                 default=None,
                 required=True,
-                type=str, # Celia : is it okey?
+                type=str, 
                 help='Path of the subscriber')
     parser.add_argument("-v","--verbose",
                 action="store_true",
@@ -417,17 +413,17 @@ def main():
     parser.add_argument("-o", "--output",
                 metavar='filename',
                 type=str,
-                default='report', #celia : change this #if this contain an extension this should be the extension of the file, and -f should be empty
-                                    #add_mutually_exclusive_group(required=False)
+                default='report', 
                 help="Output format.")
     args = parser.parse_args()
 
     for k, v in dict_param_expected_code_timeout.items():
-        # celia : change this so time_out can be optional
         if k ==  'Test_Ownership_3':
-            run_test_pub_pub_sub(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], v[4], v[5], args.verbose, v[6])
+            run_test_pub_pub_sub(names[args.P], names[args.S], k,v[0], v[1], v[2],
+                                 v[3], v[4], v[5], args.verbose, v[6])
         else:
-            run_test(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], args.verbose, v[4])
+            run_test(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], 
+                            args.verbose, v[4])
 
     
 if __name__ == '__main__':
