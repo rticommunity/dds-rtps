@@ -113,5 +113,6 @@ dict_param_expected_code_timeout = {
 
 names = {
     'connext6.1.1' : '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux',
-    'opendds' : '/home/carias/shape_main/opendds3.21_shape_main_linux'
+    'opendds' : '/home/carias/shape_main/opendds3.21_shape_main_linux',
+    'connext5.2.3' : '/home/carias/shape_main/5.2.3/rti_shapes_5.2.3_linux'
 }

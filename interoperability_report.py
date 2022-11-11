@@ -188,7 +188,8 @@ def publisher(name_executable, parameters, key, time_out, code, data, id_pub, ev
     
     # Step 1 : run the executable
     child_pub = pexpect.spawn('%s %s'% (name_executable, parameters))
-    msg_pub_verbose = open('log_pub.txt', 'w')
+    file = 'log_pub_'+str(id_pub)+'.txt'
+    msg_pub_verbose = open(file, 'w')
     child_pub.logfile = msg_pub_verbose
     # Step 2 : Check if the topic is created
     index = child_pub.expect(
@@ -246,7 +247,7 @@ def publisher(name_executable, parameters, key, time_out, code, data, id_pub, ev
 
 
 def run_test(name_pub, name_sub, key, param_pub, param_sub, 
-                expected_code_pub, expected_code_sub, 
+                expected_code_pub, expected_code_sub, verbose,
                 time_out=20):
     """ Run the Publisher and the Subscriber and check the ErrorCode
 
@@ -281,7 +282,7 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
     sub.join()
     pub.join()
 
-    msg_pub_verbose = open('log_pub.txt', 'r')
+    msg_pub_verbose = open('log_pub_1.txt', 'r')
     msg_sub_verbose = open('log_sub.txt', 'r')
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
@@ -290,22 +291,23 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
         print('Error in : %s' % (key))
         print('Pub expected code: %s; Code found: %s' % (expected_code_pub, code[1]))
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
-        if expected_code_pub !=  code[1]:
-            print('####################################################################################')
-            print('Information about the Publisher:')
-            print('%s' % msg_pub_verbose.read())
-            print('####################################################################################')
-        if expected_code_sub !=  code[0]:
-            print('####################################################################################')
-            print('Information about the Subscriber:')
-            print('%s' % msg_sub_verbose.read())
-            print('####################################################################################')
+        if verbose:
+            if expected_code_pub !=  code[1]:
+                print('####################################################################################')
+                print('Information about the Publisher:')
+                print('%s' % msg_pub_verbose.read(500))
+                print('####################################################################################')
+            if expected_code_sub !=  code[0]:
+                print('####################################################################################')
+                print('Information about the Subscriber:')
+                print('%s' % msg_sub_verbose.read())
+                print('####################################################################################')
     
-    os.remove('log_pub.txt')
+    os.remove('log_pub_1.txt')
     os.remove('log_sub.txt')
 
 def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub, expected_code_pub1, 
-                        expected_code_pub2, expected_code_sub, time_out):
+                        expected_code_pub2, expected_code_sub, verbose, time_out):
     """ Run two Publisher and one Subscriber and check the ErrorCode
 
         expected_code_pub : ErrorCode the Publisher will obtain if 
@@ -354,6 +356,10 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     pub1.join()
     pub2.join()
 
+    msg_pub1_verbose = open('log_pub_1.txt', 'r')
+    msg_pub2_verbose = open('log_pub_2.txt', 'r')
+    msg_sub_verbose = open('log_sub.txt', 'r')
+
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
         print ('%s : Ok' %key)
@@ -362,37 +368,39 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
         print('Pub_1 expected code: %s; Code found: %s' % (expected_code_pub1, code[1]))
         print('Pub_2 expected code: %s; Code found: %s' % (expected_code_pub2, code[2]))
         print('Sub expected code: %s; Code found: %s' % (expected_code_sub, code[0]))
+        if verbose:
+            if expected_code_pub1 !=  code[1]:
+                print('####################################################################################')
+                print('Information about the Publisher 1:')
+                print('%s' % msg_pub1_verbose.read(500))
+                print('####################################################################################')
+            if expected_code_pub2 !=  code[2]:
+                print('####################################################################################')
+                print('Information about the Publisher 2:')
+                print('%s' % msg_pub2_verbose.read(500))
+                print('####################################################################################')
+            if expected_code_sub !=  code[0]:
+                print('####################################################################################')
+                print('Information about the Subscriber:')
+                print('%s' % msg_sub_verbose.read())
+                print('####################################################################################')
 
-        #if expected_code_pub1 !=  code[1]:
-        #    print('####################################################################################')
-        #    print('Information about the Publisher 1:')
-        #    print('%s' % msg_pub_verbose.read())
-        #    print('####################################################################################')
-        #if expected_code_pub2 !=  code[2]:
-        #    print('####################################################################################')
-        #    print('Information about the Publisher 2:')
-        #    print('%s' % msg_pub_verbose.read())
-        #    print('####################################################################################')
-        #if expected_code_sub !=  code[0]:
-        #    print('####################################################################################')
-        #    print('Information about the Subscriber:')
-        #    print('%s' % msg_sub_verbose.read())
-        #    print('####################################################################################')
-
-
+    os.remove('log_pub_1.txt')
+    os.remove('log_pub_2.txt')
+    os.remove('log_sub.txt')
 
 def main():
     parser = argparse.ArgumentParser(description='Interoperability test.')
     parser.add_argument('-P', 
                 metavar='publisher_name', #cambiar a que tambien se pueda llamar asi con --
-                choices=['connext6.1.1', 'opendds'],
+                choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
                 default=None,
                 required=True,
                 type=str, # Celia : is it okey?
                 help='Path of the publisher')
     parser.add_argument('-S', #cambiar a que tambien se pueda llamar asi con --
                 metavar='subscriber_name',
-                choices=['connext6.1.1', 'opendds'],
+                choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
                 default=None,
                 required=True,
                 type=str, # Celia : is it okey?
@@ -417,9 +425,9 @@ def main():
     for k, v in dict_param_expected_code_timeout.items():
         # celia : change this so time_out can be optional
         if k ==  'Test_Ownership_3':
-            run_test_pub_pub_sub(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], v[4], v[5], v[6])
+            run_test_pub_pub_sub(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], v[4], v[5], args.verbose, v[6])
         else:
-            run_test(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], v[4])
+            run_test(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], args.verbose, v[4])
 
     
 if __name__ == '__main__':

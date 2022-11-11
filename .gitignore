@@ -40,3 +40,5 @@ objs/
 # Other
 *~
 GeneratedCode
+
+USER_QOS_PROFILES.xml
