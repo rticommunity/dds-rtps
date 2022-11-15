@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from multiprocessing import Process, Queue, Value, Array
+import tempfile
 
 import time
 import re
@@ -8,6 +9,9 @@ import pexpect
 import multiprocessing 
 import argparse
 import os
+
+from junitparser import TestCase, TestSuite, JUnitXml, Skipped, Error
+from datetime import date
 
 from qos import dict_param_expected_code_timeout, ErrorCode, names
 
@@ -45,6 +49,7 @@ def subscriber(name_executable, parameters, key, time_out, code,
 
     # Save the output of the child in the file created
     msg_sub_verbose = open('log_sub.txt', 'w') 
+    #msg_sub_verbose = tempfile.TemporaryFile()
     child_sub.logfile = msg_sub_verbose
     
     # Step 2 : Check if the topic is created
@@ -231,7 +236,7 @@ def publisher(name_executable, parameters, time_out, code, id_pub,
 
 
 def run_test(name_pub, name_sub, key, param_pub, param_sub, 
-                expected_code_pub, expected_code_sub, verbose,
+                expected_code_pub, expected_code_sub, verbose, case,
                 time_out=20):
     """ Run the Publisher and the Subscriber and check the ErrorCode
 
@@ -276,6 +281,7 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
         print ('%s : Ok' %key)
+        case.result = [('OK')]
     else:
         print('Error in : %s' % (key))
         print('Pub expected code: %s; Code found: %s' % (expected_code_pub, code[1]))
@@ -284,21 +290,37 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
             if expected_code_pub !=  code[1]:
                 print('#############################################################')
                 print('Information about the Publisher:')
-                print('%s' % msg_pub_verbose.read(500)) # read only 500 characters because the output of the Publisher is too long
+                print('%s' % msg_pub_verbose.read()) # read only 500 characters because the output of the Publisher is too long
                 print('#############################################################')
             if expected_code_sub !=  code[0]:
                 print('#############################################################')
                 print('Information about the Subscriber:')
                 print('%s' % msg_sub_verbose.read())
-                print('#############################################################')
+                print('#############################################################')      
+        
+        additional_info_pub = msg_pub_verbose.read().replace('\n', '<br>')        
+        additional_info_sub = msg_sub_verbose.read().replace('\n', '<br>')   
+        case.result = [Error('<strong> Publisher expected code </strong> %s ; <strong> Code found: </strong>  %s  <br> \
+                             <strong> Sub expected code: </strong>  %s; <strong> Code found: </strong>  %s <br> \
+                             <strong> Information Publisher: </strong>  <br> %s \
+                             <strong> Information Subscriber: </strong>  <br> %s' % 
+                             (expected_code_pub, code[1],
+                             expected_code_sub, code[0], additional_info_pub, additional_info_sub ))
+                      ]
+
+       
+        #case.result = [Error(f'Publisher expected code {expected_code_pub} ; Code found: {code[1]}  \
+         #                    Sub expected code: {expected_code_sub}; Code found: {code[0]} )]
+    
     
     # Delete the temporal files
     os.remove('log_pub_1.txt')
     os.remove('log_sub.txt')
+    #mirar ficheros temporales
 
 def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub,
                          expected_code_pub1, expected_code_pub2, expected_code_sub, 
-                         verbose, time_out):
+                         verbose, case, time_out):
     """ Run two Publisher and one Subscriber and check the ErrorCode
 
         name_pub : name of the executable to run as a Publisher
@@ -360,6 +382,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
         print ('%s : Ok' %key)
+        case.result = [('OK')]
     else:
         print('Error in : %s' % (key))
         print('Pub_1 expected code: %s; Code found: %s' % (expected_code_pub1, code[1]))
@@ -369,18 +392,36 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
             if expected_code_pub1 !=  code[1]:
                 print('#############################################################')
                 print('Information about the Publisher 1:')
-                print('%s' % msg_pub1_verbose.read(500)) # read only 500 characters because the output of the Publisher is too long
+                print('%s' % msg_pub1_verbose.read()) # read only 500 characters because the output of the Publisher is too long
                 print('#############################################################')
             if expected_code_pub2 !=  code[2]:
                 print('#############################################################')
                 print('Information about the Publisher 2:')
-                print('%s' % msg_pub2_verbose.read(500)) # read only 500 characters because the output of the Publisher is too long
+                print('%s' % msg_pub2_verbose.read()) # read only 500 characters because the output of the Publisher is too long
                 print('#############################################################')
             if expected_code_sub !=  code[0]:
                 print('#############################################################')
                 print('Information about the Subscriber:')
                 print('%s' % msg_sub_verbose.read())
                 print('#############################################################')
+        additional_info_pub1 = msg_pub1_verbose.read().replace('\n', '<br>')      
+        additional_info_pub2 = msg_pub2_verbose.read().replace('\n', '<br>')  
+        additional_info_sub = msg_sub_verbose.read().replace('\n', '<br>')  
+
+        case.result = [Error('<strong> Publisher 1 expected code </strong> %s ; <strong> Code found: </strong> %s <br> \
+                              <strong> Publisher 2 expected code </strong> %s : <strong> Code found </strong> %s <br> \
+                              <strong> Sub expected code: </strong> %s; <strong> Code found: </strong>%s <br>\
+                              <strong> Information Publisher 1: </strong>  <br> %s \
+                              <strong> Information Publisher 2: </strong>  <br> %s \
+                              <strong> Information Subscriber: </strong>  <br> %s' % 
+                             (expected_code_pub1, code[1],
+                             expected_code_pub2, code[2],
+                             expected_code_sub, code[0],
+                             additional_info_pub1,
+                             additional_info_pub2,
+                             additional_info_sub)
+                          )
+                      ]
 
     # Delete the temporal files
     os.remove('log_pub_1.txt')
@@ -388,6 +429,10 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     os.remove('log_sub.txt')
 
 def main():
+    today = date.today()
+    #d4 = today.strftime("%b-%d-%Y")
+    d4 = today.strftime('%Y%m%d-%H:%M:%S')
+
     parser = argparse.ArgumentParser(description='Interoperability test.')
     parser.add_argument('-P', 
                 choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
@@ -413,18 +458,44 @@ def main():
     parser.add_argument("-o", "--output",
                 metavar='filename',
                 type=str,
-                default='report', 
+                default='default', 
                 help="Output format.")
+
+
     args = parser.parse_args()
 
+
+    if args.output == 'default':
+        args.output = args.P+'-'+args.S+'-'+d4+'.xml'
+        xml = JUnitXml()
+    else:
+        xml = JUnitXml.fromfile(args.output)
+    #xml = JUnitXml.fromfile('./junit.xml')
+    
+    suite = TestSuite('%s---%s' %(args.P,args.S))
+
     for k, v in dict_param_expected_code_timeout.items():
+        
+        case = TestCase('%s' %k)
         if k ==  'Test_Ownership_3':
             run_test_pub_pub_sub(names[args.P], names[args.S], k,v[0], v[1], v[2],
-                                 v[3], v[4], v[5], args.verbose, v[6])
+                                 v[3], v[4], v[5], args.verbose, case, v[6])
         else:
             run_test(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], 
-                            args.verbose, v[4])
+                           args.verbose, case, v[4])
+        
+        suite.add_testcase(case)
 
+
+    xml.add_testsuite(suite)   
+ 
+    xml.write(args.output)
+
+    # jv = require('junit-viewer')
+    # parsedData = jv.parse(args.output)
+    # renderedData = jv.render(parsedData)
+    # parsedAndRenderData = jv.unit_viewer(args.output)
+    
     
 if __name__ == '__main__':
     main()

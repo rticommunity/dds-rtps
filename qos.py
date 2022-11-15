@@ -55,7 +55,7 @@ dict_param_expected_code_timeout = {
     'Test_Ownership_0': ['-P -t Square -s -1', '-S -t Square -s -1', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_Ownership_1': ['-P -t Square -s -1', '-S -t Square -s 3', ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, short_timeout],
     'Test_Ownership_2': ['-P -t Square -s 3', '-S -t Square -s -1', ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, short_timeout],
-    # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
+    #Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
     'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE', '-P -t Square -s 4 -c RED', '-S -t Square -s 2 -r -k 3', 
                          ErrorCode.OK, ErrorCode.OK, ErrorCode.RECEIVING_FROM_BOTH,  long_timeout],
 
@@ -65,7 +65,7 @@ dict_param_expected_code_timeout = {
     'Test_Topic_2' : ['-P -t Circle', '-S -t Square', ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED, short_timeout],
     'Test_Topic_3' : ['-P -t Circle', '-S -t Circle', ErrorCode.OK, ErrorCode.OK, long_timeout],
 
-    # COLOR
+    #COLOR
     'Test_Color_0' : ['-P -t Square -c BLUE', '-S -t Square -c BLUE', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_Color_1' : ['-P -t Square -c BLUE', '-S -t Square -c RED', ErrorCode.OK, ErrorCode.DATA_NOT_RECEIVED, short_timeout],
     'Test_Color_2' : ['-P -t Square -c BLUE', '-S -t Square', ErrorCode.OK, ErrorCode.OK, long_timeout],
@@ -76,13 +76,13 @@ dict_param_expected_code_timeout = {
     'Test_Color_7' : ['-P -t Square', '-S -t Square -c RED', ErrorCode.OK, ErrorCode.DATA_NOT_RECEIVED, short_timeout],
     'Test_Color_8' : ['-P -t Square', '-S -t Square', ErrorCode.OK, ErrorCode.OK, long_timeout],
 
-    # PARTITION
+    #PARTITION
     'Test_Partition_0' : ['-P -t Square -p "p1"', '-S -t Square -p "p1"', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_Partition_1' : ['-P -t Square -p "p1"', '-S -t Square -p "p2"', ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED, short_timeout],
     'Test_Partition_2' : ['-P -t Square -p "p2"', '-S -t Square -p "p1"', ErrorCode.READER_NOT_MATCHED, ErrorCode.WRITER_NOT_MATCHED, short_timeout],
     'Test_Partition_3' : ['-P -t Square -p "p2"', '-S -t Square -p "p2"', ErrorCode.OK, ErrorCode.OK, long_timeout],
 
-    # DURABILITY
+    #DURABILITY
     'Test_Durability_0' : ['-P -t Square -D v', '-S -t Square -D v', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_Durability_1' : ['-P -t Square -D v', '-S -t Square -D l', ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, short_timeout],
     'Test_Durability_2' : ['-P -t Square -D v', '-S -t Square -D t', ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, short_timeout],
@@ -103,7 +103,7 @@ dict_param_expected_code_timeout = {
     'Test_Durability_14' : ['-P -t Square -D p', '-S -t Square -D t', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_Durability_15' : ['-P -t Square -D p', '-S -t Square -D p', ErrorCode.OK, ErrorCode.OK, long_timeout],
 
-    # HISTORY
+    #HISTORY
     'Test_History_0' : ['-P -t Square -k 3', '-S -t Square -k 3', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_History_1' : ['-P -t Square -k 3', '-S -t Square -k 0', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_History_2' : ['-P -t Square -k 0', '-S -t Square -k 3', ErrorCode.OK, ErrorCode.OK, long_timeout],
@@ -112,7 +112,7 @@ dict_param_expected_code_timeout = {
 
 
 names = {
-    'connext6.1.1' : '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux',
-    'opendds' : '/home/carias/shape_main/opendds3.21_shape_main_linux',
-    'connext5.2.3' : '/home/carias/shape_main/5.2.3/rti_shapes_5.2.3_linux'
+    'connext6.1.1' : '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/connext6.1.1_shape_main',
+    'opendds' : '/home/carias/shape_main/opendds3.21_shape_main_linux'
+    #'connext5.2.3' : '/home/carias/shape_main/5.2.3/rti_shapes_5.2.3_linux'
 }
