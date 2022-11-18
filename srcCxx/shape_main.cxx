@@ -97,6 +97,7 @@ public:
         durability_kind     = VOLATILE_DURABILITY_QOS;
         history_depth       = -1;      /* means default */
         ownership_strength  = -1;      /* means shared */
+       
 
         topic_name         = NULL;
         color              = NULL;
@@ -215,7 +216,7 @@ public:
                 break;
             case 'k':
                 history_depth = atoi(optarg);
-                if (history_depth <= 0) {
+                if (history_depth < 0) {
                     printf("unrecognized value for history_depth '%c'\n", optarg[0]);
                     parse_ok = false;
                 }
@@ -228,7 +229,7 @@ public:
                 break;
             case 's':
                 ownership_strength = atoi(optarg);
-                if (ownership_strength <= 0) {
+                if (ownership_strength <= 0 && ownership_strength != -1) {
                     printf("unrecognized value for ownership_strength '%c'\n", optarg[0]);
                     parse_ok = false;
                 }
@@ -480,6 +481,10 @@ public:
             dw_qos.ownership_strength.value = options->ownership_strength;
         }
 
+        if ( options->ownership_strength == -1 ) {
+            dw_qos.ownership.kind = SHARED_OWNERSHIP_QOS;
+        }
+
         if ( options->deadline_interval > 0 ) {
             dw_qos.deadline.period.sec      = options->deadline_interval;
             dw_qos.deadline.period.nanosec  = 0;
@@ -579,7 +584,7 @@ public:
         }
         else  {
             printf("Create reader for topic: %s\n", options->topic_name );
-            dr = dynamic_cast<ShapeTypeDataReader *>(sub->create_datareader( topic, dr_qos, NULL, 0));
+            dr = dynamic_cast<ShapeTypeDataReader *>(sub->create_datareader( topic, dr_qos, NULL, 0));            
         }
 
         if (dr == NULL) {
@@ -626,7 +631,7 @@ public:
 
                 if (retval == RETCODE_OK) {
                     int i;
-                    for (i = samples.length()-1; i>=0; i--)  {
+                    for (i = 0; i < samples.length(); i++)  {
 
 #if   defined(RTI_CONNEXT_DDS) || defined(OPENDDS)
                         ShapeType          *sample      = &samples[i];
@@ -642,7 +647,6 @@ public:
                                     sample->x,
                                     sample->y,
                                     sample->shapesize );
-                            break;
                         }
                     }
 
@@ -718,7 +722,11 @@ public:
 #elif defined(TWINOAKS_COREDX)
             dw->write( &shape, HANDLE_NIL );
 #endif
-
+            printf("%-10s %-10s %03d %03d [%d]\n", dw->get_topic()->get_name(),
+                                    shape.color STRING_IN,
+                                    shape.x,
+                                    shape.y,
+                                    shape.shapesize );
             usleep(33000);
         }
 

@@ -7,7 +7,7 @@ from datetime import datetime
 
 #add option -verbose
 now = datetime.now()
-date_time = now.strftime('%Y%m%d-%H:%M:%S')
+date_time = now.strftime('%Y%m%d-%H_%M_%S')
 name = date_time+'.xml'
 xml = JUnitXml()
 xml.write(name)

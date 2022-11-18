@@ -1,0 +1,4 @@
+argcomplete==1.12.3
+pexpect==4.8.0
+junitparser==2.8.0
+#junit-viewer

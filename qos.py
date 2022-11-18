@@ -47,6 +47,8 @@ dict_param_expected_code_timeout = {
     'Test_Reliability_2' : ['-P -t Square -r', '-S -t Square -b', ErrorCode.OK, ErrorCode.OK, long_timeout],
      # reliable, but we only check that they exchange data  
     'Test_Reliability_3' : ['-P -t Square -r -k 3', '-S -t Square -r', ErrorCode.OK, ErrorCode.OK, long_timeout],
+    #reliable, but we check that they receive the data in order 
+    'Test_Reliability_4' : ['-P -t Square -r -k 3', '-S -t Square -r -k 3', ErrorCode.OK, ErrorCode.OK, long_timeout],
 
     # DEADLINE
     'Test_Deadline_0' : ['-P -t Square -f 3', '-S -t Square -f 5', ErrorCode.OK, ErrorCode.OK, long_timeout],
@@ -57,9 +59,12 @@ dict_param_expected_code_timeout = {
     'Test_Ownership_0': ['-P -t Square -s -1', '-S -t Square -s -1', ErrorCode.OK, ErrorCode.OK, long_timeout],
     'Test_Ownership_1': ['-P -t Square -s -1', '-S -t Square -s 3', ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, short_timeout],
     'Test_Ownership_2': ['-P -t Square -s 3', '-S -t Square -s -1', ErrorCode.INCOMPATIBLE_QOS, ErrorCode.INCOMPATIBLE_QOS, short_timeout],
-    #Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
+    # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
     'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE', '-P -t Square -s 4 -c RED', '-S -t Square -s 2 -r -k 3', 
                          ErrorCode.OK, ErrorCode.OK, ErrorCode.RECEIVING_FROM_BOTH,  long_timeout],
+    # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
+    # 'Test_Ownership_4': ['-P -t Square -s 5 -r -k 3', '-S -t Square -s 4 -r -k 3', '-t Square -s 2 -r -k 3', 
+    #                         ErrorCode.OK, ErrorCode.OK, ErrorCode.RECEIVING_FROM_ONE, long_timeout],
 
     # TOPIC
     'Test_Topic_0' : ['-P -t Square', '-S -t Square', ErrorCode.OK, ErrorCode.OK, long_timeout],
@@ -114,7 +119,8 @@ dict_param_expected_code_timeout = {
 
 
 names = {
-    'connext6.1.1' : '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/connext6.1.1_shape_main',
+    #'connext611' : '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/connext6.1.1_shape_main',
+    'connext611' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/shape_main',
     'opendds' : '/home/carias/shape_main/opendds3.21_shape_main_linux'
     #'connext5.2.3' : '/home/carias/shape_main/5.2.3/rti_shapes_5.2.3_linux'
 }

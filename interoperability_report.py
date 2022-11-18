@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
-from multiprocessing import Process, Queue, Value, Array
-import tempfile
+from multiprocessing import Process, Queue
 
 import time
 import re
@@ -16,7 +15,7 @@ from datetime import date, datetime
 from qos import dict_param_expected_code_timeout, ErrorCode, names
 
 
-def subscriber(name_executable, parameters, key, time_out, code, 
+def subscriber(name_executable, parameters, key, time_out, code, data,
                 subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save the error code obtained
 
@@ -25,6 +24,7 @@ def subscriber(name_executable, parameters, key, time_out, code,
         key : test is being tested (from dict_param_expected_code_timeout)
         time_out : time pexpect waits until it finds a pattern
         code : this variable will be overwritten with the obtained ErrorCode
+        data : this variable will be overwritten with the obtained data
         subscriber_finished : object event from multiprocessing that is set
             when the subscriber is finished
         publisher_finished : object event from multiprocessing that is set
@@ -45,12 +45,12 @@ def subscriber(name_executable, parameters, key, time_out, code,
     """
 
     # Step 1 : run the executable
-    child_sub = pexpect.spawn('%s %s' % (name_executable, parameters))
+    child_sub = pexpect.spawnu('%s %s' % (name_executable, parameters))
 
     # Save the output of the child in the file created
     msg_sub_verbose = open('log_sub.txt', 'w') 
     child_sub.logfile = msg_sub_verbose
-    
+
     # Step 2 : Check if the topic is created
     index = child_sub.expect(
         [
@@ -61,6 +61,7 @@ def subscriber(name_executable, parameters, key, time_out, code,
         ],
         time_out
     )
+    
     if index == 1 or index == 2:
         code[0] = ErrorCode.TOPIC_NOT_CREATED
     elif index == 3:
@@ -114,8 +115,23 @@ def subscriber(name_executable, parameters, key, time_out, code,
                             time_out
                         )
                     if index == 0:
-                        
-                        if key == 'Test_Ownership_3':
+                        if key == 'Test_Reliability_4':
+                            for x in range(0, 3, 1):
+                                sub_string = re.search('[0-9]{3} [0-9]{3}', 
+                                                            child_sub.before)
+                                if data.get() == sub_string.group(0):
+                                    code[0] = ErrorCode.OK
+                                else:
+                                    code[0] = ErrorCode.DATA_NOT_CORRECT
+                                    break
+                                child_sub.expect(
+                                            [
+                                            '\[20\]', 
+                                            pexpect.TIMEOUT
+                                            ], 
+                                            time_out
+                                )
+                        elif key == 'Test_Ownership_3':
                             red_received = False
                             blue_received = False
                             code[0] = ErrorCode.RECEIVING_FROM_ONE
@@ -139,7 +155,27 @@ def subscriber(name_executable, parameters, key, time_out, code,
                                             ], 
                                             time_out
                                 )                               
-                                
+                        elif key == 'Test_Ownership_4':
+                            second_received = False
+                            list_data_received_second = []
+                            for x in range(0,40,1):
+                                sub_string = re.search('[0-9]{3} [0-9]{3}', 
+                                                            child_sub.before)
+                                list_data_received_second.append(data.get())
+                                if sub_string.group(0) in list_data_received_second:
+                                    second_received = True
+                                    code[0] = ErrorCode.RECEIVING_FROM_BOTH
+                                                       
+                                child_sub.expect(
+                                            [
+                                            '\[20\]', 
+                                            pexpect.TIMEOUT
+                                            ], 
+                                            time_out
+                                )
+                            if second_received == False:
+                                code[0] = ErrorCode.RECEIVING_FROM_ONE        
+                        
                         else:
                             code[0] = ErrorCode.OK
                            
@@ -151,14 +187,16 @@ def subscriber(name_executable, parameters, key, time_out, code,
     return
 
 
-def publisher(name_executable, parameters, time_out, code, id_pub, 
+def publisher(name_executable, parameters, key, time_out, code, data, id_pub, 
                 subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save the error code obtained
 
         name_executable : name of the executable to run as a Publisher
         parameters : QOS to use
+        key : test is being tested (from dict_param_expected_code_timeout)
         time_out : time pexpect waits until it finds a pattern
         code : this variable will be overwritten with the obtained ErrorCode
+        data : this variable will be overwritten with the obtained data
         id_pub : id of the Publisher (1 or 2)
         subscriber_finished : object event from multiprocessing that is set
             when the subscriber is finished
@@ -179,7 +217,7 @@ def publisher(name_executable, parameters, time_out, code, id_pub,
     """
     
     # Step 1 : run the executable
-    child_pub = pexpect.spawn('%s %s'% (name_executable, parameters))
+    child_pub = pexpect.spawnu('%s %s'% (name_executable, parameters))
 
     # Save the output of the child in the file created
     file = 'log_pub_'+str(id_pub)+'.txt'
@@ -196,7 +234,6 @@ def publisher(name_executable, parameters, time_out, code, id_pub,
         ], 
         time_out
     )
-    
     if index == 1 or index == 2:
         code[id_pub] = ErrorCode.TOPIC_NOT_CREATED
     elif index == 3:
@@ -227,7 +264,41 @@ def publisher(name_executable, parameters, time_out, code, id_pub,
             elif index == 2:
                 code[id_pub] = ErrorCode.INCOMPATIBLE_QOS
             elif index == 0:
-                code[id_pub] = ErrorCode.OK
+                #Step  5: Check if the writer receives the samples
+                index = child_pub.expect(
+                        [
+                            '\[20\]', 
+                            pexpect.TIMEOUT
+                        ], 
+                        time_out
+                    )
+                if index == 0:
+                    code[id_pub] = ErrorCode.OK
+                    if key == 'Test_Reliability_4' or key == 'Test_Ownership_4':
+                        for x in range(0, 40 ,1):
+                            pub_string = re.search('[0-9]{3} [0-9]{3}', 
+                                                        child_pub.before )
+                            data.put(pub_string.group(0))
+                                
+                            child_pub.expect([
+                                        '\[20\]', 
+                                        pexpect.TIMEOUT
+                                            ], 
+                                        time_out
+                            )
+                    # hace falta?
+                    # if key == 'Test_Ownership_3':
+                    #     for x in range(0, 100 ,1):
+                                
+                    #         child_pub.expect([
+                    #                     '\[20\]', 
+                    #                     pexpect.TIMEOUT
+                    #                         ], 
+                    #                     time_out
+                    #         )
+
+                elif index == 1:
+                    code[id_pub] = ErrorCode.DATA_NOT_SENT
             
     subscriber_finished.wait() # wait for subscriber to finish
     publisher_finished.set()                
@@ -259,15 +330,16 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
     """
     manager = multiprocessing.Manager()
     code = manager.list(range(2)) # used for storing the obtained ErrorCode (from Publisher and Subscriber)
+    data = Queue()
 
     subscriber_finished = multiprocessing.Event()
     publisher_finished = multiprocessing.Event()
 
     pub = Process(target=publisher, 
-                    args=[name_pub, param_pub, time_out, code, 1, 
+                    args=[name_pub, param_pub, key, time_out, code, data, 1, 
                           subscriber_finished, publisher_finished])
     sub = Process(target=subscriber, 
-                    args=[name_sub, param_sub, key, time_out, code,
+                    args=[name_sub, param_sub, key, time_out, code, data,
                           subscriber_finished, publisher_finished])
     sub.start()
     pub.start()
@@ -340,21 +412,32 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     """
     manager = multiprocessing.Manager()
     code = manager.list(range(3)) # used for storing the obtained ErrorCode (from Publisher 1, Publisher 2 and Subscriber)
-
+    data = Queue()
     subscriber_finished = multiprocessing.Event()
     publisher_finished = multiprocessing.Event()
 
 
     if key == 'Test_Ownership_3':
         pub1 = Process(target=publisher, 
-                        args=[name_pub, param_pub1, time_out, code, 1, 
+                        args=[name_pub, param_pub1, key, time_out, code, data, 1, 
                               subscriber_finished, publisher_finished])
         pub2 = Process(target=publisher, 
-                        args=[name_pub, param_pub2, time_out, code, 2, 
+                        args=[name_pub, param_pub2, key, time_out, code, data, 2, 
                               subscriber_finished, publisher_finished])                
         sub = Process(target=subscriber, 
-                        args=[name_sub, param_sub, key, time_out, code, 
+                        args=[name_sub, param_sub, key, time_out, code, data,
                               subscriber_finished, publisher_finished])
+    
+    if key == 'Test_Ownership_4':
+        pub1 = Process(target=publisher, 
+                        args=[name_pub, param_pub1, key, time_out, code, Queue(),
+                        1, subscriber_finished, publisher_finished])
+        pub2 = Process(target=publisher, 
+                        args=[name_pub, param_pub2, key, time_out, code, data,
+                        2, subscriber_finished, publisher_finished])                
+        sub = Process(target=subscriber, 
+                        args=[name_sub, param_sub, key, time_out, code, data, 
+                        subscriber_finished, publisher_finished])
 
     sub.start()
     pub1.start()
@@ -424,17 +507,17 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
 
 def main():
     now = datetime.now()
-    date_time = now.strftime('%Y%m%d-%H:%M:%S')
+    date_time = now.strftime('%Y%m%d-%H_%M_%S')
 
     parser = argparse.ArgumentParser(description='Interoperability test.')
     parser.add_argument('-P', 
-                choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
+                choices=['connext611', 'opendds', 'connext5.2.3'],
                 default=None,
                 required=True,
                 type=str, 
                 help='Path of the publisher')
     parser.add_argument('-S', 
-                choices=['connext6.1.1', 'opendds', 'connext5.2.3'],
+                choices=['connext611', 'opendds', 'connext5.2.3'],
                 default=None,
                 required=True,
                 type=str, 
@@ -472,11 +555,11 @@ def main():
     for k, v in dict_param_expected_code_timeout.items():
         
         case = TestCase('%s' %k)
-        if k ==  'Test_Ownership_3':
-            run_test_pub_pub_sub(names[args.P], names[args.S], k,v[0], v[1], v[2],
+        if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
+            run_test_pub_pub_sub(names[args.P], names[args.S], k, v[0], v[1], v[2],
                                  v[3], v[4], v[5], args.verbose, case, v[6])
         else:
-            run_test(names[args.P], names[args.S], k,v[0], v[1], v[2], v[3], 
+            run_test(names[args.P], names[args.S], k, v[0], v[1], v[2], v[3], 
                            args.verbose, case, v[4])
         
         suite.add_testcase(case)
