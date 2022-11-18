@@ -11,7 +11,7 @@ import argparse
 import os
 
 from junitparser import TestCase, TestSuite, JUnitXml, Skipped, Error
-from datetime import date
+from datetime import date, datetime
 
 from qos import dict_param_expected_code_timeout, ErrorCode, names
 
@@ -49,7 +49,6 @@ def subscriber(name_executable, parameters, key, time_out, code,
 
     # Save the output of the child in the file created
     msg_sub_verbose = open('log_sub.txt', 'w') 
-    #msg_sub_verbose = tempfile.TemporaryFile()
     child_sub.logfile = msg_sub_verbose
     
     # Step 2 : Check if the topic is created
@@ -275,7 +274,6 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
     sub.join()
     pub.join()
 
-    # temporal files
     msg_pub_verbose = open('log_pub_1.txt', 'r')
     msg_sub_verbose = open('log_sub.txt', 'r')
 
@@ -307,16 +305,12 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
                              (expected_code_pub, code[1],
                              expected_code_sub, code[0], additional_info_pub, additional_info_sub ))
                       ]
-
-       
-        #case.result = [Error(f'Publisher expected code {expected_code_pub} ; Code found: {code[1]}  \
-         #                    Sub expected code: {expected_code_sub}; Code found: {code[0]} )]
     
     
     # Delete the temporal files
     os.remove('log_pub_1.txt')
     os.remove('log_sub.txt')
-    #mirar ficheros temporales
+    
 
 def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub,
                          expected_code_pub1, expected_code_pub2, expected_code_sub, 
@@ -429,9 +423,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     os.remove('log_sub.txt')
 
 def main():
-    today = date.today()
-    #d4 = today.strftime("%b-%d-%Y")
-    d4 = today.strftime('%Y%m%d-%H:%M:%S')
+    now = datetime.now()
+    date_time = now.strftime('%Y%m%d-%H:%M:%S')
 
     parser = argparse.ArgumentParser(description='Interoperability test.')
     parser.add_argument('-P', 
@@ -466,10 +459,12 @@ def main():
 
 
     if args.output == 'default':
-        args.output = args.P+'-'+args.S+'-'+d4+'.xml'
+        name_file = args.P+'-'+args.S+'-'+date_time+'.xml'
         xml = JUnitXml()
     else:
-        xml = JUnitXml.fromfile(args.output)
+        name_file = args.output
+        xml = JUnitXml.fromfile(name_file)
+        
     #xml = JUnitXml.fromfile('./junit.xml')
     
     suite = TestSuite('%s---%s' %(args.P,args.S))
@@ -489,7 +484,7 @@ def main():
 
     xml.add_testsuite(suite)   
  
-    xml.write(args.output)
+    xml.write(name_file)
 
     # jv = require('junit-viewer')
     # parsedData = jv.parse(args.output)

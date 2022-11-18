@@ -3,12 +3,12 @@
 import os
 from qos import names
 from junitparser import TestCase, TestSuite, JUnitXml, Skipped, Error
-from datetime import date
+from datetime import datetime
 
-today = date.today()
-#d4 = today.strftime("%b-%d-%Y")
-d4 = today.strftime('%Y%m%d-%H:%M:%S')
-name = d4+'.xml'
+#add option -verbose
+now = datetime.now()
+date_time = now.strftime('%Y%m%d-%H:%M:%S')
+name = date_time+'.xml'
 xml = JUnitXml()
 xml.write(name)
 for k1 in names:

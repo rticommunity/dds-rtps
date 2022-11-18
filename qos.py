@@ -27,9 +27,11 @@ ErrorCode = Enum('ErrorCode',
                     'OK'
                 ])
 
-
+# timeout for pexpect. short_timeout for the cases where there should not be communication
+# and long_timeout for the cases where there should be
 short_timeout = 5
 long_timeout = 20
+
 
 
 dict_param_expected_code_timeout = {
