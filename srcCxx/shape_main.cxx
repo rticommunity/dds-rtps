@@ -71,6 +71,10 @@ public:
     DurabilityQosPolicyKind        durability_kind;
     int                            history_depth;
     int                            ownership_strength;
+#if   defined(RTI_CONNEXT_DDS)
+    DDS_DataRepresentationId_t     data_representation;
+#endif
+    bool                           verbose;
 
     char              * topic_name;
     char              * color;
@@ -97,8 +101,10 @@ public:
         durability_kind     = VOLATILE_DURABILITY_QOS;
         history_depth       = -1;      /* means default */
         ownership_strength  = -1;      /* means shared */
-       
-
+#if   defined(RTI_CONNEXT_DDS)
+        data_representation = DDS_XCDR_DATA_REPRESENTATION;
+        verbose             = false;
+#endif
         topic_name         = NULL;
         color              = NULL;
         partition          = NULL;
@@ -142,6 +148,8 @@ public:
         printf("                                     t: TRANSIENT, p: PERSISTENT]\n");
         printf("   -P              : publish samples\n");
         printf("   -S              : subscribe samples\n");
+        printf("   -x [1|2]        : set data representation (only for Connext) [1: XCDR, 2: XCDR2]\n");
+        printf("   -v              : set verbose (print Publisher's samples)\n");
     }
 
     //-------------------------------------------------------------
@@ -172,7 +180,7 @@ public:
         bool parse_ok = true;
 
         // double d;
-        while ((opt = getopt(argc, argv, "hbrc:d:D:f:i:k:p:s:t:PS")) != -1)
+        while ((opt = getopt(argc, argv, "hbrc:d:D:f:i:k:p:s:x:t:vPS")) != -1)
         {
             switch (opt)
             {
@@ -248,7 +256,31 @@ public:
                 print_usage(argv[0]);
                 exit(0);
                 break;
-
+            
+            case 'x':
+                if (optarg[0] != '\0')
+                {
+                    switch (optarg[0])
+                    {
+                    case '1':
+#if   defined(RTI_CONNEXT_DDS)
+                        data_representation = DDS_XCDR_DATA_REPRESENTATION;
+#endif
+                        break;
+                    case '2':
+#if   defined(RTI_CONNEXT_DDS)
+                        data_representation = DDS_XCDR2_DATA_REPRESENTATION;
+#endif
+                        break;
+                    default:
+                        printf("unrecognized value for data representation '%c'\n", optarg[0]);
+                        parse_ok = false;
+                    }
+                }
+                break;
+            case 'v':
+                verbose = true;
+                break;
             case '?':
                 parse_ok = false;
                 break;
@@ -441,10 +473,10 @@ public:
     }
 
     //-------------------------------------------------------------
-    bool run()
+    bool run(ShapeOptions *options)
     {
         if ( pub != NULL ) {
-            return run_publisher();
+            return run_publisher(options);
         }
         else if ( sub != NULL ) {
             return run_subscriber();
@@ -475,6 +507,13 @@ public:
         pub->get_default_datawriter_qos( dw_qos );
         dw_qos.reliability.kind = options->reliability_kind;
         dw_qos.durability.kind  = options->durability_kind;
+
+#if   defined(RTI_CONNEXT_DDS)        
+        DDS_DataRepresentationIdSeq data_representation_seq;
+        data_representation_seq.ensure_length(1,1);
+        data_representation_seq[0] = options->data_representation;
+        dw_qos.representation.value = data_representation_seq;
+#endif
 
         if ( options->ownership_strength != -1 ) {
             dw_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
@@ -536,6 +575,12 @@ public:
         sub->get_default_datareader_qos( dr_qos );
         dr_qos.reliability.kind = options->reliability_kind;
         dr_qos.durability.kind  = options->durability_kind;
+#if   defined(RTI_CONNEXT_DDS)
+            DDS_DataRepresentationIdSeq data_representation_seq;
+            data_representation_seq.ensure_length(1,1);
+            data_representation_seq[0] = options->data_representation;
+            dr_qos.representation.value = data_representation_seq;
+#endif        
 
         if ( options->ownership_strength != -1 ) {
             dr_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
@@ -694,7 +739,7 @@ public:
     }
 
     //-------------------------------------------------------------
-    bool run_publisher()
+    bool run_publisher(ShapeOptions *options)
     {
         ShapeType shape;
 #if defined(RTI_CONNEXT_DDS)
@@ -722,11 +767,12 @@ public:
 #elif defined(TWINOAKS_COREDX)
             dw->write( &shape, HANDLE_NIL );
 #endif
-            printf("%-10s %-10s %03d %03d [%d]\n", dw->get_topic()->get_name(),
-                                    shape.color STRING_IN,
-                                    shape.x,
-                                    shape.y,
-                                    shape.shapesize );
+            if (options->verbose)
+                printf("%-10s %-10s %03d %03d [%d]\n", dw->get_topic()->get_name(),
+                                        shape.color STRING_IN,
+                                        shape.x,
+                                        shape.y,
+                                        shape.shapesize );
             usleep(33000);
         }
 
@@ -750,7 +796,7 @@ int main( int argc, char * argv[] )
         exit(2);
     }
 
-    if ( !shapeApp.run() ) {
+    if ( !shapeApp.run(&options) ) {
         exit(2);
     }
 
