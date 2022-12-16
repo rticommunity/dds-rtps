@@ -7,13 +7,11 @@ import re
 import pexpect
 import multiprocessing
 import argparse 
-import argcomplete
-from argcomplete.completers import ChoicesCompleter
 import os
 
 from junitparser import TestCase, TestSuite, JUnitXml, Skipped, Error, Attr
 
-from datetime import date, datetime
+from datetime import datetime
 
 from utilities import ReturnCode, path_executables
 from testSuite import dict_param_expected_code_timeout
@@ -383,11 +381,14 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
         print ('%s : Ok' %key)
-        case.text = 'OKKKKKK';
         case.custom = (f'\
                         {name_pub} {param_pub} \
                         // {name_sub} {param_sub}'
                       )
+        case.result = [Skipped(f'OK' 
+                            )
+                      ]
+    
     else:
         print(f'Error in : {key}')
         print(f'Publisher expected code: {expected_code_pub}; Code found: {code[1]}')
@@ -499,10 +500,9 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
         print (f'{key} : Ok')
-        case.system_out = (f'OK; <br> \
-                        <strong> Parameters Publisher 1: </strong>  {param_pub1} <br>;\
-                        <strong> Parameters Publisher 2: </strong> {param_pub2} <br>; \
-                        <strong> Parameters Subscriber: </strong>  {param_sub} '
+        case.custom = (f'\
+                        {name_pub} {param_pub1} / {name_pub} {param_pub2} \
+                        / {name_sub} {param_sub}'
                       )
     else:
         print(f'Error in : {key}')
@@ -597,7 +597,7 @@ class Arguments:
    
 
 def main():
-    
+
     parser = Arguments.parser()
     args = parser.parse_args()
 

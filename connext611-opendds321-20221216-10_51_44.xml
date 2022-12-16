@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites><testsuite errors="0" failures="0" name="connext611---opendds321" skipped="0" tests="2" time="0"><testcase Parameters="                        connext611 -P -t Square                         // opendds321 -S -t Square" name="Test_Domain_0" text="OKKKKKK" /><testcase Parameters="                        connext611 -P -t Square                         // opendds321 -S -t Square -d 1" name="Test_Domain_1" text="OKKKKKK" /></testsuite></testsuites>

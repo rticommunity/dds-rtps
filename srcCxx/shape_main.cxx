@@ -71,9 +71,9 @@ public:
     DurabilityQosPolicyKind        durability_kind;
     int                            history_depth;
     int                            ownership_strength;
-#if   defined(RTI_CONNEXT_DDS)
-    DDS_DataRepresentationId_t     data_representation;
-#endif
+
+    DataRepresentationId_t     data_representation;
+
     bool                           verbose;
 
     char              * topic_name;
@@ -101,10 +101,10 @@ public:
         durability_kind     = VOLATILE_DURABILITY_QOS;
         history_depth       = -1;      /* means default */
         ownership_strength  = -1;      /* means shared */
-#if   defined(RTI_CONNEXT_DDS)
-        data_representation = DDS_XCDR_DATA_REPRESENTATION;
+
+        data_representation = XCDR_DATA_REPRESENTATION;
+
         verbose             = false;
-#endif
         topic_name         = NULL;
         color              = NULL;
         partition          = NULL;
@@ -263,14 +263,10 @@ public:
                     switch (optarg[0])
                     {
                     case '1':
-#if   defined(RTI_CONNEXT_DDS)
-                        data_representation = DDS_XCDR_DATA_REPRESENTATION;
-#endif
+                        data_representation = XCDR_DATA_REPRESENTATION;
                         break;
                     case '2':
-#if   defined(RTI_CONNEXT_DDS)
-                        data_representation = DDS_XCDR2_DATA_REPRESENTATION;
-#endif
+                        data_representation = XCDR2_DATA_REPRESENTATION;
                         break;
                     default:
                         printf("unrecognized value for data representation '%c'\n", optarg[0]);
@@ -508,13 +504,15 @@ public:
         dw_qos.reliability.kind = options->reliability_kind;
         dw_qos.durability.kind  = options->durability_kind;
 
-#if   defined(RTI_CONNEXT_DDS)        
-        DDS_DataRepresentationIdSeq data_representation_seq;
+#if   defined(RTI_CONNEXT_DDS)     
+        DataRepresentationIdSeq data_representation_seq;
         data_representation_seq.ensure_length(1,1);
         data_representation_seq[0] = options->data_representation;
         dw_qos.representation.value = data_representation_seq;
+#elif   defined(OPENDDS) 
+        dw_qos.representation.value.length(1);
+        dw_qos.representation.value[0] = options->data_representation;
 #endif
-
         if ( options->ownership_strength != -1 ) {
             dw_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
             dw_qos.ownership_strength.value = options->ownership_strength;
@@ -576,11 +574,15 @@ public:
         dr_qos.reliability.kind = options->reliability_kind;
         dr_qos.durability.kind  = options->durability_kind;
 #if   defined(RTI_CONNEXT_DDS)
-            DDS_DataRepresentationIdSeq data_representation_seq;
+            DataRepresentationIdSeq data_representation_seq;
             data_representation_seq.ensure_length(1,1);
             data_representation_seq[0] = options->data_representation;
             dr_qos.representation.value = data_representation_seq;
-#endif        
+
+#elif   defined(OPENDDS) 
+        dr_qos.representation.value.length(1);
+        dr_qos.representation.value[0] = options->data_representation;
+#endif
 
         if ( options->ownership_strength != -1 ) {
             dr_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
