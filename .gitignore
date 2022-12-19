@@ -940,7 +940,6 @@ qos.pyc
 __pycache__/qos.cpython-36.pyc
 executables/shape_main_connext611
 srcCxx/makefile_opendds
-srcCxx/makefile_rti_connext_dds_linux_6.1.1
 srcCxx/shape_main.cxx
 srcCxx/shape.cxx
 srcCxx/shape.h
