@@ -31,47 +31,47 @@ dict_param_expected_code_timeout = {
     'Test_Domain_3' : ['-P -t Square -d 1 -x 2', '-S -t Square -d 1 -x 2', 
                          ReturnCode.OK, ReturnCode.OK, short_timeout],
 
-    # RELIABILITY
-    # 'Test_Reliability_0' : ['-P -t Square -b -x 2', '-S -t Square -b -x 2', 
-    #                         ReturnCode.OK, ReturnCode.OK, long_timeout],
-    # 'Test_Reliability_1' : ['-P -t Square -b -x 2', '-S -t Square -r -x 2', 
-    #                         ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
+    #RELIABILITY
+    'Test_Reliability_0' : ['-P -t Square -b -x 2', '-S -t Square -b -x 2', 
+                            ReturnCode.OK, ReturnCode.OK, long_timeout],
+    'Test_Reliability_1' : ['-P -t Square -b -x 2', '-S -t Square -r -x 2', 
+                            ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
 
 
 
-    # 'Test_Reliability_2' : ['-P -t Square -r -x 2', '-S -t Square -b -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
-    #  # reliable, but we only check that they exchange data  
-    # 'Test_Reliability_3' : ['-P -t Square -r -k 3 -x 2', '-S -t Square -r -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
-    # #reliable, but we check that they receive the data in order 
-    # 'Test_Reliability_4' : ['-P -t Square -r -k 0 -v -x 2', '-S -t Square -r -k 0 -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
+    'Test_Reliability_2' : ['-P -t Square -r -x 2', '-S -t Square -b -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
+     # reliable, but we only check that they exchange data  
+    'Test_Reliability_3' : ['-P -t Square -r -k 3 -x 2', '-S -t Square -r -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
+    #reliable, but we check that they receive the data in order 
+    'Test_Reliability_4' : ['-P -t Square -r -k 0 -v -x 2', '-S -t Square -r -k 0 -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
 
-    # # DEADLINE
+    # DEADLINE
     # 'Test_Deadline_0' : ['-P -t Square -f 3 -x 2', '-S -t Square -f 5 -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
     # 'Test_Deadline_1' : ['-P -t Square -f 5 -x 2', '-S -t Square -f 5 -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
     # 'Test_Deadline_2' : ['-P -t Square -f 7 -x 2', '-S -t Square -f 5 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
     
-    # # OWNERSHIP
-    # 'Test_Ownership_0': ['-P -t Square -s -1 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
-    # 'Test_Ownership_1': ['-P -t Square -s -1 -x 2', '-S -t Square -s 3 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
-    # 'Test_Ownership_2': ['-P -t Square -s 3 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
-    # # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
-    # 'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE -v -x 2', '-P -t Square -s 4 -c RED -v -x 2', '-S -t Square -s 2 -r -k 0 -x 2', 
-    #                      ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH,  long_timeout],
-    # # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
-    # 'Test_Ownership_4': ['-P -t Square -s 5 -r -k 0 -v -x 2', '-P -t Square -s 4 -r -k 0 -v -x 2', '-S -t Square -s 2 -r -k 0 -x 2', 
-    #                         ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE, long_timeout],
+    # OWNERSHIP
+    'Test_Ownership_0': ['-P -t Square -s -1 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
+    'Test_Ownership_1': ['-P -t Square -s -1 -x 2', '-S -t Square -s 3 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
+    'Test_Ownership_2': ['-P -t Square -s 3 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS, short_timeout],
+    # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
+    'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE -v -x 2', '-P -t Square -s 4 -c RED -v -x 2', '-S -t Square -s 2 -r -k 0 -x 2', 
+                         ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH,  long_timeout],
+    # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
+    'Test_Ownership_4': ['-P -t Square -s 5 -r -k 0 -v -x 2', '-P -t Square -s 4 -r -k 0 -v -x 2', '-S -t Square -s 2 -r -k 0 -x 2', 
+                            ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE, long_timeout],
 
-    # # TOPIC
+    # TOPIC
     # 'Test_Topic_0' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
     # 'Test_Topic_1' : ['-P -t Square -x 2', '-S -t Circle -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED, short_timeout],
     # 'Test_Topic_2' : ['-P -t Circle -x 2', '-S -t Square -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED, short_timeout],
     # 'Test_Topic_3' : ['-P -t Circle -x 2', '-S -t Circle -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
 
-    # #COLOR
-    # 'Test_Color_0' : ['-P -t Square -c BLUE -x 2', '-S -t Square -c BLUE -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
-    # 'Test_Color_1' : ['-P -t Square -c BLUE -x 2', '-S -t Square -c RED -x 2', ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED, short_timeout],
-    # 'Test_Color_2' : ['-P -t Square -c BLUE -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
-    # 'Test_Color_3' : ['-P -t Square -c RED -x 2', '-S -t Square -c BLUE -x 2', ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED, short_timeout],
+    #COLOR
+    'Test_Color_0' : ['-P -t Square -c BLUE -x 2', '-S -t Square -c BLUE -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
+    'Test_Color_1' : ['-P -t Square -c BLUE -x 2', '-S -t Square -c RED -x 2', ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED, short_timeout],
+    'Test_Color_2' : ['-P -t Square -c BLUE -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
+    'Test_Color_3' : ['-P -t Square -c RED -x 2', '-S -t Square -c BLUE -x 2', ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED, short_timeout],
     # 'Test_Color_4' : ['-P -t Square -c RED -x 2', '-S -t Square -c RED -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
     # 'Test_Color_5' : ['-P -t Square -c RED -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],
     # 'Test_Color_6' : ['-P -t Square -x 2', '-S -t Square -c BLUE -x 2', ReturnCode.OK, ReturnCode.OK, long_timeout],

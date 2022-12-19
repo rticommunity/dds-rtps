@@ -23,8 +23,6 @@ class ReturnCode(Enum):
 
 
 path_executables = {
-    #'connext611' : '/home/carias/shape_main/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/connext6.1.1_shape_main',
     'connext611' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux',
     'opendds321' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/shape_main_opendds'
-    #'connext5.2.3' : '/home/carias/shape_main/5.2.3/rti_shapes_5.2.3_linux'
 }
