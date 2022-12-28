@@ -35,7 +35,3 @@ class ReturnCode(Enum):
     DATA_NOT_CORRECT = 12
     RECEIVING_FROM_ONE = 13
     RECEIVING_FROM_BOTH = 14
-
-    # @classmethod
-    # def export_to(cls, namespace):
-    #     namespace.update(cls.__members__)
