@@ -1,28 +1,41 @@
 from enum import Enum
 
 class ReturnCode(Enum):
-    TOPIC_NOT_CREATED = 0
-    READER_NOT_CREATED = 1
-    WRITER_NOT_MATCHED = 2
-    UNRECOGNIZED_VALUE = 3
-    FILTER_NOT_CREATED = 4
-    INCOMPATIBLE_QOS = 5
-    WRITER_NOT_ALIVE = 6
-    WRITER_NOT_CREATED = 7
-    READER_NOT_MATCHED = 8
-    DATA_NOT_RECEIVED = 9
-    DATA_NOT_SENT = 10
-    DATA_NOT_CORRECT = 11
-    RECEIVING_FROM_ONE = 12
-    RECEIVING_FROM_BOTH = 13
-    OK = 14
+    """"
+    Codes to give information about Shape Applications' behavior.
 
-    @classmethod
-    def export_to(cls, namespace):
-        namespace.update(cls.__members__)
+    OK                   : Publisher/Subscriber sent/received data correctly
+    UNRECOGNIZED_VALUE   : Parameters for the Publisher/Subscriber not supported
+    TOPIC_NOT_CREATED    : Publisher/Subscriber does not create the topic
+    READER_NOT_CREATED   : Subscriber does not create the Data Reader
+    WRITER_NOT_CREATED   : Publisher does not create the Data Writer
+    FILTER_NOT_CREATED   : Subscriber does not create the content filter
+    INCOMPATIBLE_QOS     : Publisher/Subscriber with incompatible QoS.
+    READER_NOT_MATCHED   : Publisher does not find any compatible Data Reader
+    WRITER_NOT_MATCHED   : Subscriber does not find any compatible Data Writer
+    WRITER_NOT_ALIVE     : Subscriber does not find any live Data Writer
+    DATA_NOT_RECEIVED    : Subscriber does not receive the data
+    DATA_NOT_SENT        : Publisher does not send the data
+    DATA_NOT_CORRECT     : Subscriber does not find the data expected
+    RECEIVING_FROM_ONE   : Subscriber receives from one Publisher
+    RECEIVING_FROM_BOTH  : Subscriber receives from two Publishers
+    """
+    OK = 0
+    UNRECOGNIZED_VALUE = 1
+    TOPIC_NOT_CREATED = 2
+    READER_NOT_CREATED = 3
+    WRITER_NOT_CREATED = 4
+    FILTER_NOT_CREATED = 5
+    INCOMPATIBLE_QOS = 6
+    READER_NOT_MATCHED = 7
+    WRITER_NOT_MATCHED = 8
+    WRITER_NOT_ALIVE = 9
+    DATA_NOT_RECEIVED = 10
+    DATA_NOT_SENT = 11
+    DATA_NOT_CORRECT = 12
+    RECEIVING_FROM_ONE = 13
+    RECEIVING_FROM_BOTH = 14
 
-
-path_executables = {
-    'connext611' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux',
-    'opendds321' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/shape_main_opendds'
-}
+    # @classmethod
+    # def export_to(cls, namespace):
+    #     namespace.update(cls.__members__)
