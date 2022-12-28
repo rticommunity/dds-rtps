@@ -69,12 +69,9 @@ public:
     DomainId_t                     domain_id;
     ReliabilityQosPolicyKind       reliability_kind;
     DurabilityQosPolicyKind        durability_kind;
+    DataRepresentationId_t         data_representation;
     int                            history_depth;
     int                            ownership_strength;
-
-    DataRepresentationId_t     data_representation;
-
-    bool                           verbose;
 
     char              * topic_name;
     char              * color;
@@ -92,6 +89,8 @@ public:
     int                 xvel;
     int                 yvel;
 
+    bool                verbosity;
+
 public:
     //-------------------------------------------------------------
     ShapeOptions()
@@ -99,12 +98,10 @@ public:
         domain_id           = 0;
         reliability_kind    = RELIABLE_RELIABILITY_QOS;
         durability_kind     = VOLATILE_DURABILITY_QOS;
+        data_representation = XCDR_DATA_REPRESENTATION;
         history_depth       = -1;      /* means default */
         ownership_strength  = -1;      /* means shared */
 
-        data_representation = XCDR_DATA_REPRESENTATION;
-
-        verbose             = false;
         topic_name         = NULL;
         color              = NULL;
         partition          = NULL;
@@ -120,6 +117,8 @@ public:
 
         xvel = 3;
         yvel = 3;
+
+        verbosity            = false;
     }
 
     //-------------------------------------------------------------
@@ -148,8 +147,8 @@ public:
         printf("                                     t: TRANSIENT, p: PERSISTENT]\n");
         printf("   -P              : publish samples\n");
         printf("   -S              : subscribe samples\n");
-        printf("   -x [1|2]        : set data representation (only for Connext) [1: XCDR, 2: XCDR2]\n");
-        printf("   -v              : set verbose (print Publisher's samples)\n");
+        printf("   -x [1|2]        : set data representation [1: XCDR, 2: XCDR2]\n");
+        printf("   -v              : set verbosity (print Publisher's samples)\n");
     }
 
     //-------------------------------------------------------------
@@ -237,7 +236,7 @@ public:
                 break;
             case 's':
                 ownership_strength = atoi(optarg);
-                if (ownership_strength <= 0 && ownership_strength != -1) {
+                if (ownership_strength < -1) {
                     printf("unrecognized value for ownership_strength '%c'\n", optarg[0]);
                     parse_ok = false;
                 }
@@ -256,7 +255,7 @@ public:
                 print_usage(argv[0]);
                 exit(0);
                 break;
-            
+
             case 'x':
                 if (optarg[0] != '\0')
                 {
@@ -275,7 +274,7 @@ public:
                 }
                 break;
             case 'v':
-                verbose = true;
+                verbosity = true;
                 break;
             case '?':
                 parse_ok = false;
@@ -504,12 +503,12 @@ public:
         dw_qos.reliability.kind = options->reliability_kind;
         dw_qos.durability.kind  = options->durability_kind;
 
-#if   defined(RTI_CONNEXT_DDS)     
+#if   defined(RTI_CONNEXT_DDS)
         DataRepresentationIdSeq data_representation_seq;
         data_representation_seq.ensure_length(1,1);
         data_representation_seq[0] = options->data_representation;
         dw_qos.representation.value = data_representation_seq;
-#elif   defined(OPENDDS) 
+#elif   defined(OPENDDS)
         dw_qos.representation.value.length(1);
         dw_qos.representation.value[0] = options->data_representation;
 #endif
@@ -579,7 +578,7 @@ public:
             data_representation_seq[0] = options->data_representation;
             dr_qos.representation.value = data_representation_seq;
 
-#elif   defined(OPENDDS) 
+#elif   defined(OPENDDS)
         dr_qos.representation.value.length(1);
         dr_qos.representation.value[0] = options->data_representation;
 #endif
@@ -631,7 +630,7 @@ public:
         }
         else  {
             printf("Create reader for topic: %s\n", options->topic_name );
-            dr = dynamic_cast<ShapeTypeDataReader *>(sub->create_datareader( topic, dr_qos, NULL, 0));            
+            dr = dynamic_cast<ShapeTypeDataReader *>(sub->create_datareader( topic, dr_qos, NULL, 0));
         }
 
         if (dr == NULL) {
@@ -769,7 +768,7 @@ public:
 #elif defined(TWINOAKS_COREDX)
             dw->write( &shape, HANDLE_NIL );
 #endif
-            if (options->verbose)
+            if (options->verbosity)
                 printf("%-10s %-10s %03d %03d [%d]\n", dw->get_topic()->get_name(),
                                         shape.color STRING_IN,
                                         shape.x,
