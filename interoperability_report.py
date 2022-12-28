@@ -14,7 +14,7 @@ from utilities import ReturnCode, path_executables
 from testSuite import rtps_test_suite_1
 
 
-def subscriber(name_executable, parameters, key, time_out, code, data,
+def subscriber(name_executable, parameters, testCase, time_out, code, data,
                 subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save
         the error code obtained
@@ -22,7 +22,7 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
         name_executable     : name of the ShapeApplication to run
                               as a Subscriber
         parameters          : QOS to use with the Shape Application
-        key                 : test is being tested
+        testCase            : testCase is being tested
                              (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
         code                : this variable will be overwritten with
@@ -35,13 +35,19 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                               when the publisher is finished
 
         The function runs the Shape Application as a Subscriber
-        with the QoS defined.
-        It follows the next steps:
-            * Wait until the topic is created
-            * Wait until the reader is created
-            * Wait until the reader matches with a writer
-            * Wait until the reader detects the writer as alive
-            * Wait until the reader receives data
+        with the parameters defined.
+        The Subscriber Shape Application follows the next steps:
+            * The topic is created
+            * The Data Reader is created
+            * The Data Reader matches with a Data Writer
+            * The Data Reader detects the Data Writer as alive
+            * The Data Reader receives data
+
+        If the Shape Application achieves one step, it will print an specific string pattern.
+        The function will recognize that pattern and it will continue also to the next step,
+        waiting again for the next corresponding pattern to be recognized. If the Shape Application
+        stops at some step, the function will not recognized the expected pattern (or it will
+        recognized an error pattern), it will save the obtained ReturnCode and it will finish too.
 
     """
 
@@ -55,11 +61,11 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
     # Step 2 : Check if the topic is created
     index = child_sub.expect(
         [
-            'Create topic:',
-            pexpect.TIMEOUT,
-            'please specify topic name',
-            'unrecognized value',
-            pexpect.EOF
+            'Create topic:',                                              # index = 0
+            pexpect.TIMEOUT,                                              # index = 1
+            'please specify topic name',                                  # index = 2
+            'unrecognized value',                                         # index = 3
+            pexpect.EOF                                                   # index = 4
         ],
         time_out
     )
@@ -72,9 +78,9 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
         # Step 3 : Check if the reader is created
         index = child_sub.expect(
             [
-                'Create reader for topic:',
-                pexpect.TIMEOUT,
-                'failed to create content filtered topic'
+                'Create reader for topic:',                               # index = 0
+                pexpect.TIMEOUT,                                          # index = 1
+                'failed to create content filtered topic'                 # index = 2
             ],
             time_out
         )
@@ -87,9 +93,9 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
             # Step 4 : Check if the reader matches the writer
             index = child_sub.expect(
                 [
-                    'on_subscription_matched()',
-                    pexpect.TIMEOUT,
-                    'on_requested_incompatible_qos()'
+                    'on_subscription_matched()',                          # index = 0
+                    pexpect.TIMEOUT,                                      # index = 1
+                    'on_requested_incompatible_qos()'                     # index = 2
                 ],
                 time_out
             )
@@ -102,8 +108,8 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                 # Step 5: Check if the reader detects the writer as alive
                 index = child_sub.expect(
                     [
-                        'on_liveliness_changed()',
-                        pexpect.TIMEOUT
+                        'on_liveliness_changed()',                        # index = 0
+                        pexpect.TIMEOUT                                   # index = 1
                     ],
                     time_out
                 )
@@ -114,15 +120,18 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                     #Step 6 : Check if the reader receives the samples
                     index = child_sub.expect(
                             [
-                                '\[20\]',
-                                pexpect.TIMEOUT
+                                '\[20\]',                                 # index = 0
+                                pexpect.TIMEOUT                           # index = 1
                             ],
                             time_out
                         )
 
-                    if index == 0:
+                    if index == 1:
+                        code[0] = ReturnCode.DATA_NOT_RECEIVED
 
-                        if key == 'Test_Reliability_4':
+                    elif index == 0:
+                        # This test checks that data is received in the right order
+                        if testCase == 'Test_Reliability_4':
                             for x in range(0, 3, 1):
                                 sub_string = re.search('[0-9]{3} [0-9]{3}',
                                                         child_sub.before)
@@ -133,12 +142,13 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                                     break
                                 child_sub.expect(
                                             [
-                                            '\[20\]',
-                                            pexpect.TIMEOUT
+                                            '\[20\]',                     # index = 0
+                                            pexpect.TIMEOUT               # index = 1
                                             ],
                                             time_out
                                 )
-                        elif key == 'Test_Ownership_3':
+                        # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
+                        elif testCase == 'Test_Ownership_3':
                             red_received = False
                             blue_received = False
                             code[0] = ReturnCode.RECEIVING_FROM_ONE
@@ -159,12 +169,13 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                                     break
                                 child_sub.expect(
                                             [
-                                            '\[20\]',
-                                            pexpect.TIMEOUT
+                                            '\[20\]',                     # index = 0
+                                            pexpect.TIMEOUT               # index = 1
                                             ],
                                             time_out
                                 )
-                        elif key == 'Test_Ownership_4':
+                        # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
+                        elif testCase == 'Test_Ownership_4':
 
                             second_received = False
                             list_data_received_second = []
@@ -183,8 +194,8 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
 
                                 child_sub.expect(
                                             [
-                                            '\[20\]',
-                                            pexpect.TIMEOUT
+                                            '\[20\]',                     # index = 0
+                                            pexpect.TIMEOUT               # index = 1
                                             ],
                                             time_out
                                 )
@@ -195,16 +206,12 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                         else:
                             code[0] = ReturnCode.OK
 
-                    elif index == 1:
-                        code[0] = ReturnCode.DATA_NOT_RECEIVED
-
-
     subscriber_finished.set()   # set subscriber as finished
     publisher_finished.wait()   # wait for publisher to finish
     return
 
 
-def publisher(name_executable, parameters, key, time_out, code, data,
+def publisher(name_executable, parameters, testCase, time_out, code, data,
                 id_pub, subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save
         the error code obtained
@@ -212,7 +219,7 @@ def publisher(name_executable, parameters, key, time_out, code, data,
         name_executable     : name of the ShapeApplication to run
                               as a Publisher
         parameters          : QOS to use with the Shape Application
-        key                 : test is being tested
+        testCase            : testCase is being tested
                              (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
         code                : this variable will be overwritten with
@@ -226,15 +233,18 @@ def publisher(name_executable, parameters, key, time_out, code, data,
                               when the publisher is finished
 
         The function runs the Shape Application as a Publisher
-        with the QoS defined.
-            * Wait until the topic is created
-            * Wait until the writer is created
-            * Wait until the writer matches with a reader
-            * Wait until the writer sends data
+        with the parameters defined.
+        The Publisher Shape Application follows the next steps:
+            * The topic is created
+            * The Data Writer is created
+            * The Data Writer matches with a Data Reader
+            * The Data Writer sends data
 
-        If it finds the pattern it will continue to the next step,
-        if not it will stop and save the corresponding ReturnCode.
-
+        If the Shape Application achieves one step, it will print an specific string pattern.
+        The function will recognize that pattern and it will continue also to the next step,
+        waiting again for the next corresponding pattern to be recognized. If the Shape Application
+        stops at some step, the function will not recognized the expected pattern (or it will
+        recognized an error pattern), it will save the obtained ReturnCode and it will finish too.
     """
 
     # Step 1 : run the executable
@@ -248,11 +258,11 @@ def publisher(name_executable, parameters, key, time_out, code, data,
     # Step 2 : Check if the topic is created
     index = child_pub.expect(
         [
-            'Create topic:',
-            pexpect.TIMEOUT,
-            'please specify topic name',
-            'unrecognized value',
-            pexpect.EOF
+            'Create topic:',                                              # index == 0
+            pexpect.TIMEOUT,                                              # index == 1
+            'please specify topic name',                                  # index == 2
+            'unrecognized value',                                         # index == 3
+            pexpect.EOF                                                   # index == 4
         ],
         time_out
     )
@@ -265,8 +275,8 @@ def publisher(name_executable, parameters, key, time_out, code, data,
         # Step 3 : Check if the writer is created
         index = child_pub.expect(
             [
-                'Create writer for topic',
-                pexpect.TIMEOUT
+                'Create writer for topic',                                # index = 0
+                pexpect.TIMEOUT                                           # index = 1
             ],
             time_out
         )
@@ -276,9 +286,9 @@ def publisher(name_executable, parameters, key, time_out, code, data,
             # Step 4 : Check if the writer matches the reader
             index = child_pub.expect(
                 [
-                    'on_publication_matched()',
-                    pexpect.TIMEOUT,
-                    'on_offered_incompatible_qos'
+                    'on_publication_matched()',                           # index = 0
+                    pexpect.TIMEOUT,                                      # index = 1
+                    'on_offered_incompatible_qos'                         # index = 2
                 ],
                 time_out
             )
@@ -291,22 +301,23 @@ def publisher(name_executable, parameters, key, time_out, code, data,
                     #Step  5: Check if the writer sends the samples
                     index = child_pub.expect(
                             [
-                                '\[20\]',
-                                pexpect.TIMEOUT
+                                '\[20\]',                                 # index = 0
+                                pexpect.TIMEOUT                           # index = 1
                             ],
                             time_out
                         )
                     if index == 0:
                         code[id_pub] = ReturnCode.OK
-                        if key == 'Test_Reliability_4' or key == 'Test_Ownership_4':
+                        # With these tests we check if we receive the data correctly, in order to do it we are saving the samples sent
+                        if testCase == 'Test_Reliability_4' or testCase == 'Test_Ownership_4':
                             for x in range(0, 40 ,1):
                                 pub_string = re.search('[0-9]{3} [0-9]{3}',
                                                             child_pub.before )
                                 data.put(pub_string.group(0))
 
                                 child_pub.expect([
-                                            '\[20\]',
-                                            pexpect.TIMEOUT
+                                            '\[20\]',                     # index = 0
+                                            pexpect.TIMEOUT               # index = 1
                                                 ],
                                             time_out
                                 )
@@ -321,8 +332,8 @@ def publisher(name_executable, parameters, key, time_out, code, data,
     return
 
 
-def run_test(name_pub, name_sub, key, param_pub, param_sub,
-                expected_code_pub, expected_code_sub, verbose, case,
+def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
+                expected_code_pub, expected_code_sub, verbosity, case,
                 time_out):
     """ Run the Publisher and the Subscriber and check the ReturnCode
 
@@ -330,7 +341,7 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
                             as a Publisher
         name_sub          : name of the Shape Application to run
                             as a Subscriber
-        key               : test is being tested
+        testCase          : testCase is being tested
                             (from rtps_test_suite_1)
         param_pub         : QoS for the Publisher
         param_sub         : QoS for the Subscriber
@@ -338,7 +349,7 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
                             in a non error situation
         expected_code_sub : ReturnCode the Subscriber would obtain
                             in a non error situation
-        verbose           : boolean. True means the Publisher and Subscriber's
+        verbosity           : boolean. True means the Publisher and Subscriber's
                             output will be shown on the console if there is
                             an error.
         case              : testCase
@@ -359,11 +370,11 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
     publisher_finished = multiprocessing.Event()
 
     pub = Process(target=publisher,
-                    args=[path_executables[name_pub], param_pub, key,
+                    args=[path_executables[name_pub], param_pub, testCase,
                             time_out, code, data, 1, subscriber_finished,
                             publisher_finished])
     sub = Process(target=subscriber,
-                    args=[path_executables[name_sub], param_sub, key,
+                    args=[path_executables[name_sub], param_sub, testCase,
                             time_out, code, data, subscriber_finished,
                             publisher_finished])
     sub.start()
@@ -383,15 +394,15 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
                       )
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
-        print (f'{key} : Ok')
+        print (f'{testCase} : Ok')
 
     else:
-        print(f'Error in : {key}')
+        print(f'Error in : {testCase}')
         print(f'Publisher expected code: {expected_code_pub}; \
                 Code found: {code[1]}')
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[0]}')
-        if verbose:
+        if verbosity:
             if expected_code_pub !=  code[1] or expected_code_sub != code[0]:
                 print('\nInformation about the Publisher:')
                 print(f'{information_publisher}')
@@ -415,16 +426,16 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
     os.remove('log_sub.txt')
 
 
-def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_sub,
+def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, param_sub,
                          expected_code_pub1, expected_code_pub2, expected_code_sub,
-                         verbose, case, time_out):
+                         verbosity, case, time_out):
     """ Run two Publisher and one Subscriber and check the ReturnCode
 
         name_pub           : name of the Shape Application to run
                              as a Publisher
         name_sub           : name of the Shape Application to run
                              as a Subscriber
-        key                : test that is being tested
+        testCase           : testCase that is being tested
                             (from rtps_test_suite_1)
         param_pub1         : QoS for the Publisher 1
         param_pub2         : QoS for the Publisher 2
@@ -435,7 +446,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
                              in a non error situation
         expected_code_sub  : ReturnCode the Subscriber would obtain
                              in a non error situation
-        verbose            : boolean. True means the Publisher and Subscriber's
+        verbosity            : boolean. True means the Publisher and Subscriber's
                              output will be shown on the console if there is
                              an error.
         time_out           : timeout for pexpect.
@@ -454,31 +465,31 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
     publisher_finished = multiprocessing.Event()
 
 
-    if key == 'Test_Ownership_3':
+    if testCase == 'Test_Ownership_3':
         pub1 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub1, key,
+                        args=[path_executables[name_pub], param_pub1, testCase,
                                 time_out, code, data, 1,
                                 subscriber_finished, publisher_finished])
         pub2 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub2, key,
+                        args=[path_executables[name_pub], param_pub2, testCase,
                                 time_out, code, data, 2,
                                 subscriber_finished, publisher_finished])
         sub = Process(target=subscriber,
-                        args=[path_executables[name_sub], param_sub, key,
+                        args=[path_executables[name_sub], param_sub, testCase,
                                 time_out, code, data,
                                 subscriber_finished, publisher_finished])
 
-    if key == 'Test_Ownership_4':
+    if testCase == 'Test_Ownership_4':
         pub1 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub1, key,
+                        args=[path_executables[name_pub], param_pub1, testCase,
                                 time_out, code, Queue(), 1,
                                 subscriber_finished, publisher_finished])
         pub2 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub2, key,
+                        args=[path_executables[name_pub], param_pub2, testCase,
                                 time_out, code, data, 2,
                                 subscriber_finished, publisher_finished])
         sub = Process(target=subscriber,
-                        args=[path_executables[name_sub], param_sub, key,
+                        args=[path_executables[name_sub], param_sub, testCase,
                                 time_out, code, data,
                                 subscriber_finished, publisher_finished])
 
@@ -509,17 +520,17 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
                       )
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
-        print (f'{key} : Ok')
+        print (f'{testCase} : Ok')
 
     else:
-        print(f'Error in : {key}')
+        print(f'Error in : {testCase}')
         print(f'Publisher 1 expected code: {expected_code_pub1}; \
                 Code found: {code[1]}')
         print(f'Publisher 2 expected code: {expected_code_pub2}; \
                 Code found: {code[2]}')
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[0]}')
-        if verbose:
+        if verbosity:
             if expected_code_pub1 !=  code[1] or expected_code_pub2 !=  code[2] or expected_code_sub !=  code[0]:
                 print('\nInformation about the Publisher 1:')
                 print(f'{information_publisher1}')
@@ -605,7 +616,7 @@ def main():
     gen_args = {
         'publisher': args.publisher,
         'subscriber': args.subscriber,
-        'verbose' : args.verbose,
+        'verbosity' : args.verbose,
         'extend' : args.extend
     }
 
@@ -635,10 +646,10 @@ def main():
         case = TestCase(f'{k}')
         if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
             run_test_pub_pub_sub(gen_args['publisher'], gen_args['subscriber'], k, v[0], v[1], v[2],
-                                 v[3], v[4], v[5], gen_args['verbose'], case, timeout)
+                                 v[3], v[4], v[5], gen_args['verbosity'], case, timeout)
         else:
             run_test(gen_args['publisher'], gen_args['subscriber'], k, v[0], v[1], v[2], v[3],
-                           gen_args['verbose'], case, timeout)
+                           gen_args['verbosity'], case, timeout)
 
         suite.add_testcase(case)
 
