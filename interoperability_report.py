@@ -11,7 +11,7 @@ from junitparser import TestCase, TestSuite, JUnitXml, Error, Attr
 from datetime import datetime
 
 from utilities import ReturnCode, path_executables
-from testSuite import dict_param_expected_code_timeout
+from testSuite import rtps_test_suite_1
 
 
 def subscriber(name_executable, parameters, key, time_out, code, data,
@@ -23,7 +23,7 @@ def subscriber(name_executable, parameters, key, time_out, code, data,
                               as a Subscriber
         parameters          : QOS to use with the Shape Application
         key                 : test is being tested 
-                             (from dict_param_expected_code_timeout)
+                             (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
         code                : this variable will be overwritten with 
                               the obtained ReturnCode
@@ -213,7 +213,7 @@ def publisher(name_executable, parameters, key, time_out, code, data,
                               as a Publisher
         parameters          : QOS to use with the Shape Application
         key                 : test is being tested 
-                             (from dict_param_expected_code_timeout)
+                             (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
         code                : this variable will be overwritten with 
                               the obtained ReturnCode
@@ -331,7 +331,7 @@ def run_test(name_pub, name_sub, key, param_pub, param_sub,
         name_sub          : name of the Shape Application to run 
                             as a Subscriber
         key               : test is being tested 
-                            (from dict_param_expected_code_timeout)
+                            (from rtps_test_suite_1)
         param_pub         : QoS for the Publisher
         param_sub         : QoS for the Subscriber
         expected_code_pub : ReturnCode the Publisher would obtain 
@@ -425,7 +425,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, key, param_pub1, param_pub2, param_
         name_sub           : name of the Shape Application to run 
                              as a Subscriber
         key                : test that is being tested 
-                            (from dict_param_expected_code_timeout)
+                            (from rtps_test_suite_1)
         param_pub1         : QoS for the Publisher 1
         param_pub2         : QoS for the Publisher 2
         param_sub          : QoS for the Subscriber
@@ -633,15 +633,16 @@ def main():
     
     suite = TestSuite(f"{gen_args['publisher']}---{gen_args['subscriber']}")
 
-    for k, v in dict_param_expected_code_timeout.items():
+    timeout = 20 # see if i should put it in another place
+    for k, v in rtps_test_suite_1.items():
         
         case = TestCase(f'{k}')
         if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
             run_test_pub_pub_sub(gen_args['publisher'], gen_args['subscriber'], k, v[0], v[1], v[2],
-                                 v[3], v[4], v[5], gen_args['verbose'], case, v[6])
+                                 v[3], v[4], v[5], gen_args['verbose'], case, timeout)
         else:
             run_test(gen_args['publisher'], gen_args['subscriber'], k, v[0], v[1], v[2], v[3], 
-                           gen_args['verbose'], case, v[4])
+                           gen_args['verbose'], case, timeout)
         
         suite.add_testcase(case)
 
