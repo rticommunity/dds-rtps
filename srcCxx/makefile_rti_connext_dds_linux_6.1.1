@@ -1,8 +1,10 @@
 ######################################################################
 # To compile, type:
 # 	make -f makefile_rti_connext_dds_linux_6.1.1
-# To compile with the debug option, type:
+# To compile with the Debug option, type:
 #   DEBUG=1 make -f makefile_rti_connext_dds_linux_6.1.1
+#	The Debug option will allow us to set a breakpoint in
+#	shape_main.cxx.
 #
 # This makefile assumes that your build environment is already correctly
 # configured. (For example, the correct version of your compiler and
@@ -11,21 +13,21 @@
 # You should set the environemnt variable NDDSHOME to point to where
 # RTI Connext DDS is installed.
 #
-###########
+######################################################################
 
 # If undefined in the environment default NDDSHOME to install dir
 ifndef NDDSHOME
 $(error NDDSHOME not defined)
 endif
 
-COMPILER_FLAGS = -m64 
+COMPILER_FLAGS = -m64
 LINKER_FLAGS = -m64 -static-libgcc
 
-c = $(subst /, , $(NDDSHOME))
+split_path_name = $(subst /, , $(NDDSHOME))
 
-ex1 = $(lastword $c)
-ex2 = "_shape_main_linux"	
-ex = $(ex1)$(ex2)
+version_name = $(lastword $(split_path_name))
+common_name = "_shape_main_linux"
+executable_name = $(version_name)$(common_name)
 
 TARGET_ARCH = x64Linux4gcc7.3.0
 
@@ -41,11 +43,11 @@ SYSLIBS = -ldl -lnsl -lm -lpthread -lrt
 
 ifeq ($(DEBUG),1)
 COMPILER_FLAGS += -g -O0
-LINKER_FLAGS += -g 
+LINKER_FLAGS += -g
 LIBS = -L$(NDDSHOME)/lib/$(TARGET_ARCH) \
         -lnddscppzd -lnddsczd -lnddscorezd $(SYSLIBS)
 else
-LINKER_FLAGS += -s 
+LINKER_FLAGS += -s
 LIBS = -L$(NDDSHOME)/lib/$(TARGET_ARCH) \
         -lnddscppz -lnddscz -lnddscorez $(SYSLIBS)
 endif
@@ -53,17 +55,17 @@ endif
 
 DEFINES = -DRTI_UNIX -DRTI_LINUX -DRTI_CONNEXT_DDS
 
-INCLUDES = -I. -I$(NDDSHOME)/include -I$(NDDSHOME)/include/ndds 
+INCLUDES = -I. -I$(NDDSHOME)/include -I$(NDDSHOME)/include/ndds
 
 OBJDIR := objs/$(TARGET_ARCH)
 
 CDRSOURCES     := shape.idl
-AUTOGENSOURCES := shapeSupport.cxx shapePlugin.cxx shape.cxx 
+AUTOGENSOURCES := shapeSupport.cxx shapePlugin.cxx shape.cxx
 
-EXEC          := $(ex)
+EXEC          := $(executable_name)
 AUTOGENOBJS   := $(addprefix $(OBJDIR)/, $(AUTOGENSOURCES:%.cxx=%.o))
 
-$(OBJDIR)/$(EXEC) : $(AUTOGENSOURCES) $(AUTOGENOBJS) $(OBJDIR)/shape_main.o 
+$(OBJDIR)/$(EXEC) : $(AUTOGENSOURCES) $(AUTOGENOBJS) $(OBJDIR)/shape_main.o
 	$(LINKER) $(LINKER_FLAGS)   -o $@ $(OBJDIR)/shape_main.o  $(AUTOGENOBJS) $(LIBS)
 
 $(OBJDIR)/%.o : %.cxx
@@ -78,5 +80,5 @@ $(AUTOGENSOURCES) : $(CDRSOURCES)
 $(AUTOGENOBJS): |  objs/$(TARGET_ARCH)
 
 objs/$(TARGET_ARCH):
-	echo "Making directory objs/$(TARGET_ARCH)"; 
+	echo "Making directory objs/$(TARGET_ARCH)";
 	mkdir -p objs/$(TARGET_ARCH)
