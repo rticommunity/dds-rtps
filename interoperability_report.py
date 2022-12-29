@@ -120,7 +120,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                     #Step 6 : Check if the reader receives the samples
                     index = child_sub.expect(
                             [
-                                '\[20\]',                                 # index = 0
+                                '\[[0-9][0-9]\]',                         # index = 0
                                 pexpect.TIMEOUT                           # index = 1
                             ],
                             time_out
@@ -142,7 +142,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                                     break
                                 child_sub.expect(
                                             [
-                                            '\[20\]',                     # index = 0
+                                            '\[[0-9][0-9]\]',             # index = 0
                                             pexpect.TIMEOUT               # index = 1
                                             ],
                                             time_out
@@ -169,7 +169,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                                     break
                                 child_sub.expect(
                                             [
-                                            '\[20\]',                     # index = 0
+                                            '\[[0-9][0-9]\]',             # index = 0
                                             pexpect.TIMEOUT               # index = 1
                                             ],
                                             time_out
@@ -194,7 +194,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
 
                                 child_sub.expect(
                                             [
-                                            '\[20\]',                     # index = 0
+                                            '\[[0-9][0-9]\]',             # index = 0
                                             pexpect.TIMEOUT               # index = 1
                                             ],
                                             time_out
@@ -298,7 +298,7 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
                     #Step  5: Check if the writer sends the samples
                     index = child_pub.expect(
                             [
-                                '\[20\]',                                 # index = 0
+                                '\[[0-9][0-9]\]',                         # index = 0
                                 pexpect.TIMEOUT                           # index = 1
                             ],
                             time_out
@@ -313,7 +313,7 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
                                 samplesSent.put(pub_string.group(0))
 
                                 child_pub.expect([
-                                            '\[20\]',                     # index = 0
+                                            '\[[0-9][0-9]\]',             # index = 0
                                             pexpect.TIMEOUT               # index = 1
                                                 ],
                                             time_out
@@ -420,11 +420,10 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[0]}')
         if verbosity:
-            #if expected_code_pub !=  code[1] or expected_code_sub != code[0]:
-                print('\nInformation about the Publisher:')
-                print(f'{information_publisher}')
-                print('\nInformation about the Subscriber:')
-                print(f'{information_subscriber}\n')
+            print('\nInformation about the Publisher:')
+            print(f'{information_publisher}')
+            print('\nInformation about the Subscriber:')
+            print(f'{information_subscriber}\n')
 
         additional_info_pub = information_publisher.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
@@ -599,13 +598,12 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[0]}')
         if verbosity:
-            #if expected_code_pub1 !=  code[1] or expected_code_pub2 !=  code[2] or expected_code_sub !=  code[0]:
-                print('\nInformation about the Publisher 1:')
-                print(f'{information_publisher1}')
-                print('\nInformation about the Publisher 2:')
-                print(f'{information_publisher2}')
-                print('\nInformation about the Subscriber:')
-                print(f'{information_subscriber}\n')
+            print('\nInformation about the Publisher 1:')
+            print(f'{information_publisher1}')
+            print('\nInformation about the Publisher 2:')
+            print(f'{information_publisher2}')
+            print('\nInformation about the Subscriber:')
+            print(f'{information_subscriber}\n')
 
         additional_info_pub1 = information_publisher1.replace('\n', '<br>')
         additional_info_pub2 = information_publisher2.replace('\n', '<br>')
