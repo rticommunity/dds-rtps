@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from multiprocessing import Process, Queue
+import sys
 import time
 import re
 import pexpect
@@ -9,13 +10,14 @@ import argparse
 import os
 from junitparser import TestCase, TestSuite, JUnitXml, Error, Attr
 from datetime import datetime
+import tempfile
 
 from utilities import ReturnCode, path_executables
 from testSuite import rtps_test_suite_1
 
 
 def subscriber(name_executable, parameters, testCase, time_out, producedCode, samplesSent,
-                subscriber_finished, publisher_finished):
+                subscriber_finished, publisher_finished, file):
     """ Run the executable with the parameters and save
         the error code obtained
 
@@ -33,6 +35,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                               when the subscriber is finished
         publisher_finished  : object event from multiprocessing that is set
                               when the publisher is finished
+        file                : temporal file to save Shape Application output
 
         The function runs the Shape Application as a Subscriber
         with the parameters defined.
@@ -53,10 +56,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
 
     # Step 1 : run the executable
     child_sub = pexpect.spawnu(f'{name_executable} {parameters}')
-
-    # Save the child's output in the file created
-    msg_sub_verbose = open('log_sub.txt', 'w')
-    child_sub.logfile = msg_sub_verbose
+    child_sub.logfile =  file
 
     # Step 2 : Check if the topic is created
     index = child_sub.expect(
@@ -212,7 +212,7 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
 
 
 def publisher(name_executable, parameters, testCase, time_out, producedCode, samplesSent,
-                id_pub, subscriber_finished, publisher_finished):
+                id_pub, subscriber_finished, publisher_finished, file):
     """ Run the executable with the parameters and save
         the error code obtained
 
@@ -231,6 +231,7 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
                               when the subscriber is finished
         publisher_finished  : object event from multiprocessing that is set
                               when the publisher is finished
+        file                : temporal file to save Shape Application output
 
         The function runs the Shape Application as a Publisher
         with the parameters defined.
@@ -249,11 +250,7 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
 
     # Step 1 : run the executable
     child_pub = pexpect.spawnu(f'{name_executable} {parameters}')
-
-    # Save the child's output in the file created
-    file = 'log_pub_'+str(id_pub)+'.txt'
-    msg_pub_verbose = open(file, 'w')
-    child_pub.logfile = msg_pub_verbose
+    child_pub.logfile = file
 
     # Step 2 : Check if the topic is created
     index = child_pub.expect(
@@ -368,6 +365,9 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     subscriber_finished = multiprocessing.Event()
     publisher_finished = multiprocessing.Event()
 
+    file_publisher = tempfile.TemporaryFile(mode='w+t')
+    file_subscriber = tempfile.TemporaryFile(mode='w+t')
+
     pub = Process(target=publisher,
                     kwargs={
                         'name_executable':path_executables[name_pub],
@@ -378,7 +378,8 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                         'samplesSent':data,
                         'id_pub':1,
                         'subscriber_finished':subscriber_finished,
-                        'publisher_finished':publisher_finished
+                        'publisher_finished':publisher_finished,
+                        'file':file_publisher
                     })
 
     sub = Process(target=subscriber,
@@ -390,17 +391,18 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                         'producedCode':code,
                         'samplesSent':data,
                         'subscriber_finished':subscriber_finished,
-                        'publisher_finished':publisher_finished
+                        'publisher_finished':publisher_finished,
+                        'file':file_subscriber
                     })
     sub.start()
     pub.start()
     sub.join()
     pub.join()
 
-    msg_pub_verbose = open('log_pub_1.txt', 'r')
-    msg_sub_verbose = open('log_sub.txt', 'r')
-    information_publisher = msg_pub_verbose.read()
-    information_subscriber = msg_sub_verbose.read()
+    file_publisher.seek(0)
+    file_subscriber.seek(0)
+    information_publisher = file_publisher.read()
+    information_subscriber = file_subscriber.read()
 
     TestCase.custom = Attr('Parameters')
     testCase.custom = (f'\
@@ -418,7 +420,7 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[0]}')
         if verbosity:
-            if expected_code_pub !=  code[1] or expected_code_sub != code[0]:
+            #if expected_code_pub !=  code[1] or expected_code_sub != code[0]:
                 print('\nInformation about the Publisher:')
                 print(f'{information_publisher}')
                 print('\nInformation about the Subscriber:')
@@ -435,10 +437,8 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                             )
                       ]
 
-
-    # Delete the temporal files
-    os.remove('log_pub_1.txt')
-    os.remove('log_sub.txt')
+    file_publisher.close()
+    file_subscriber.close()
 
 
 def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, param_sub,
@@ -479,6 +479,10 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     subscriber_finished = multiprocessing.Event()
     publisher_finished = multiprocessing.Event()
 
+    file_subscriber = tempfile.TemporaryFile(mode='w+t')
+    file_publisher1 = tempfile.TemporaryFile(mode='w+t')
+    file_publisher2 = tempfile.TemporaryFile(mode='w+t')
+
     if testCase.name == 'Test_Ownership_3':
         pub1 = Process(target=publisher,
                         kwargs={
@@ -490,7 +494,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                             'samplesSent':data,
                             'id_pub':1,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished
+                            'publisher_finished':publisher_finished,
+                            'file':file_publisher1
                         })
         pub2 = Process(target=publisher,
                         kwargs={
@@ -502,7 +507,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                             'samplesSent':data,
                             'id_pub':2,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished
+                            'publisher_finished':publisher_finished,
+                            'file':file_publisher2
                         })
         sub = Process(target=subscriber,
                         kwargs={
@@ -513,7 +519,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                             'producedCode':code,
                             'samplesSent':data,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished
+                            'publisher_finished':publisher_finished,
+                            'file':file_subscriber
                         })
 
     if testCase.name == 'Test_Ownership_4':
@@ -527,7 +534,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                             'samplesSent':Queue(),
                             'id_pub':1,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished
+                            'publisher_finished':publisher_finished,
+                            'file':file_publisher1
                         })
         pub2 = Process(target=publisher,
                         kwargs={
@@ -539,7 +547,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                             'samplesSent':data,
                             'id_pub':2,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished
+                            'publisher_finished':publisher_finished,
+                            'file':file_publisher2
                         })
         sub = Process(target=subscriber,
                         kwargs={
@@ -550,7 +559,8 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                             'producedCode':code,
                             'samplesSent':data,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished
+                            'publisher_finished':publisher_finished,
+                            'file':file_subscriber
                         })
 
     sub.start()
@@ -563,14 +573,12 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     pub1.join()
     pub2.join()
 
-    # temporal files
-    msg_pub1_verbose = open('log_pub_1.txt', 'r')
-    msg_pub2_verbose = open('log_pub_2.txt', 'r')
-    msg_sub_verbose = open('log_sub.txt', 'r')
-
-    information_publisher1 = msg_pub1_verbose.read()
-    information_publisher2 = msg_pub2_verbose.read()
-    information_subscriber = msg_sub_verbose.read()
+    file_publisher1.seek(0)
+    file_publisher2.seek(0)
+    file_subscriber.seek(0)
+    information_publisher1 = file_publisher1.read()
+    information_publisher2 = file_publisher2.read()
+    information_subscriber = file_subscriber.read()
 
     TestCase.custom = Attr('Parameters')
     testCase.custom = (f'\
@@ -591,7 +599,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[0]}')
         if verbosity:
-            if expected_code_pub1 !=  code[1] or expected_code_pub2 !=  code[2] or expected_code_sub !=  code[0]:
+            #if expected_code_pub1 !=  code[1] or expected_code_pub2 !=  code[2] or expected_code_sub !=  code[0]:
                 print('\nInformation about the Publisher 1:')
                 print(f'{information_publisher1}')
                 print('\nInformation about the Publisher 2:')
@@ -612,10 +620,9 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                           )
                       ]
 
-    # Delete the temporal files
-    os.remove('log_pub_1.txt')
-    os.remove('log_pub_2.txt')
-    os.remove('log_sub.txt')
+    file_subscriber.close()
+    file_publisher1.close()
+    file_publisher2.close()
 
 class Arguments:
     def parser():
@@ -700,7 +707,7 @@ def main():
 
     suite = TestSuite(f"{options['publisher']}---{options['subscriber']}")
 
-    timeout = 20 # see if i should put it in another place
+    timeout = 10 # see if i should put it in another place
     for k, v in rtps_test_suite_1.items():
 
         case = TestCase(f'{k}')
