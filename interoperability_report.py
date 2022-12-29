@@ -14,7 +14,7 @@ from utilities import ReturnCode, path_executables
 from testSuite import rtps_test_suite_1
 
 
-def subscriber(name_executable, parameters, testCase, time_out, code, data,
+def subscriber(name_executable, parameters, testCase, time_out, producedCode, samplesSent,
                 subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save
         the error code obtained
@@ -25,9 +25,9 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
         testCase            : testCase is being tested
                              (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
-        code                : this variable will be overwritten with
+        producedCode        : this variable will be overwritten with
                               the obtained ReturnCode
-        data                : this variable contains the samples
+        samplesSent         : this variable contains the samples
                               the Publisher sends
         subscriber_finished : object event from multiprocessing that is set
                               when the subscriber is finished
@@ -71,9 +71,9 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
     )
 
     if index == 1 or index == 2 or index == 4:
-        code[0] = ReturnCode.TOPIC_NOT_CREATED
+        producedCode[0] = ReturnCode.TOPIC_NOT_CREATED
     elif index == 3:
-        code[0] = ReturnCode.UNRECOGNIZED_VALUE
+        producedCode[0] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the reader is created
         index = child_sub.expect(
@@ -86,9 +86,9 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
         )
 
         if index == 1:
-            code[0] = ReturnCode.READER_NOT_CREATED
+            producedCode[0] = ReturnCode.READER_NOT_CREATED
         elif index == 2:
-            code[0] = ReturnCode.FILTER_NOT_CREATED
+            producedCode[0] = ReturnCode.FILTER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the reader matches the writer
             index = child_sub.expect(
@@ -101,9 +101,9 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
             )
 
             if index == 1:
-                code[0] = ReturnCode.WRITER_NOT_MATCHED
+                producedCode[0] = ReturnCode.WRITER_NOT_MATCHED
             elif index == 2:
-                code[0] = ReturnCode.INCOMPATIBLE_QOS
+                producedCode[0] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
                 # Step 5: Check if the reader detects the writer as alive
                 index = child_sub.expect(
@@ -115,7 +115,7 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                 )
 
                 if index == 1:
-                    code[0] = ReturnCode.WRITER_NOT_ALIVE
+                    producedCode[0] = ReturnCode.WRITER_NOT_ALIVE
                 elif index == 0:
                     #Step 6 : Check if the reader receives the samples
                     index = child_sub.expect(
@@ -127,7 +127,7 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                         )
 
                     if index == 1:
-                        code[0] = ReturnCode.DATA_NOT_RECEIVED
+                        producedCode[0] = ReturnCode.DATA_NOT_RECEIVED
 
                     elif index == 0:
                         # This test checks that data is received in the right order
@@ -135,10 +135,10 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                             for x in range(0, 3, 1):
                                 sub_string = re.search('[0-9]{3} [0-9]{3}',
                                                         child_sub.before)
-                                if data.get() == sub_string.group(0):
-                                    code[0] = ReturnCode.OK
+                                if samplesSent.get() == sub_string.group(0):
+                                    producedCode[0] = ReturnCode.OK
                                 else:
-                                    code[0] = ReturnCode.DATA_NOT_CORRECT
+                                    producedCode[0] = ReturnCode.DATA_NOT_CORRECT
                                     break
                                 child_sub.expect(
                                             [
@@ -151,7 +151,7 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                         elif testCase == 'Test_Ownership_3':
                             red_received = False
                             blue_received = False
-                            code[0] = ReturnCode.RECEIVING_FROM_ONE
+                            producedCode[0] = ReturnCode.RECEIVING_FROM_ONE
                             for x in range(0,100,1):
                                 sub_string_red = re.search('RED',
                                                         child_sub.before)
@@ -165,7 +165,7 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                                     blue_received = True
 
                                 if blue_received and red_received:
-                                    code[0] = ReturnCode.RECEIVING_FROM_BOTH
+                                    producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
                                     break
                                 child_sub.expect(
                                             [
@@ -184,13 +184,13 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                                                         child_sub.before)
 
                                 try:
-                                    list_data_received_second.append(data.get(True, 5))
+                                    list_data_received_second.append(samplesSent.get(True, 5))
                                 except:
                                     break;
 
                                 if sub_string.group(0) in list_data_received_second:
                                     second_received = True
-                                    code[0] = ReturnCode.RECEIVING_FROM_BOTH
+                                    producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
 
                                 child_sub.expect(
                                             [
@@ -201,17 +201,17 @@ def subscriber(name_executable, parameters, testCase, time_out, code, data,
                                 )
 
                             if second_received == False:
-                                code[0] = ReturnCode.RECEIVING_FROM_ONE
+                                producedCode[0] = ReturnCode.RECEIVING_FROM_ONE
 
                         else:
-                            code[0] = ReturnCode.OK
+                            producedCode[0] = ReturnCode.OK
 
     subscriber_finished.set()   # set subscriber as finished
     publisher_finished.wait()   # wait for publisher to finish
     return
 
 
-def publisher(name_executable, parameters, testCase, time_out, code, data,
+def publisher(name_executable, parameters, testCase, time_out, producedCode, samplesSent,
                 id_pub, subscriber_finished, publisher_finished):
     """ Run the executable with the parameters and save
         the error code obtained
@@ -222,9 +222,9 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
         testCase            : testCase is being tested
                              (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
-        code                : this variable will be overwritten with
+        producedCode                : this variable will be overwritten with
                               the obtained ReturnCode
-        data                : this variable contains the samples
+        samplesSent                : this variable contains the samples
                               the Publisher sends
         id_pub              : Publisher's id (1|2)
         subscriber_finished : object event from multiprocessing that is set
@@ -268,9 +268,9 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
     )
 
     if index == 1 or index == 2 or index == 4:
-        code[id_pub] = ReturnCode.TOPIC_NOT_CREATED
+        producedCode[id_pub] = ReturnCode.TOPIC_NOT_CREATED
     elif index == 3:
-        code[id_pub] = ReturnCode.UNRECOGNIZED_VALUE
+        producedCode[id_pub] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the writer is created
         index = child_pub.expect(
@@ -281,7 +281,7 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
             time_out
         )
         if index == 1:
-            code[id_pub] = ReturnCode.WRITER_NOT_CREATED
+            producedCode[id_pub] = ReturnCode.WRITER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the writer matches the reader
             index = child_pub.expect(
@@ -293,9 +293,9 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
                 time_out
             )
             if index == 1:
-                code[id_pub] = ReturnCode.READER_NOT_MATCHED
+                producedCode[id_pub] = ReturnCode.READER_NOT_MATCHED
             elif index == 2:
-                code[id_pub] = ReturnCode.INCOMPATIBLE_QOS
+                producedCode[id_pub] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
                 if '-v' in parameters:
                     #Step  5: Check if the writer sends the samples
@@ -307,13 +307,13 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
                             time_out
                         )
                     if index == 0:
-                        code[id_pub] = ReturnCode.OK
+                        producedCode[id_pub] = ReturnCode.OK
                         # With these tests we check if we receive the data correctly, in order to do it we are saving the samples sent
                         if testCase == 'Test_Reliability_4' or testCase == 'Test_Ownership_4':
                             for x in range(0, 40 ,1):
                                 pub_string = re.search('[0-9]{3} [0-9]{3}',
                                                             child_pub.before )
-                                data.put(pub_string.group(0))
+                                samplesSent.put(pub_string.group(0))
 
                                 child_pub.expect([
                                             '\[20\]',                     # index = 0
@@ -323,9 +323,9 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
                                 )
 
                     elif index == 1:
-                        code[id_pub] = ReturnCode.DATA_NOT_SENT
+                        producedCode[id_pub] = ReturnCode.DATA_NOT_SENT
                 else:
-                    code[id_pub] = ReturnCode.OK
+                    producedCode[id_pub] = ReturnCode.OK
 
     subscriber_finished.wait() # wait for subscriber to finish
     publisher_finished.set()   # set publisher as finished
@@ -333,7 +333,7 @@ def publisher(name_executable, parameters, testCase, time_out, code, data,
 
 
 def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
-                expected_code_pub, expected_code_sub, verbosity, case,
+                expected_code_pub, expected_code_sub, verbosity,
                 time_out):
     """ Run the Publisher and the Subscriber and check the ReturnCode
 
@@ -352,7 +352,6 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
         verbosity           : boolean. True means the Publisher and Subscriber's
                             output will be shown on the console if there is
                             an error.
-        case              : testCase
         time_out          : timeout for pexpect.
 
         The function runs in two different Processes
@@ -370,13 +369,29 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     publisher_finished = multiprocessing.Event()
 
     pub = Process(target=publisher,
-                    args=[path_executables[name_pub], param_pub, testCase,
-                            time_out, code, data, 1, subscriber_finished,
-                            publisher_finished])
+                    kwargs={
+                        'name_executable':path_executables[name_pub],
+                        'parameters':param_pub,
+                        'testCase':testCase.name,
+                        'time_out':time_out,
+                        'producedCode':code,
+                        'samplesSent':data,
+                        'id_pub':1,
+                        'subscriber_finished':subscriber_finished,
+                        'publisher_finished':publisher_finished
+                    })
+
     sub = Process(target=subscriber,
-                    args=[path_executables[name_sub], param_sub, testCase,
-                            time_out, code, data, subscriber_finished,
-                            publisher_finished])
+                    kwargs={
+                        'name_executable':path_executables[name_sub],
+                        'parameters':param_sub,
+                        'testCase':testCase.name,
+                        'time_out':time_out,
+                        'producedCode':code,
+                        'samplesSent':data,
+                        'subscriber_finished':subscriber_finished,
+                        'publisher_finished':publisher_finished
+                    })
     sub.start()
     pub.start()
     sub.join()
@@ -388,16 +403,16 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     information_subscriber = msg_sub_verbose.read()
 
     TestCase.custom = Attr('Parameters')
-    case.custom = (f'\
+    testCase.custom = (f'\
                         {name_pub} {param_pub} \
                         | {name_sub} {param_sub}'
                       )
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
-        print (f'{testCase} : Ok')
+        print (f'{testCase.name} : Ok')
 
     else:
-        print(f'Error in : {testCase}')
+        print(f'Error in : {testCase.name}')
         print(f'Publisher expected code: {expected_code_pub}; \
                 Code found: {code[1]}')
         print(f'Subscriber expected code: {expected_code_sub}; \
@@ -411,7 +426,7 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
 
         additional_info_pub = information_publisher.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
-        case.result = [Error(f'<strong> Publisher expected code: </strong> {expected_code_pub}; \
+        testCase.result = [Error(f'<strong> Publisher expected code: </strong> {expected_code_pub}; \
                                <strong> Code found: </strong>  {code[1]} <br> \
                                <strong> Subscriber expected code: </strong>  {expected_code_sub}; \
                                <strong> Code found: </strong>  {code[0]} <br> \
@@ -428,7 +443,7 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
 
 def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, param_sub,
                          expected_code_pub1, expected_code_pub2, expected_code_sub,
-                         verbosity, case, time_out):
+                         verbosity, time_out):
     """ Run two Publisher and one Subscriber and check the ReturnCode
 
         name_pub           : name of the Shape Application to run
@@ -464,34 +479,79 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     subscriber_finished = multiprocessing.Event()
     publisher_finished = multiprocessing.Event()
 
-
-    if testCase == 'Test_Ownership_3':
+    if testCase.name == 'Test_Ownership_3':
         pub1 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub1, testCase,
-                                time_out, code, data, 1,
-                                subscriber_finished, publisher_finished])
+                        kwargs={
+                            'name_executable':path_executables[name_pub],
+                            'parameters':param_pub1,
+                            'testCase':testCase.name,
+                            'time_out':time_out,
+                            'producedCode':code,
+                            'samplesSent':data,
+                            'id_pub':1,
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
+                        })
         pub2 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub2, testCase,
-                                time_out, code, data, 2,
-                                subscriber_finished, publisher_finished])
+                        kwargs={
+                            'name_executable':path_executables[name_pub],
+                            'parameters':param_pub2,
+                            'testCase':testCase.name,
+                            'time_out':time_out,
+                            'producedCode':code,
+                            'samplesSent':data,
+                            'id_pub':2,
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
+                        })
         sub = Process(target=subscriber,
-                        args=[path_executables[name_sub], param_sub, testCase,
-                                time_out, code, data,
-                                subscriber_finished, publisher_finished])
+                        kwargs={
+                            'name_executable':path_executables[name_sub],
+                            'parameters':param_sub,
+                            'testCase':testCase.name,
+                            'time_out':time_out,
+                            'producedCode':code,
+                            'samplesSent':data,
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
+                        })
 
-    if testCase == 'Test_Ownership_4':
+    if testCase.name == 'Test_Ownership_4':
         pub1 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub1, testCase,
-                                time_out, code, Queue(), 1,
-                                subscriber_finished, publisher_finished])
+                        kwargs={
+                            'name_executable':path_executables[name_pub],
+                            'parameters':param_pub1,
+                            'testCase':testCase.name,
+                            'time_out':time_out,
+                            'producedCode':code,
+                            'samplesSent':Queue(),
+                            'id_pub':1,
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
+                        })
         pub2 = Process(target=publisher,
-                        args=[path_executables[name_pub], param_pub2, testCase,
-                                time_out, code, data, 2,
-                                subscriber_finished, publisher_finished])
+                        kwargs={
+                            'name_executable':path_executables[name_pub],
+                            'parameters':param_pub2,
+                            'testCase':testCase.name,
+                            'time_out':time_out,
+                            'producedCode':code,
+                            'samplesSent':data,
+                            'id_pub':2,
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
+                        })
         sub = Process(target=subscriber,
-                        args=[path_executables[name_sub], param_sub, testCase,
-                                time_out, code, data,
-                                subscriber_finished, publisher_finished])
+                        kwargs={
+                            'name_executable':path_executables[name_sub],
+                            'parameters':param_sub,
+                            'testCase':testCase.name,
+                            'time_out':time_out,
+                            'producedCode':code,
+                            'samplesSent':data,
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
+                        })
 
     sub.start()
     pub1.start()
@@ -513,17 +573,17 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     information_subscriber = msg_sub_verbose.read()
 
     TestCase.custom = Attr('Parameters')
-    case.custom = (f'\
+    testCase.custom = (f'\
                         {name_pub} {param_pub1} \
                         | {name_pub} {param_pub2} \
                         | {name_sub} {param_sub}'
                       )
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
-        print (f'{testCase} : Ok')
+        print (f'{testCase.name} : Ok')
 
     else:
-        print(f'Error in : {testCase}')
+        print(f'Error in : {testCase.name}')
         print(f'Publisher 1 expected code: {expected_code_pub1}; \
                 Code found: {code[1]}')
         print(f'Publisher 2 expected code: {expected_code_pub2}; \
@@ -543,7 +603,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
         additional_info_pub2 = information_publisher2.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
 
-        case.result = [Error(f'<strong> Publisher 1 expected code: </strong> {expected_code_pub1}; <strong> Code found: </strong> {code[1]} <br> \
+        testCase.result = [Error(f'<strong> Publisher 1 expected code: </strong> {expected_code_pub1}; <strong> Code found: </strong> {code[1]} <br> \
                                <strong> Publisher 2 expected code: </strong> {expected_code_pub2}: <strong> Code found: </strong> {code[2]} <br> \
                                <strong> Subscriber expected code: </strong> {expected_code_sub}; <strong> Code found: </strong> {code[0]} <br>\
                               <strong> Information Publisher 1: </strong>  <br> {additional_info_pub1} <br>\
@@ -568,14 +628,14 @@ class Arguments:
             default=None,
             required=True,
             type=str,
-            choices=['connext611', 'opendds321', 'connext5.2.3'],
+            choices=['connext611', 'opendds321'],
             metavar='publisher_name',
             help='Publisher Shape Application')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
-            choices=['connext611', 'opendds321', 'connext5.2.3'],
+            choices=['connext611', 'opendds321'],
             metavar='subscriber_name',
             help='Subscriber Shape Application')
 
@@ -613,7 +673,7 @@ def main():
     parser = Arguments.parser()
     args = parser.parse_args()
 
-    gen_args = {
+    options = {
         'publisher': args.publisher,
         'subscriber': args.subscriber,
         'verbosity' : args.verbose,
@@ -622,41 +682,60 @@ def main():
 
 
     if args.output_format is None:
-        gen_args['output_format'] = 'junit'
+        options['output_format'] = 'junit'
     else:
-        gen_args['output_format'] = args.output_format
+        options['output_format'] = args.output_format
     if args.output_name is None:
         now = datetime.now()
         date_time = now.strftime('%Y%m%d-%H_%M_%S')
-        gen_args['filename_report'] = gen_args['publisher']+'-'+gen_args['subscriber']+'-'+date_time+'.xml'
+        options['filename_report'] = options['publisher']+'-'+options['subscriber']+'-'+date_time+'.xml'
         xml = JUnitXml()
 
     else:
-        gen_args['filename_report'] = args.output_name
-        if gen_args['extend']:
-            xml = JUnitXml.fromfile(gen_args['filename_report'])
+        options['filename_report'] = args.output_name
+        if options['extend']:
+            xml = JUnitXml.fromfile(options['filename_report'])
         else:
             xml = JUnitXml()
 
-    suite = TestSuite(f"{gen_args['publisher']}---{gen_args['subscriber']}")
+    suite = TestSuite(f"{options['publisher']}---{options['subscriber']}")
 
     timeout = 20 # see if i should put it in another place
     for k, v in rtps_test_suite_1.items():
 
         case = TestCase(f'{k}')
         if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
-            run_test_pub_pub_sub(gen_args['publisher'], gen_args['subscriber'], k, v[0], v[1], v[2],
-                                 v[3], v[4], v[5], gen_args['verbosity'], case, timeout)
+            run_test_pub_pub_sub(name_pub=options['publisher'],
+                                 name_sub=options['subscriber'],
+                                 testCase=case,
+                                 param_pub1=v[0],
+                                 param_pub2=v[1],
+                                 param_sub=v[2],
+                                 expected_code_pub1=v[3],
+                                 expected_code_pub2=v[4],
+                                 expected_code_sub=v[5],
+                                 verbosity=options['verbosity'],
+                                 time_out=timeout
+            )
+
         else:
-            run_test(gen_args['publisher'], gen_args['subscriber'], k, v[0], v[1], v[2], v[3],
-                           gen_args['verbosity'], case, timeout)
+            run_test(name_pub=options['publisher'],
+                     name_sub=options['subscriber'],
+                     testCase=case,
+                     param_pub=v[0],
+                     param_sub=v[1],
+                     expected_code_pub=v[2],
+                     expected_code_sub=v[3],
+                     verbosity=options['verbosity'],
+                     time_out=timeout
+            )
 
         suite.add_testcase(case)
 
 
     xml.add_testsuite(suite)
 
-    xml.write(gen_args['filename_report'])
+    xml.write(options['filename_report'])
 
 if __name__ == '__main__':
     main()

@@ -35,3 +35,8 @@ class ReturnCode(Enum):
     DATA_NOT_CORRECT = 12
     RECEIVING_FROM_ONE = 13
     RECEIVING_FROM_BOTH = 14
+
+path_executables = {
+    'connext611' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux',
+    'opendds321' : '/home/carias/dds-rtps/srcCxx/objs/x64Linux4gcc7.3.0/shape_main_opendds'
+}
