@@ -8,7 +8,7 @@ import pexpect
 import multiprocessing
 import argparse
 import os
-from junitparser import TestCase, TestSuite, JUnitXml, Error, Attr
+from junitparser import TestCase, TestSuite, JUnitXml, Error, Attr, Failure
 from datetime import datetime
 import tempfile
 from os.path import exists
@@ -441,11 +441,10 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     information_publisher = file_publisher.read()
     information_subscriber = file_subscriber.read()
 
-    TestCase.custom = Attr('Parameters')
-    testCase.custom = (f'\
-                        {name_pub} {param_pub} \
-                        | {name_sub} {param_sub}'
-                      )
+    TestCase.param = Attr('Parameters_Publisher')
+    TestCase.id = Attr('Parameters_Subscriber')
+    testCase.param = param_pub
+    testCase.id = param_sub
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
         print (f'{testCase.name} : Ok')
@@ -453,9 +452,9 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     else:
         print(f'Error in : {testCase.name}')
         print(f'Publisher expected code: {expected_code_pub}; \
-                Code found: {code[1]}')
+                Code found: {code[1].name}')
         print(f'Subscriber expected code: {expected_code_sub}; \
-                Code found: {code[0]}')
+                Code found: {code[0].name}')
         log_message(f'\nInformation about the Publisher:\n\
                       {information_publisher} \
                       \nInformation about the Subscriber:\n\
@@ -463,14 +462,25 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
 
         additional_info_pub = information_publisher.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
-        testCase.result = [Error(f'<strong> Publisher expected code: </strong> {expected_code_pub}; \
-                               <strong> Code found: </strong>  {code[1]} <br> \
-                               <strong> Subscriber expected code: </strong>  {expected_code_sub}; \
-                               <strong> Code found: </strong>  {code[0]} <br> \
+        testCase.result = [Failure(f'<table> \
+                                    <tr> \
+                                        <th></th> \
+                                        <th>Expected Code</th> \
+                                        <th>Code Produced</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Publisher</th> \
+                                        <th>{expected_code_pub.name}</th> \
+                                        <th>{code[1].name}</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Subscriber</th> \
+                                        <th>{expected_code_sub.name}</th> \
+                                        <th>{code[0].name}</th> \
+                                    </tr> \
+                                </table> \
                                <strong> Information Publisher: </strong>  <br> {additional_info_pub} <br>\
-                               <strong> Information Subscriber: </strong>  <br> {additional_info_sub}'
-                            )
-                      ]
+                               <strong> Information Subscriber: </strong>  <br> {additional_info_sub}')]
 
     file_publisher.close()
     file_subscriber.close()
