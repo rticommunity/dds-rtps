@@ -22,7 +22,7 @@ jobs:
           source .venv/bin/activate
           pip install -r requirements.txt
           cd executables
-          first_time=1; for i in ./* ; do for j in ./*; do if [ $first_time -eq 1 ]; then python3 ./../interoperability_report.py -P $i -S $j -o=./../general_report.xml; first_time=0; else python3 ./../interoperability_report.py -P $i -S $j -o=./../general_report.xml; fi; done; done
+          for i in ./* ; do for j in ./*; do python3 ./../interoperability_report.py -P $i -S $j -o=./../general_report.xml; done; done
       - name: XUnit Viewer
         id: xunit-viewer
         uses: AutoModality/action-xunit-viewer@v1
