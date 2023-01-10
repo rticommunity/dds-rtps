@@ -402,7 +402,7 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     log_message('Assigning tasks to processes', verbosity)
     pub = Process(target=publisher,
                     kwargs={
-                        'name_executable':path_executables[name_pub],
+                        'name_executable':name_pub,
                         'parameters':param_pub,
                         'testCase':testCase.name,
                         'time_out':time_out,
@@ -417,7 +417,7 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
 
     sub = Process(target=subscriber,
                     kwargs={
-                        'name_executable':path_executables[name_sub],
+                        'name_executable':name_sub,
                         'parameters':param_sub,
                         'testCase':testCase.name,
                         'time_out':time_out,
@@ -441,10 +441,8 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
     information_publisher = file_publisher.read()
     information_subscriber = file_subscriber.read()
 
-    TestCase.param = Attr('Parameters_Publisher')
-    TestCase.id = Attr('Parameters_Subscriber')
-    testCase.param = param_pub
-    testCase.id = param_sub
+    testCase.param_pub = param_pub
+    testCase.param_sub = param_sub
 
     if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
         print (f'{testCase.name} : Ok')
@@ -545,7 +543,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     if testCase.name == 'Test_Ownership_3':
         pub1 = Process(target=publisher,
                         kwargs={
-                            'name_executable':path_executables[name_pub],
+                            'name_executable':name_pub,
                             'parameters':param_pub1,
                             'testCase':testCase.name,
                             'time_out':time_out,
@@ -559,7 +557,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                         })
         pub2 = Process(target=publisher,
                         kwargs={
-                            'name_executable':path_executables[name_pub],
+                            'name_executable':name_pub,
                             'parameters':param_pub2,
                             'testCase':testCase.name,
                             'time_out':time_out,
@@ -573,7 +571,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                         })
         sub = Process(target=subscriber,
                         kwargs={
-                            'name_executable':path_executables[name_sub],
+                            'name_executable':name_sub,
                             'parameters':param_sub,
                             'testCase':testCase.name,
                             'time_out':time_out,
@@ -588,7 +586,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     if testCase.name == 'Test_Ownership_4':
         pub1 = Process(target=publisher,
                         kwargs={
-                            'name_executable':path_executables[name_pub],
+                            'name_executable':name_pub,
                             'parameters':param_pub1,
                             'testCase':testCase.name,
                             'time_out':time_out,
@@ -602,7 +600,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                         })
         pub2 = Process(target=publisher,
                         kwargs={
-                            'name_executable':path_executables[name_pub],
+                            'name_executable':name_pub,
                             'parameters':param_pub2,
                             'testCase':testCase.name,
                             'time_out':time_out,
@@ -616,7 +614,7 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                         })
         sub = Process(target=subscriber,
                         kwargs={
-                            'name_executable':path_executables[name_sub],
+                            'name_executable':name_sub,
                             'parameters':param_sub,
                             'testCase':testCase.name,
                             'time_out':time_out,
@@ -649,12 +647,10 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     information_publisher2 = file_publisher2.read()
     information_subscriber = file_subscriber.read()
 
-    TestCase.custom = Attr('Parameters')
-    testCase.custom = (f'\
-                        {name_pub} {param_pub1} \
-                        | {name_pub} {param_pub2} \
-                        | {name_sub} {param_sub}'
-                      )
+    testCase.param_pub1 = param_pub1
+    testCase.param_pub2 = param_pub2
+    testCase.param_sub = param_sub
+
     if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
         and expected_code_pub2 == code[2]:
         print (f'{testCase.name} : Ok')
@@ -662,11 +658,11 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
     else:
         print(f'Error in : {testCase.name}')
         print(f'Publisher 1 expected code: {expected_code_pub1}; \
-                Code found: {code[1]}')
+                Code found: {code[1].name}')
         print(f'Publisher 2 expected code: {expected_code_pub2}; \
-                Code found: {code[2]}')
+                Code found: {code[2].name}')
         print(f'Subscriber expected code: {expected_code_sub}; \
-                Code found: {code[0]}')
+                Code found: {code[0].name}')
         log_message(f'\nInformation about the Publisher 1:\n\
                       {information_publisher1} \
                       \nInformation about the Publisher 2:\n\
@@ -678,17 +674,32 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
         additional_info_pub2 = information_publisher2.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
 
-        testCase.result = [Error(f'<strong> Publisher 1 expected code: </strong> {expected_code_pub1}; \
-                                   <strong> Code found: </strong> {code[1]} <br> \
-                                   <strong> Publisher 2 expected code: </strong> {expected_code_pub2}: \
-                                   <strong> Code found: </strong> {code[2]} <br> \
-                                   <strong> Subscriber expected code: </strong> {expected_code_sub}; \
-                                   <strong> Code found: </strong> {code[0]} <br>\
-                                   <strong> Information Publisher 1: </strong>  <br> {additional_info_pub1} <br>\
-                                   <strong> Information Publisher 2: </strong>  <br> {additional_info_pub2} <br>\
-                                   <strong> Information Subscriber: </strong>  <br> {additional_info_sub}'
-                          )
-                      ]
+        testCase.result = [Failure(f'<table> \
+                                    <tr> \
+                                        <th></th> \
+                                        <th>Expected Code</th> \
+                                        <th>Code Produced</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Publisher 1</th> \
+                                        <th>{expected_code_pub1.name}</th> \
+                                        <th>{code[1].name}</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Publisher 2</th> \
+                                        <th>{expected_code_pub2.name}</th> \
+                                        <th>{code[2].name}</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Subscriber</th> \
+                                        <th>{expected_code_sub.name}</th> \
+                                        <th>{code[0].name}</th> \
+                                    </tr> \
+                                </table> \
+                               <strong> Information Publisher 1: </strong>  <br> {additional_info_pub1} <br>\
+                               <strong> Information Publisher 2: </strong>  <br> {additional_info_pub2} <br>\
+                               <strong> Information Subscriber: </strong>  <br> {additional_info_sub}')]
+
 
     file_subscriber.close()
     file_publisher1.close()
@@ -705,14 +716,12 @@ class Arguments:
             default=None,
             required=True,
             type=str,
-            choices=['connext611', 'opendds321'],
             metavar='publisher_name',
             help='Publisher Shape Application')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
-            choices=['connext611', 'opendds321'],
             metavar='subscriber_name',
             help='Subscriber Shape Application')
 
@@ -750,7 +759,8 @@ def main():
         'subscriber': args.subscriber,
         'verbosity' : args.verbose,
     }
-
+    name_publisher = (options['publisher'].split('_shape')[0]).split('/')[-1]
+    name_subscriber = (options['subscriber'].split('_shape')[0]).split('/')[-1]
 
     if args.output_format is None:
         options['output_format'] = 'junit'
@@ -759,7 +769,7 @@ def main():
     if args.output_name is None:
         now = datetime.now()
         date_time = now.strftime('%Y%m%d-%H_%M_%S')
-        options['filename_report'] = options['publisher']+'-'+options['subscriber']+'-'+date_time+'.xml'
+        options['filename_report'] = name_publisher+'-'+name_subscriber+'-'+date_time+'.xml'
         xml = JUnitXml()
 
     else:
@@ -770,12 +780,18 @@ def main():
         else:
             xml = JUnitXml()
 
-    suite = TestSuite(f"{options['publisher']}---{options['subscriber']}")
+
+    suite = TestSuite(f"{name_publisher}---{name_subscriber}")
+    TestCase.param_pub = Attr('Parameters_Publisher')
+    TestCase.param_sub = Attr('Parameters_Subscriber')
+    TestCase.param_pub1 = Attr('Parameters_Publisher_1')
+    TestCase.param_pub2 = Attr('Parameters_Publisher_2')
 
     timeout = 10 # see if i should put it in another place
+    now = datetime.now()
     for k, v in rtps_test_suite_1.items():
-
         case = TestCase(f'{k}')
+        now_test_case = datetime.now()
         if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
             run_test_pub_pub_sub(name_pub=options['publisher'],
                                  name_sub=options['subscriber'],
@@ -801,10 +817,10 @@ def main():
                      verbosity=options['verbosity'],
                      time_out=timeout
             )
-
+        case.time = (datetime.now() - now_test_case).total_seconds()
         suite.add_testcase(case)
 
-
+    suite.time = (datetime.now() - now).total_seconds()
     xml.add_testsuite(suite)
 
     xml.write(options['filename_report'])
