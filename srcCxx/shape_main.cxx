@@ -65,10 +65,8 @@ install_sig_handlers()
 
 enum Verbosity
 {
-    SILENT=0,
-    WRITER=1,
-    ERROR=2,
-    DEBUG=3,
+    ERROR=1,
+    DEBUG=2,
 };
 
 /*************************************************************/
@@ -98,6 +96,7 @@ public:
     int                 yvel;
 
     Verbosity           verbosity;
+    bool                print_writer_samples;
 
 public:
     //-------------------------------------------------------------
@@ -126,7 +125,8 @@ public:
         xvel = 3;
         yvel = 3;
 
-        verbosity            = Verbosity::SILENT;
+        verbosity            = Verbosity::ERROR;
+        print_writer_samples = false;
     }
 
     //-------------------------------------------------------------
@@ -141,43 +141,43 @@ public:
     void print_usage( const char * prog )
     {
         printf("%s: \n", prog);
-        printf("   -d <int>        : domain id (default: 0)\n");
-        printf("   -b              : BEST_EFFORT reliability\n");
-        printf("   -r              : RELIABLE reliability\n");
-        printf("   -k <depth>      : keep history depth (0: KEEP_ALL)\n");
-        printf("   -f <interval>   : set a 'deadline' with interval (seconds)\n");
-        printf("   -i <interval>   : apply 'time based filter' with interval (seconds)\n");
-        printf("   -s <int>        : set ownership strength [-1: SHARED]\n");
-        printf("   -t <topic_name> : set the topic name\n");
-        printf("   -c <color>      : set color to publish (filter if subscriber)\n");
-        printf("   -p <partition>  : set a 'partition' string\n");
-        printf("   -D [v|l|t|p]    : set durability [v: VOLATILE,  l: TRANSIENT_LOCAL]\n");
+        printf("   -d <int>          : domain id (default: 0)\n");
+        printf("   -b                : BEST_EFFORT reliability\n");
+        printf("   -r                : RELIABLE reliability\n");
+        printf("   -k <depth>        : keep history depth (0: KEEP_ALL)\n");
+        printf("   -f <interval>     : set a 'deadline' with interval (seconds)\n");
+        printf("   -i <interval>     : apply 'time based filter' with interval (seconds)\n");
+        printf("   -s <int>          : set ownership strength [-1: SHARED]\n");
+        printf("   -t <topic_name>   : set the topic name\n");
+        printf("   -c <color>        : set color to publish (filter if subscriber)\n");
+        printf("   -p <partition>    : set a 'partition' string\n");
+        printf("   -D [v|l|t|p]      : set durability [v: VOLATILE,  l: TRANSIENT_LOCAL]\n");
         printf("                                     t: TRANSIENT, p: PERSISTENT]\n");
-        printf("   -P              : publish samples\n");
-        printf("   -S              : subscribe samples\n");
-        printf("   -x [1|2]        : set data representation [1: XCDR, 2: XCDR2]\n");
-        printf("   -v              : set verbosity (print Publisher's samples)\n");
+        printf("   -P                : publish samples\n");
+        printf("   -S                : subscribe samples\n");
+        printf("   -x [1|2]          : set data representation [1: XCDR, 2: XCDR2]\n");
+        printf("   -w                : print Publisher's samples\n");
+        printf("   -v [e|d]          : set verbosity [e: ERROR, d: DEBUG]\n");
     }
 
     //-------------------------------------------------------------
     bool validate() {
         if (topic_name == NULL) {
-            printf("please specify topic name [-t]\n");
+            log_message("please specify topic name [-t]\n", Verbosity::ERROR);
             return false;
         }
         if ( (!publish) && (!subscribe) ) {
-            printf("please specify publish [-P] or subscribe [-S]\n");
+            log_message("please specify publish [-P] or subscribe [-S]\n", Verbosity::ERROR);
             return false;
         }
         if ( publish && subscribe ) {
-            printf("please specify only one of: publish [-P] or subscribe [-S]\n");
+            log_message("please specify only one of: publish [-P] or subscribe [-S]\n", Verbosity::ERROR);
             return false;
         }
         if (publish && (color == NULL) ) {
             color = strdup("BLUE");
-            printf("warning: color was not specified, defaulting to \"BLUE\"\n");
+            log_message("warning: color was not specified, defaulting to \"BLUE\"\n", Verbosity::ERROR);
         }
-        log_message("Arguments validated", Verbosity::DEBUG);
         return true;
     }
 
@@ -187,7 +187,7 @@ public:
         int opt;
         bool parse_ok = true;
         // double d;
-        while ((opt = getopt(argc, argv, "hbrc:d:D:f:i:k:p:s:x:t:v:PS")) != -1)
+        while ((opt = getopt(argc, argv, "hbrc:d:D:f:i:k:p:s:x:t:v:wPS")) != -1)
         {
             switch (opt)
             {
@@ -197,26 +197,26 @@ public:
                     {
                         switch (optarg[0])
                         {
-                        case 'SILENT':
-                            {
-                                verbosity = Verbosity::SILENT;
-                                break;
-                            }
-                        case 'DEBUG':
+                        case 'd':
                             {
                                 verbosity = Verbosity::DEBUG;
                                 break;
                             }
-                        case 'ERROR':
+                        case 'e':
                             {
                                 verbosity = Verbosity::ERROR;
                                 break;
                             }
                         default:
-                            printf("unrecognized value for verbosity '%c'\n", optarg[0]);
+                            log_message("unrecognized value for verbosity "+optarg[0], Verbosity::ERROR);
                             parse_ok = false;
                         }
                     }
+                    break;
+                }
+            case 'w':
+                {
+                    print_writer_samples = true;
                     break;
                 }
             case 'b':
@@ -260,7 +260,7 @@ public:
                             break;
                         }
                     default:
-                        printf("unrecognized value for durability '%c'\n", optarg[0]);
+                        log_message("unrecognized value for durability "+optarg[0], Verbosity::ERROR);
                         parse_ok = false;
                     }
                 }
@@ -279,7 +279,7 @@ public:
                 {
                     history_depth = atoi(optarg);
                     if (history_depth < 0) {
-                        printf("unrecognized value for history_depth '%c'\n", optarg[0]);
+                        log_message("unrecognized value for history_depth "+optarg[0], Verbosity::ERROR);
                         parse_ok = false;
                     }
                     break;
@@ -298,7 +298,7 @@ public:
                 {
                     ownership_strength = atoi(optarg);
                     if (ownership_strength < -1) {
-                        printf("unrecognized value for ownership_strength '%c'\n", optarg[0]);
+                        log_message("unrecognized value for ownership_strength "+optarg[0], Verbosity::ERROR);
                         parse_ok = false;
                     }
                     break;
@@ -337,7 +337,7 @@ public:
                             data_representation = XCDR2_DATA_REPRESENTATION;
                             break;
                         default:
-                            printf("unrecognized value for data representation '%c'\n", optarg[0]);
+                            log_message("unrecognized value for data representation "+optarg[0], Verbosity::ERROR);
                             parse_ok = false;
                         }
                     }
@@ -358,7 +358,6 @@ public:
         }
         log_message("Shape Options:: \
                      \n     DomainId::"+std::to_string(domain_id)+
-                    "\n     Topic::"+topic_name+
                     "\n     ReliabilityKind::"+std::to_string(reliability_kind)+
                     "\n     DurabilityKind::"+std::to_string(durability_kind)+
                     "\n     DataRepresentation::"+std::to_string(data_representation)+
@@ -370,7 +369,10 @@ public:
                     "\n     DeadlineInterval::"+std::to_string(deadline_interval)+
                     "\n     Verbosity::"+std::to_string(verbosity),
                     Verbosity::DEBUG);
-
+        if (topic_name != NULL){
+            log_message("     Topic::"+std::string(topic_name),
+                    Verbosity::DEBUG);
+        }
         if (color != NULL) {
             log_message("     Color::"+std::string(color),
                     Verbosity::DEBUG);
@@ -378,7 +380,6 @@ public:
         if (partition != NULL) {
             log_message("     Partition::"+std::string(partition), Verbosity::DEBUG);
         }
-
         return parse_ok;
     }
 
@@ -531,7 +532,7 @@ public:
 #endif
         DomainParticipantFactory *dpf = OBTAIN_DOMAIN_PARTICIPANT_FACTORY;
         if (dpf == NULL) {
-            printf("failed to create participant factory (missing license?).\n");
+            options->log_message("failed to create participant factory (missing license?).\n", Verbosity::ERROR);
             return false;
         }
         options->log_message("Participant Factory created", Verbosity::DEBUG);
@@ -541,7 +542,7 @@ public:
 
         dp = dpf->create_participant( options->domain_id, PARTICIPANT_QOS_DEFAULT, &dp_listener, LISTENER_STATUS_MASK_ALL );
         if (dp == NULL) {
-            printf("failed to create participant (missing license?).\n");
+            options->log_message("failed to create participant (missing license?).\n", Verbosity::ERROR);
             return false;
         }
         options->log_message("Participant created", Verbosity::DEBUG);
@@ -553,7 +554,7 @@ public:
         printf("Create topic: %s\n", options->topic_name );
         topic = dp->create_topic( options->topic_name, "ShapeType", TOPIC_QOS_DEFAULT, NULL, 0);
         if (topic == NULL) {
-            printf("failed to create topic\n");
+            options->log_message("failed to create topic\n", Verbosity::ERROR);
             return false;
         }
 
@@ -593,7 +594,7 @@ public:
 
         pub = dp->create_publisher(pub_qos, NULL, 0);
         if (pub == NULL) {
-            printf("failed to create publisher");
+            options->log_message("failed to create publisher", Verbosity::ERROR);
             return false;
         }
         options->log_message("Publisher created", Verbosity::DEBUG);
@@ -647,7 +648,7 @@ public:
         dw = dynamic_cast<ShapeTypeDataWriter *>(pub->create_datawriter( topic, dw_qos, NULL, 0));
 
         if (dw == NULL) {
-            printf("failed to create datawriter");
+            options->log_message("failed to create datawriter", Verbosity::ERROR);
             return false;
         }
 
@@ -679,7 +680,7 @@ public:
 
         sub = dp->create_subscriber( sub_qos, NULL, 0 );
         if (sub == NULL) {
-            printf("failed to create subscriber");
+            options->log_message("failed to create subscriber", Verbosity::ERROR);
             return false;
         }
         options->log_message("Subscriber created", Verbosity::DEBUG);
@@ -743,7 +744,7 @@ public:
             cft = dp->create_contentfilteredtopic( options->topic_name, topic, "color = %0", cf_params );
 #endif
             if (cft == NULL) {
-                printf("failed to create content filtered topic");
+                options->log_message("failed to create content filtered topic", Verbosity::ERROR);
                 return false;
             }
             //options->log_message("Content filter topic configured to "+ std::string(cft.color), options->verbosity);
@@ -758,7 +759,7 @@ public:
 
 
         if (dr == NULL) {
-            printf("failed to create datareader");
+            options->log_message("failed to create datareader", Verbosity::ERROR);
             return false;
         }
         options->log_message("Data Reader created", Verbosity::DEBUG);
@@ -892,7 +893,7 @@ public:
 #elif defined(TWINOAKS_COREDX)
             dw->write( &shape, HANDLE_NIL );
 #endif
-            if (options->verbosity)
+            if (options->print_writer_samples)
                 printf("%-10s %-10s %03d %03d [%d]\n", dw->get_topic()->get_name(),
                                         shape.color STRING_IN,
                                         shape.x,

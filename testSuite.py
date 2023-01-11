@@ -20,7 +20,7 @@ rtps_test_suite_1 = {
     # This test only checks that data is received correctly
     'Test_Reliability_3' : ['-P -t Square -r -k 3 -x 2', '-S -t Square -r -x 2', ReturnCode.OK, ReturnCode.OK],
     # This test checks that data is received in the right order
-    'Test_Reliability_4' : ['-P -t Square -r -k 0 -v -x 2', '-S -t Square -r -k 0 -x 2', ReturnCode.OK, ReturnCode.OK],
+    'Test_Reliability_4' : ['-P -t Square -r -k 0 -w -x 2', '-S -t Square -r -k 0 -x 2', ReturnCode.OK, ReturnCode.OK],
 
     # DEADLINE
     'Test_Deadline_0' : ['-P -t Square -f 3 -x 2', '-S -t Square -f 5 -x 2', ReturnCode.OK, ReturnCode.OK],
@@ -32,10 +32,10 @@ rtps_test_suite_1 = {
     'Test_Ownership_1': ['-P -t Square -s -1 -x 2', '-S -t Square -s 3 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
     'Test_Ownership_2': ['-P -t Square -s 3 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
     # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
-    'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE -v -x 2', '-P -t Square -s 4 -c RED -v -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
+    'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE -w -x 2', '-P -t Square -s 4 -c RED -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
                          ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH],
     # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
-    'Test_Ownership_4': ['-P -t Square -s 5 -r -k 0 -v -x 2', '-P -t Square -s 4 -r -k 0 -v -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
+    'Test_Ownership_4': ['-P -t Square -s 5 -r -k 0 -w -x 2', '-P -t Square -s 4 -r -k 0 -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
                          ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE],
 
     # TOPIC
