@@ -201,9 +201,10 @@ def subscriber(
                         # the Subscriber only receives samples from
                         # the Publisher with the greatest ownership
                         elif testCase == 'Test_Ownership_4':
+                            first_received = False
                             second_received = False
                             list_data_received_second = []
-                            for x in range(0,40,1):
+                            for x in range(0,80,1):
                                 sub_string = re.search('[0-9]{3} [0-9]{3}',
                                                         child_sub.before)
 
@@ -211,8 +212,10 @@ def subscriber(
                                     list_data_received_second.append(samplesSent.get(True, 5))
                                 except:
                                     break;
-
-                                if sub_string.group(0) in list_data_received_second:
+                                if sub_string.group(0) not in list_data_received_second:
+                                    first_received = True
+                                elif sub_string.group(0) in list_data_received_second \
+                                    and first_received:
                                     second_received = True
                                     producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
                                 log_message('S: Waiting for receiving samples',
@@ -353,7 +356,7 @@ def publisher(
                         # in order to do it we are saving the samples sent
                         if testCase == 'Test_Reliability_4' \
                                     or testCase == 'Test_Ownership_4':
-                            for x in range(0, 40 ,1):
+                            for x in range(0, 80 ,1):
                                 pub_string = re.search('[0-9]{3} [0-9]{3}',
                                                             child_pub.before )
                                 samplesSent.put(pub_string.group(0))
