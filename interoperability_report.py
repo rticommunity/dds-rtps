@@ -1,14 +1,11 @@
 #!/usr/bin/python
 
-from multiprocessing import Process, Queue
-import sys
 import time
 import re
 import pexpect
-import multiprocessing
 import argparse
-import os
-from junitparser import TestCase, TestSuite, JUnitXml, Error, Attr, Failure
+from junitparser import TestCase, TestSuite, JUnitXml, Attr, Failure
+from multiprocessing import Process, Queue, Manager, Event
 from datetime import datetime
 import tempfile
 from os.path import exists
@@ -20,8 +17,17 @@ def log_message(message, verbosity):
     if verbosity:
         print(message)
 
-def subscriber(name_executable, parameters, testCase, time_out, producedCode, samplesSent,
-                subscriber_finished, publisher_finished, file, verbosity):
+def subscriber(
+        name_executable,
+        parameters,
+        testCase,
+        time_out,
+        producedCode,
+        samplesSent,
+        subscriber_finished, publisher_finished,
+        file,
+        verbosity):
+
     """ Run the executable with the parameters and save
         the error code obtained
 
@@ -51,11 +57,13 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
             * The Data Reader detects the Data Writer as alive
             * The Data Reader receives data
 
-        If the Shape Application achieves one step, it will print an specific string pattern.
-        The function will recognize that pattern and it will continue also to the next step,
-        waiting again for the next corresponding pattern to be recognized. If the Shape Application
-        stops at some step, the function will not recognized the expected pattern (or it will
-        recognized an error pattern), it will save the obtained ReturnCode and it will finish too.
+        If the Shape Application achieves one step, it will print an specific
+        string pattern. The function will recognize that pattern and it will
+        continue also to the next step, waiting again for the next
+        corresponding pattern to be recognized. If the Shape Application
+        stops at some step, the function will not recognized the expected pattern
+        (or it will recognized an error pattern), it will save
+        the obtained ReturnCode and it will finish too.
 
     """
     # Step 1 : run the executable
@@ -64,14 +72,14 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
     child_sub.logfile =  file
 
     # Step 2 : Check if the topic is created
-    log_message('Subscriber: Waiting for topic creation', verbosity)
+    log_message('S: Waiting for topic creation', verbosity)
     index = child_sub.expect(
         [
-            'Create topic:',                                              # index = 0
-            pexpect.TIMEOUT,                                              # index = 1
-            'please specify topic name',                                  # index = 2
-            'unrecognized value',                                         # index = 3
-            pexpect.EOF                                                   # index = 4
+            'Create topic:',                                         # index = 0
+            pexpect.TIMEOUT,                                         # index = 1
+            'please specify topic name',                             # index = 2
+            'unrecognized value',                                    # index = 3
+            pexpect.EOF                                              # index = 4
         ],
         time_out
     )
@@ -82,12 +90,12 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
         producedCode[0] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the reader is created
-        log_message('Subscriber: Waiting for Data Reader creation', verbosity)
+        log_message('S: Waiting for DR creation', verbosity)
         index = child_sub.expect(
             [
-                'Create reader for topic:',                               # index = 0
-                pexpect.TIMEOUT,                                          # index = 1
-                'failed to create content filtered topic'                 # index = 2
+                'Create reader for topic:',                          # index = 0
+                pexpect.TIMEOUT,                                     # index = 1
+                'failed to create content filtered topic'            # index = 2
             ],
             time_out
         )
@@ -98,12 +106,12 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
             producedCode[0] = ReturnCode.FILTER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the reader matches the writer
-            log_message('Subscriber: Waiting for Data Writer matching', verbosity)
+            log_message('S: Waiting for DW matching', verbosity)
             index = child_sub.expect(
                 [
-                    'on_subscription_matched()',                          # index = 0
-                    pexpect.TIMEOUT,                                      # index = 1
-                    'on_requested_incompatible_qos()'                     # index = 2
+                    'on_subscription_matched()',                     # index = 0
+                    pexpect.TIMEOUT,                                 # index = 1
+                    'on_requested_incompatible_qos()'                # index = 2
                 ],
                 time_out
             )
@@ -114,11 +122,11 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                 producedCode[0] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
                 # Step 5: Check if the reader detects the writer as alive
-                log_message('Subscriber: Waiting for detecting Data Writer alive', verbosity)
+                log_message('S: Waiting for detecting DW alive', verbosity)
                 index = child_sub.expect(
                     [
-                        'on_liveliness_changed()',                        # index = 0
-                        pexpect.TIMEOUT                                   # index = 1
+                        'on_liveliness_changed()',                   # index = 0
+                        pexpect.TIMEOUT                              # index = 1
                     ],
                     time_out
                 )
@@ -127,18 +135,17 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                     producedCode[0] = ReturnCode.WRITER_NOT_ALIVE
                 elif index == 0:
                     #Step 6 : Check if the reader receives the samples
-                    log_message('Subscriber: Waiting for receiving samples', verbosity)
+                    log_message('S: Waiting for receiving samples', verbosity)
                     index = child_sub.expect(
                             [
-                                '\[[0-9][0-9]\]',                         # index = 0
-                                pexpect.TIMEOUT                           # index = 1
+                                '\[[0-9][0-9]\]',                    # index = 0
+                                pexpect.TIMEOUT                      # index = 1
                             ],
                             time_out
                         )
 
                     if index == 1:
                         producedCode[0] = ReturnCode.DATA_NOT_RECEIVED
-
                     elif index == 0:
                         # This test checks that data is received in the right order
                         if testCase == 'Test_Reliability_4':
@@ -150,15 +157,18 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                                 else:
                                     producedCode[0] = ReturnCode.DATA_NOT_CORRECT
                                     break
-                                log_message('Subscriber: Waiting for receiving samples', verbosity)
+                                log_message('S: Waiting for receiving samples',
+                                            verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]',             # index = 0
-                                            pexpect.TIMEOUT               # index = 1
+                                            '\[[0-9][0-9]\]',        # index = 0
+                                            pexpect.TIMEOUT          # index = 1
                                             ],
                                             time_out
                                 )
-                        # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
+                        # Two Publishers and One Subscriber to test that if
+                        # each one has a different color, the ownership strength
+                        # does not matter
                         elif testCase == 'Test_Ownership_3':
                             red_received = False
                             blue_received = False
@@ -178,17 +188,19 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                                 if blue_received and red_received:
                                     producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
                                     break
-                                log_message('Subscriber: Waiting for receiving samples', verbosity)
+                                log_message('S: Waiting for receiving samples',
+                                            verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]',             # index = 0
-                                            pexpect.TIMEOUT               # index = 1
+                                            '\[[0-9][0-9]\]',        # index = 0
+                                            pexpect.TIMEOUT          # index = 1
                                             ],
                                             time_out
                                 )
-                        # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
+                        # Two Publishers and One Subscriber to test that
+                        # the Subscriber only receives samples from
+                        # the Publisher with the greatest ownership
                         elif testCase == 'Test_Ownership_4':
-
                             second_received = False
                             list_data_received_second = []
                             for x in range(0,40,1):
@@ -203,11 +215,12 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                                 if sub_string.group(0) in list_data_received_second:
                                     second_received = True
                                     producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
-                                log_message('Subscriber: Waiting for receiving samples', verbosity)
+                                log_message('S: Waiting for receiving samples',
+                                            verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]',             # index = 0
-                                            pexpect.TIMEOUT               # index = 1
+                                            '\[[0-9][0-9]\]',        # index = 0
+                                            pexpect.TIMEOUT          # index = 1
                                             ],
                                             time_out
                                 )
@@ -219,13 +232,23 @@ def subscriber(name_executable, parameters, testCase, time_out, producedCode, sa
                             producedCode[0] = ReturnCode.OK
 
     subscriber_finished.set()   # set subscriber as finished
-    log_message('Subscriber: Waiting for Publisher to finish', verbosity)
+    log_message('S: Waiting for Publisher to finish', verbosity)
     publisher_finished.wait()   # wait for publisher to finish
     return
 
 
-def publisher(name_executable, parameters, testCase, time_out, producedCode, samplesSent,
-                id_pub, subscriber_finished, publisher_finished, file, verbosity):
+def publisher(
+        name_executable,
+        parameters,
+        testCase,
+        time_out,
+        producedCode,
+        samplesSent,
+        id_pub,
+        subscriber_finished, publisher_finished,
+        file,
+        verbosity):
+
     """ Run the executable with the parameters and save
         the error code obtained
 
@@ -255,11 +278,13 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
             * The Data Writer matches with a Data Reader
             * The Data Writer sends data
 
-        If the Shape Application achieves one step, it will print an specific string pattern.
-        The function will recognize that pattern and it will continue also to the next step,
-        waiting again for the next corresponding pattern to be recognized. If the Shape Application
-        stops at some step, the function will not recognized the expected pattern (or it will
-        recognized an error pattern), it will save the obtained ReturnCode and it will finish too.
+        If the Shape Application achieves one step, it will print an specific
+        string pattern.The function will recognize that pattern and it will
+        continue also to the next step, waiting again for the next
+        corresponding pattern to be recognized. If the Shape Application
+        stops at some step, the function will not recognized the expected pattern
+        (or it will recognized an error pattern), it will save
+        the obtained ReturnCode and it will finish too.
     """
 
     # Step 1 : run the executable
@@ -268,7 +293,7 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
     child_pub.logfile = file
 
     # Step 2 : Check if the topic is created
-    log_message('Publisher: Waiting for topic creation', verbosity)
+    log_message('P: Waiting for topic creation', verbosity)
     index = child_pub.expect(
         [
             'Create topic:',                                              # index == 0
@@ -286,11 +311,11 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
         producedCode[id_pub] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the writer is created
-        log_message('Publisher: Waiting for Data Writer creation', verbosity)
+        log_message('P: Waiting for DW creation', verbosity)
         index = child_pub.expect(
             [
-                'Create writer for topic',                                # index = 0
-                pexpect.TIMEOUT                                           # index = 1
+                'Create writer for topic',                           # index = 0
+                pexpect.TIMEOUT                                      # index = 1
             ],
             time_out
         )
@@ -298,12 +323,12 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
             producedCode[id_pub] = ReturnCode.WRITER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the writer matches the reader
-            log_message('Publisher: Waiting for Data Reader matching', verbosity)
+            log_message('P: Waiting for DR matching', verbosity)
             index = child_pub.expect(
                 [
-                    'on_publication_matched()',                           # index = 0
-                    pexpect.TIMEOUT,                                      # index = 1
-                    'on_offered_incompatible_qos'                         # index = 2
+                    'on_publication_matched()',                      # index = 0
+                    pexpect.TIMEOUT,                                 # index = 1
+                    'on_offered_incompatible_qos'                    # index = 2
                 ],
                 time_out
             )
@@ -312,28 +337,31 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
             elif index == 2:
                 producedCode[id_pub] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
-                if '-v' in parameters:
+                if '-w' in parameters:
                     #Step  5: Check if the writer sends the samples
-                    log_message('Publisher: Waiting for sending samples', verbosity)
+                    log_message('P: Waiting for sending samples', verbosity)
                     index = child_pub.expect(
                             [
-                                '\[[0-9][0-9]\]',                         # index = 0
-                                pexpect.TIMEOUT                           # index = 1
+                                '\[[0-9][0-9]\]',                    # index = 0
+                                pexpect.TIMEOUT                      # index = 1
                             ],
                             time_out
                         )
                     if index == 0:
                         producedCode[id_pub] = ReturnCode.OK
-                        # With these tests we check if we receive the data correctly, in order to do it we are saving the samples sent
-                        if testCase == 'Test_Reliability_4' or testCase == 'Test_Ownership_4':
+                        # With these tests we check if we receive the data correctly,
+                        # in order to do it we are saving the samples sent
+                        if testCase == 'Test_Reliability_4' \
+                                    or testCase == 'Test_Ownership_4':
                             for x in range(0, 40 ,1):
                                 pub_string = re.search('[0-9]{3} [0-9]{3}',
                                                             child_pub.before )
                                 samplesSent.put(pub_string.group(0))
-                                log_message('Publisher: Waiting for sending samples', verbosity)
+                                log_message('P: Waiting for sending samples',
+                                            verbosity)
                                 child_pub.expect([
-                                            '\[[0-9][0-9]\]',             # index = 0
-                                            pexpect.TIMEOUT               # index = 1
+                                            '\[[0-9][0-9]\]',        # index = 0
+                                            pexpect.TIMEOUT          # index = 1
                                                 ],
                                             time_out
                                 )
@@ -343,15 +371,20 @@ def publisher(name_executable, parameters, testCase, time_out, producedCode, sam
                 else:
                     producedCode[id_pub] = ReturnCode.OK
 
-    log_message('Publisher: Waiting for Subscriber to finish', verbosity)
+    log_message('P: Waiting for Subscriber to finish', verbosity)
     subscriber_finished.wait() # wait for subscriber to finish
     publisher_finished.set()   # set publisher as finished
     return
 
 
-def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
-                expected_code_pub, expected_code_sub, verbosity,
-                time_out):
+def run_test(
+        name_pub, name_sub,
+        testCase,
+        param_pub, param_sub,
+        expected_code_pub, expected_code_sub,
+        verbosity,
+        time_out):
+
     """ Run the Publisher and the Subscriber and check the ReturnCode
 
         name_pub          : name of the Shape Application to run
@@ -386,14 +419,14 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                     time_out: {time_out}',
                     verbosity)
 
-    manager = multiprocessing.Manager()
+    manager = Manager()
      # used for storing the obtained ReturnCode
      # (from Publisher and Subscriber)
     code = manager.list(range(2))
     data = Queue() # used for storing the samples
 
-    subscriber_finished = multiprocessing.Event()
-    publisher_finished = multiprocessing.Event()
+    subscriber_finished = Event()
+    publisher_finished = Event()
 
 
     file_publisher = tempfile.TemporaryFile(mode='w+t')
@@ -414,7 +447,6 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                         'file':file_publisher,
                         'verbosity':verbosity
                     })
-
     sub = Process(target=subscriber,
                     kwargs={
                         'name_executable':name_sub,
@@ -428,6 +460,7 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                         'file':file_subscriber,
                         'verbosity':verbosity
                     })
+
     log_message('Running Subscriber process', verbosity)
     sub.start()
     log_message('Running Publisher process', verbosity)
@@ -477,16 +510,23 @@ def run_test(name_pub, name_sub, testCase, param_pub, param_sub,
                                         <th>{code[0].name}</th> \
                                     </tr> \
                                 </table> \
-                               <strong> Information Publisher: </strong>  <br> {additional_info_pub} <br>\
-                               <strong> Information Subscriber: </strong>  <br> {additional_info_sub}')]
+                               <strong> Information Publisher: </strong> \
+                                 <br> {additional_info_pub} <br>\
+                               <strong> Information Subscriber: </strong> \
+                                 <br> {additional_info_sub}')]
 
     file_publisher.close()
     file_subscriber.close()
 
 
-def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, param_sub,
-                         expected_code_pub1, expected_code_pub2, expected_code_sub,
-                         verbosity, time_out):
+def run_test_pub_pub_sub(
+            name_pub, name_sub,
+            testCase,
+            param_pub1, param_pub2, param_sub,
+            expected_code_pub1, expected_code_pub2, expected_code_sub,
+            verbosity,
+            time_out):
+
     """ Run two Publisher and one Subscriber and check the ReturnCode
 
         name_pub           : name of the Shape Application to run
@@ -527,19 +567,22 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                     verbosity: {verbosity}\
                     time_out: {time_out}',
                     verbosity)
-    manager = multiprocessing.Manager()
+
+    manager = Manager()
     # used for storing the obtained ReturnCode
     # (from Publisher 1, Publisher 2 and Subscriber)
     code = manager.list(range(3))
     data = Queue() # used for storing the samples
-    subscriber_finished = multiprocessing.Event()
-    publisher_finished = multiprocessing.Event()
+
+    subscriber_finished = Event()
+    publisher_finished = Event()
 
     log_message('Creating temporary files', verbosity)
     file_subscriber = tempfile.TemporaryFile(mode='w+t')
     file_publisher1 = tempfile.TemporaryFile(mode='w+t')
     file_publisher2 = tempfile.TemporaryFile(mode='w+t')
 
+    log_message('Assigning tasks to processes', verbosity)
     if testCase.name == 'Test_Ownership_3':
         pub1 = Process(target=publisher,
                         kwargs={
@@ -696,10 +739,12 @@ def run_test_pub_pub_sub(name_pub, name_sub, testCase, param_pub1, param_pub2, p
                                         <th>{code[0].name}</th> \
                                     </tr> \
                                 </table> \
-                               <strong> Information Publisher 1: </strong>  <br> {additional_info_pub1} <br>\
-                               <strong> Information Publisher 2: </strong>  <br> {additional_info_pub2} <br>\
-                               <strong> Information Subscriber: </strong>  <br> {additional_info_sub}')]
-
+                               <strong> Information Publisher 1: </strong> \
+                                 <br> {additional_info_pub1} <br>\
+                               <strong> Information Publisher 2: </strong> \
+                                 <br> {additional_info_pub2} <br>\
+                               <strong> Information Subscriber: </strong> \
+                                 <br> {additional_info_sub}')]
 
     file_subscriber.close()
     file_publisher1.close()
@@ -769,7 +814,8 @@ def main():
     if args.output_name is None:
         now = datetime.now()
         date_time = now.strftime('%Y%m%d-%H_%M_%S')
-        options['filename_report'] = name_publisher+'-'+name_subscriber+'-'+date_time+'.xml'
+        options['filename_report'] = name_publisher+'-'+name_subscriber \
+                                    +'-'+date_time+'.xml'
         xml = JUnitXml()
 
     else:
@@ -787,7 +833,7 @@ def main():
     TestCase.param_pub1 = Attr('Parameters_Publisher_1')
     TestCase.param_pub2 = Attr('Parameters_Publisher_2')
 
-    timeout = 10 # see if i should put it in another place
+    timeout = 10
     now = datetime.now()
     for k, v in rtps_test_suite_1.items():
         case = TestCase(f'{k}')
