@@ -141,23 +141,23 @@ public:
     void print_usage( const char * prog )
     {
         printf("%s: \n", prog);
-        printf("   -d <int>          : domain id (default: 0)\n");
-        printf("   -b                : BEST_EFFORT reliability\n");
-        printf("   -r                : RELIABLE reliability\n");
-        printf("   -k <depth>        : keep history depth (0: KEEP_ALL)\n");
-        printf("   -f <interval>     : set a 'deadline' with interval (seconds)\n");
-        printf("   -i <interval>     : apply 'time based filter' with interval (seconds)\n");
-        printf("   -s <int>          : set ownership strength [-1: SHARED]\n");
-        printf("   -t <topic_name>   : set the topic name\n");
-        printf("   -c <color>        : set color to publish (filter if subscriber)\n");
-        printf("   -p <partition>    : set a 'partition' string\n");
-        printf("   -D [v|l|t|p]      : set durability [v: VOLATILE,  l: TRANSIENT_LOCAL]\n");
+        printf("   -d <int>         : domain id (default: 0)\n");
+        printf("   -b               : BEST_EFFORT reliability\n");
+        printf("   -r               : RELIABLE reliability\n");
+        printf("   -k <depth>       : keep history depth (0: KEEP_ALL)\n");
+        printf("   -f <interval>    : set a 'deadline' with interval (seconds)\n");
+        printf("   -i <interval>    : apply 'time based filter' with interval (seconds)\n");
+        printf("   -s <int>         : set ownership strength [-1: SHARED]\n");
+        printf("   -t <topic_name>  : set the topic name\n");
+        printf("   -c <color>       : set color to publish (filter if subscriber)\n");
+        printf("   -p <partition>   : set a 'partition' string\n");
+        printf("   -D [v|l|t|p]     : set durability [v: VOLATILE,  l: TRANSIENT_LOCAL]\n");
         printf("                                     t: TRANSIENT, p: PERSISTENT]\n");
-        printf("   -P                : publish samples\n");
-        printf("   -S                : subscribe samples\n");
-        printf("   -x [1|2]          : set data representation [1: XCDR, 2: XCDR2]\n");
-        printf("   -w                : print Publisher's samples\n");
-        printf("   -v [e|d]          : set log message verbosity [e: ERROR, d: DEBUG]\n");
+        printf("   -P               : publish samples\n");
+        printf("   -S               : subscribe samples\n");
+        printf("   -x [1|2]         : set data representation [1: XCDR, 2: XCDR2]\n");
+        printf("   -w               : print Publisher's samples\n");
+        printf("   -v [e|d]         : set log message verbosity [e: ERROR, d: DEBUG]\n");
     }
 
     //-------------------------------------------------------------
