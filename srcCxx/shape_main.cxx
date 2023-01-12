@@ -385,9 +385,11 @@ public:
 
 
 
-    void log_message(std::string message, Verbosity level_verbosity) {
-        if (level_verbosity <= verbosity)
+    void log_message(std::string message, Verbosity level_verbosity)
+    {
+        if (level_verbosity <= verbosity) {
             std::cout << message << std::endl;
+        }
     }
 
 };
@@ -601,7 +603,7 @@ public:
 
         pub->get_default_datawriter_qos( dw_qos );
         dw_qos.reliability.kind = options->reliability_kind;
-        options->log_message("DW:Reliability::" + std::to_string(dw_qos.reliability.kind), Verbosity::DEBUG); //static_cast
+        options->log_message("DW:Reliability::" + std::to_string(dw_qos.reliability.kind), Verbosity::DEBUG);
         dw_qos.durability.kind  = options->durability_kind;
         options->log_message("DW::Durability::"+std::to_string(dw_qos.durability.kind), Verbosity::DEBUG);
 
@@ -615,7 +617,7 @@ public:
         dw_qos.representation.value.length(1);
         dw_qos.representation.value[0] = options->data_representation;
 #endif
-        //options->log_message("DW::Data_Representation::"+std::to_string(dw_qos.representation.value), Verbosity::DEBUG);
+        options->log_message("DW::Data_Representation::"+std::to_string(dw_qos.representation.value[0]), Verbosity::DEBUG);
         if ( options->ownership_strength != -1 ) {
             dw_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
             dw_qos.ownership_strength.value = options->ownership_strength;
@@ -701,7 +703,7 @@ public:
         dr_qos.representation.value.length(1);
         dr_qos.representation.value[0] = options->data_representation;
 #endif
-        //options->log_message("Data Representation configured to "+std::to_string(dr_qos.representation.value), Verbosity::DEBUG);
+        options->log_message("DR::DataRepresentation::"+std::to_string(dr_qos.representation.value[0]), Verbosity::DEBUG);
         if ( options->ownership_strength != -1 ) {
             dr_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
         }
@@ -747,7 +749,9 @@ public:
                 options->log_message("failed to create content filtered topic", Verbosity::ERROR);
                 return false;
             }
-            //options->log_message("Content filter topic configured to "+ std::string(cft.color), options->verbosity);
+            StringSeq parameters;
+            cft->get_expression_parameters(parameters);
+            options->log_message("DR::ContentFilterTopic::"+ std::string(parameters[0]), Verbosity::DEBUG);
 
             printf("Create reader for topic: %s color: %s\n", options->topic_name, options->color );
             dr = dynamic_cast<ShapeTypeDataReader *>(sub->create_datareader( cft, dr_qos, NULL, 0));
@@ -916,12 +920,10 @@ int main( int argc, char * argv[] )
     if ( !parseResult  ) {
         exit(1);
     }
-    options.log_message("Arguments parsed", Verbosity::DEBUG);
     ShapeApplication shapeApp;
     if ( !shapeApp.initialize(&options) ) {
         exit(2);
     }
-    options.log_message("Publisher/Subscriber initialized", Verbosity::DEBUG);
     if ( !shapeApp.run(&options) ) {
         exit(2);
     }
