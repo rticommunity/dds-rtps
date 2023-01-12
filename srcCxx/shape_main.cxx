@@ -208,8 +208,10 @@ public:
                                 break;
                             }
                         default:
-                            log_message("unrecognized value for verbosity "+optarg[0], Verbosity::ERROR);
-                            parse_ok = false;
+                            {
+                                log_message("unrecognized value for verbosity "+optarg[0], Verbosity::ERROR);
+                                parse_ok = false;
+                            }
                         }
                     }
                     break;
@@ -235,6 +237,7 @@ public:
                     break;
                 }
             case 'D':
+                {
                 if (optarg[0] != '\0')
                 {
                     switch (optarg[0])
@@ -260,11 +263,14 @@ public:
                             break;
                         }
                     default:
-                        log_message("unrecognized value for durability "+optarg[0], Verbosity::ERROR);
-                        parse_ok = false;
+                        {
+                            log_message("unrecognized value for durability "+optarg[0], Verbosity::ERROR);
+                            parse_ok = false;
+                        }
                     }
                 }
                 break;
+                }
             case 'i':
                 {
                     timebasedfilter_interval = atoi(optarg);
@@ -331,21 +337,29 @@ public:
                         switch (optarg[0])
                         {
                         case '1':
-                            data_representation = XCDR_DATA_REPRESENTATION;
-                            break;
+                            {
+                                data_representation = XCDR_DATA_REPRESENTATION;
+                                break;
+                            }
                         case '2':
-                            data_representation = XCDR2_DATA_REPRESENTATION;
-                            break;
+                            {
+                                data_representation = XCDR2_DATA_REPRESENTATION;
+                                break;
+                            }
                         default:
+                            {
                             log_message("unrecognized value for data representation "+optarg[0], Verbosity::ERROR);
                             parse_ok = false;
+                            }
                         }
                     }
                     break;
                 }
             case '?':
-                parse_ok = false;
-                break;
+                {
+                    parse_ok = false;
+                    break;
+                }
             }
 
         }
