@@ -39,21 +39,13 @@ objs/
 
 # Other
 *~
-GeneratedCode
 
 .venv/
 *.pyc
 
-srcCxx/shape.cxx
-srcCxx/shape.h
-srcCxx/shapePlugin.cxx
-srcCxx/shapePlugin.h
-srcCxx/shapeSupport.cxx
-srcCxx/shapeSupport.h
+srcCxx/shape.*
+srcCxx/shapePlugin.*
+srcCxx/shapeSupport.*
 
-.vscode/c_cpp_properties.json
-.vscode/launch.json
-.vscode/settings.json
-.vscode/tasks.json
+.vscode/
 .gitignore
-
