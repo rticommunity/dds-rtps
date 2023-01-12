@@ -10,7 +10,7 @@ from datetime import datetime
 import tempfile
 from os.path import exists
 
-from utilities import ReturnCode, path_executables
+from utilities import ReturnCode
 from testSuite import rtps_test_suite_1
 
 def log_message(message, verbosity):
