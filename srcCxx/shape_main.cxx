@@ -414,7 +414,7 @@ public:
 class DPListener : public DomainParticipantListener
 {
 public:
-    void on_inconsistent_topic         ( Topic *topic,  const InconsistentTopicStatus &) {
+    void on_inconsistent_topic         (Topic *topic,  const InconsistentTopicStatus &) {
         const char * topic_name = topic->get_name();
         const char * type_name  = topic->get_type_name();
         printf("%s() topic: '%s'  type: '%s'\n", __FUNCTION__, topic_name, type_name);
@@ -432,7 +432,7 @@ public:
                 policy_name );
     }
 
-    void on_publication_matched (DataWriter * dw, const PublicationMatchedStatus & status) {
+    void on_publication_matched (DataWriter *dw, const PublicationMatchedStatus & status) {
         Topic      * topic      = dw->get_topic( );
         const char * topic_name = topic->get_name( );
         const char * type_name  = topic->get_type_name( );
@@ -440,7 +440,7 @@ public:
                 topic_name, type_name, status.current_count, status.current_count_change);
     }
 
-    void on_offered_deadline_missed (DataWriter * dw, const OfferedDeadlineMissedStatus & status) {
+    void on_offered_deadline_missed (DataWriter *dw, const OfferedDeadlineMissedStatus & status) {
         Topic      * topic      = dw->get_topic( );
         const char * topic_name = topic->get_name( );
         const char * type_name  = topic->get_type_name( );
@@ -448,7 +448,7 @@ public:
                 topic_name, type_name, status.total_count, status.total_count_change);
     }
 
-    void on_liveliness_lost (DataWriter * dw, const LivelinessLostStatus & status) {
+    void on_liveliness_lost (DataWriter *dw, const LivelinessLostStatus & status) {
         Topic      * topic      = dw->get_topic( );
         const char * topic_name = topic->get_name( );
         const char * type_name  = topic->get_type_name( );
@@ -456,7 +456,7 @@ public:
                 topic_name, type_name, status.total_count, status.total_count_change);
     }
 
-    void on_requested_incompatible_qos ( DataReader * dr, const RequestedIncompatibleQosStatus & status ) {
+    void on_requested_incompatible_qos (DataReader *dr, const RequestedIncompatibleQosStatus & status) {
         TopicDescription * td         = dr->get_topicdescription( );
         const char       * topic_name = td->get_name( );
         const char       * type_name  = td->get_type_name( );
@@ -467,7 +467,7 @@ public:
                 policy_name);
     }
 
-    void on_subscription_matched (DataReader * dr, const SubscriptionMatchedStatus & status) {
+    void on_subscription_matched (DataReader *dr, const SubscriptionMatchedStatus & status) {
         TopicDescription * td         = dr->get_topicdescription( );
         const char       * topic_name = td->get_name( );
         const char       * type_name  = td->get_type_name( );
@@ -475,7 +475,7 @@ public:
                 topic_name, type_name, status.current_count, status.current_count_change);
     }
 
-    void on_requested_deadline_missed (DataReader * dr, const RequestedDeadlineMissedStatus & status) {
+    void on_requested_deadline_missed (DataReader *dr, const RequestedDeadlineMissedStatus & status) {
         TopicDescription * td         = dr->get_topicdescription( );
         const char       * topic_name = td->get_name( );
         const char       * type_name  = td->get_type_name( );
@@ -483,7 +483,7 @@ public:
                 topic_name, type_name, status.total_count, status.total_count_change);
     }
 
-    void on_liveliness_changed (DataReader * dr, const LivelinessChangedStatus & status) {
+    void on_liveliness_changed (DataReader *dr, const LivelinessChangedStatus & status) {
         TopicDescription * td         = dr->get_topicdescription( );
         const char       * topic_name = td->get_name( );
         const char       * type_name  = td->get_type_name( );
@@ -548,7 +548,7 @@ public:
 #endif
         DomainParticipantFactory *dpf = OBTAIN_DOMAIN_PARTICIPANT_FACTORY;
         if (dpf == NULL) {
-            options->log_message("failed to create participant factory (missing license?).\n", Verbosity::ERROR);
+            options->log_message("failed to create participant factory (missing license?).", Verbosity::ERROR);
             return false;
         }
         options->log_message("Participant Factory created", Verbosity::DEBUG);
@@ -558,7 +558,7 @@ public:
 
         dp = dpf->create_participant( options->domain_id, PARTICIPANT_QOS_DEFAULT, &dp_listener, LISTENER_STATUS_MASK_ALL );
         if (dp == NULL) {
-            options->log_message("failed to create participant (missing license?).\n", Verbosity::ERROR);
+            options->log_message("failed to create participant (missing license?).", Verbosity::ERROR);
             return false;
         }
         options->log_message("Participant created", Verbosity::DEBUG);
@@ -570,7 +570,7 @@ public:
         printf("Create topic: %s\n", options->topic_name );
         topic = dp->create_topic( options->topic_name, "ShapeType", TOPIC_QOS_DEFAULT, NULL, 0);
         if (topic == NULL) {
-            options->log_message("failed to create topic\n", Verbosity::ERROR);
+            options->log_message("failed to create topic", Verbosity::ERROR);
             return false;
         }
 
