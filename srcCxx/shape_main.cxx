@@ -79,9 +79,9 @@ public:
     int                            history_depth;
     int                            ownership_strength;
 
-    char              * topic_name;
-    char              * color;
-    char              * partition;
+    char               *topic_name;
+    char               *color;
+    char               *partition;
 
     bool                publish;
     bool                subscribe;
@@ -138,7 +138,7 @@ public:
     }
 
     //-------------------------------------------------------------
-    void print_usage( const char * prog )
+    void print_usage( const char *prog )
     {
         printf("%s: \n", prog);
         printf("   -d <int>        : domain id (default: 0)\n");
@@ -182,7 +182,7 @@ public:
     }
 
     //-------------------------------------------------------------
-    bool parse(int argc, char * argv[])
+    bool parse(int argc, char *argv[])
     {
         int opt;
         bool parse_ok = true;
@@ -415,16 +415,16 @@ class DPListener : public DomainParticipantListener
 {
 public:
     void on_inconsistent_topic         (Topic *topic,  const InconsistentTopicStatus &) {
-        const char * topic_name = topic->get_name();
-        const char * type_name  = topic->get_type_name();
+        const char *topic_name = topic->get_name();
+        const char *type_name  = topic->get_type_name();
         printf("%s() topic: '%s'  type: '%s'\n", __FUNCTION__, topic_name, type_name);
     }
 
     void on_offered_incompatible_qos(DataWriter *dw,  const OfferedIncompatibleQosStatus & status) {
-        Topic      * topic       = dw->get_topic( );
-        const char * topic_name  = topic->get_name( );
-        const char * type_name   = topic->get_type_name( );
-        const char * policy_name = NULL;
+        Topic      *topic       = dw->get_topic( );
+        const char *topic_name  = topic->get_name( );
+        const char *type_name   = topic->get_type_name( );
+        const char *policy_name = NULL;
         policy_name = get_qos_policy_name(status.last_policy_id);
         printf("%s() topic: '%s'  type: '%s' : %d (%s)\n", __FUNCTION__,
                 topic_name, type_name,
@@ -433,34 +433,34 @@ public:
     }
 
     void on_publication_matched (DataWriter *dw, const PublicationMatchedStatus & status) {
-        Topic      * topic      = dw->get_topic( );
-        const char * topic_name = topic->get_name( );
-        const char * type_name  = topic->get_type_name( );
+        Topic      *topic      = dw->get_topic( );
+        const char *topic_name = topic->get_name( );
+        const char *type_name  = topic->get_type_name( );
         printf("%s() topic: '%s'  type: '%s' : matched readers %d (change = %d)\n", __FUNCTION__,
                 topic_name, type_name, status.current_count, status.current_count_change);
     }
 
     void on_offered_deadline_missed (DataWriter *dw, const OfferedDeadlineMissedStatus & status) {
-        Topic      * topic      = dw->get_topic( );
-        const char * topic_name = topic->get_name( );
-        const char * type_name  = topic->get_type_name( );
+        Topic      *topic      = dw->get_topic( );
+        const char *topic_name = topic->get_name( );
+        const char *type_name  = topic->get_type_name( );
         printf("%s() topic: '%s'  type: '%s' : (total = %d, change = %d)\n", __FUNCTION__,
                 topic_name, type_name, status.total_count, status.total_count_change);
     }
 
     void on_liveliness_lost (DataWriter *dw, const LivelinessLostStatus & status) {
-        Topic      * topic      = dw->get_topic( );
-        const char * topic_name = topic->get_name( );
-        const char * type_name  = topic->get_type_name( );
+        Topic      *topic      = dw->get_topic( );
+        const char *topic_name = topic->get_name( );
+        const char *type_name  = topic->get_type_name( );
         printf("%s() topic: '%s'  type: '%s' : (total = %d, change = %d)\n", __FUNCTION__,
                 topic_name, type_name, status.total_count, status.total_count_change);
     }
 
     void on_requested_incompatible_qos (DataReader *dr, const RequestedIncompatibleQosStatus & status) {
-        TopicDescription * td         = dr->get_topicdescription( );
-        const char       * topic_name = td->get_name( );
-        const char       * type_name  = td->get_type_name( );
-        const char * policy_name = NULL;
+        TopicDescription *td         = dr->get_topicdescription( );
+        const char       *topic_name = td->get_name( );
+        const char       *type_name  = td->get_type_name( );
+        const char *policy_name = NULL;
         policy_name = get_qos_policy_name(status.last_policy_id);
         printf("%s() topic: '%s'  type: '%s' : %d (%s)\n", __FUNCTION__,
                 topic_name, type_name, status.last_policy_id,
@@ -468,25 +468,25 @@ public:
     }
 
     void on_subscription_matched (DataReader *dr, const SubscriptionMatchedStatus & status) {
-        TopicDescription * td         = dr->get_topicdescription( );
-        const char       * topic_name = td->get_name( );
-        const char       * type_name  = td->get_type_name( );
+        TopicDescription *td         = dr->get_topicdescription( );
+        const char       *topic_name = td->get_name( );
+        const char       *type_name  = td->get_type_name( );
         printf("%s() topic: '%s'  type: '%s' : matched writers %d (change = %d)\n", __FUNCTION__,
                 topic_name, type_name, status.current_count, status.current_count_change);
     }
 
     void on_requested_deadline_missed (DataReader *dr, const RequestedDeadlineMissedStatus & status) {
-        TopicDescription * td         = dr->get_topicdescription( );
-        const char       * topic_name = td->get_name( );
-        const char       * type_name  = td->get_type_name( );
+        TopicDescription *td         = dr->get_topicdescription( );
+        const char       *topic_name = td->get_name( );
+        const char       *type_name  = td->get_type_name( );
         printf("%s() topic: '%s'  type: '%s' : (total = %d, change = %d)\n", __FUNCTION__,
                 topic_name, type_name, status.total_count, status.total_count_change);
     }
 
     void on_liveliness_changed (DataReader *dr, const LivelinessChangedStatus & status) {
-        TopicDescription * td         = dr->get_topicdescription( );
-        const char       * topic_name = td->get_name( );
-        const char       * type_name  = td->get_type_name( );
+        TopicDescription *td         = dr->get_topicdescription( );
+        const char       *topic_name = td->get_name( );
+        const char       *type_name  = td->get_type_name( );
         printf("%s() topic: '%s'  type: '%s' : (alive = %d, not_alive = %d)\n", __FUNCTION__,
                 topic_name, type_name, status.alive_count, status.not_alive_count);
     }
@@ -504,15 +504,15 @@ class ShapeApplication {
 private:
     DPListener               dp_listener;
 
-    DomainParticipantFactory * dpf;
-    DomainParticipant        * dp;
-    Publisher                * pub;
-    Subscriber               * sub;
-    Topic                    * topic;
-    ShapeTypeDataReader      * dr;
-    ShapeTypeDataWriter      * dw;
+    DomainParticipantFactory *dpf;
+    DomainParticipant        *dp;
+    Publisher                *pub;
+    Subscriber               *sub;
+    Topic                    *topic;
+    ShapeTypeDataReader      *dr;
+    ShapeTypeDataWriter      *dw;
 
-    char                     * color;
+    char                     *color;
 
     int                        xvel;
     int                        yvel;
@@ -747,7 +747,7 @@ public:
 
         if ( options->color != NULL ) {
             /*  filter on specified color */
-            ContentFilteredTopic * cft;
+            ContentFilteredTopic *cft;
             StringSeq              cf_params;
 
 #if   defined(RTI_CONNEXT_DDS)
@@ -856,7 +856,7 @@ public:
 
     //-------------------------------------------------------------
     void
-    moveShape( ShapeType * shape)
+    moveShape( ShapeType *shape)
     {
         int w2;
 
