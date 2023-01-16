@@ -39,6 +39,7 @@ objs/
 
 # Other
 *~
+GeneratedCode
 
 # Python files
 .venv/

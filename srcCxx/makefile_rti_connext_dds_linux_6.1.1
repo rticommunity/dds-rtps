@@ -2,7 +2,7 @@
 # To compile, type:
 # 	make -f makefile_rti_connext_dds_linux_6.1.1
 # To compile with the Debug option, use:
-#   DEBUG=1 make -f makefile_rti_connext_dds_linux_6.1.1
+#   make -f makefile_rti_connext_dds_linux_6.1.1 DEBUG=1
 #
 # This makefile assumes that your build environment is already correctly
 # configured. (For example, the correct version of your compiler and
@@ -45,6 +45,7 @@ LINKER_FLAGS += -g
 LIBS = -L$(NDDSHOME)/lib/$(TARGET_ARCH) \
         -lnddscppzd -lnddsczd -lnddscorezd $(SYSLIBS)
 else
+# This option strip the executable symbols
 LINKER_FLAGS += -s
 LIBS = -L$(NDDSHOME)/lib/$(TARGET_ARCH) \
         -lnddscppz -lnddscz -lnddscorez $(SYSLIBS)
