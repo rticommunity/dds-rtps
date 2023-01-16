@@ -33,19 +33,20 @@ shape_main
 .depend.*
 GNUmakefile*
 
-#Bin and Object directories
+# Bin and Object directories
 bin/
 objs/
 
 # Other
 *~
 
+# Python files
 .venv/
 *.pyc
 
+# Generated files
 srcCxx/shape.*
 srcCxx/shapePlugin.*
 srcCxx/shapeSupport.*
 
 .vscode/
-.gitignore
