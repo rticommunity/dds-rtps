@@ -24,12 +24,13 @@ def subscriber(
         time_out,
         producedCode,
         samplesSent,
-        subscriber_finished, publisher_finished,
+        subscriber_finished,
+        publisher_finished,
         file,
         verbosity):
 
-    """ Run the executable with the parameters and save
-        the error code obtained
+    """ This function runs the subscriber application with the specified parameters.
+        Then it will save the error code in the variable produced_code.
 
         name_executable     : name of the ShapeApplication to run
                               as a Subscriber
@@ -75,11 +76,11 @@ def subscriber(
     log_message('S: Waiting for topic creation', verbosity)
     index = child_sub.expect(
         [
-            'Create topic:',                                         # index = 0
-            pexpect.TIMEOUT,                                         # index = 1
-            'please specify topic name',                             # index = 2
-            'unrecognized value',                                    # index = 3
-            pexpect.EOF                                              # index = 4
+            'Create topic:', # index = 0
+            pexpect.TIMEOUT, # index = 1
+            'please specify topic name', # index = 2
+            'unrecognized value', # index = 3
+            pexpect.EOF # index = 4
         ],
         time_out
     )
@@ -93,9 +94,9 @@ def subscriber(
         log_message('S: Waiting for DR creation', verbosity)
         index = child_sub.expect(
             [
-                'Create reader for topic:',                          # index = 0
-                pexpect.TIMEOUT,                                     # index = 1
-                'failed to create content filtered topic'            # index = 2
+                'Create reader for topic:', # index = 0
+                pexpect.TIMEOUT, # index = 1
+                'failed to create content filtered topic' # index = 2
             ],
             time_out
         )
@@ -109,9 +110,9 @@ def subscriber(
             log_message('S: Waiting for DW matching', verbosity)
             index = child_sub.expect(
                 [
-                    'on_subscription_matched()',                     # index = 0
-                    pexpect.TIMEOUT,                                 # index = 1
-                    'on_requested_incompatible_qos()'                # index = 2
+                    'on_subscription_matched()', # index = 0
+                    pexpect.TIMEOUT, # index = 1
+                    'on_requested_incompatible_qos()' # index = 2
                 ],
                 time_out
             )
@@ -125,8 +126,8 @@ def subscriber(
                 log_message('S: Waiting for detecting DW alive', verbosity)
                 index = child_sub.expect(
                     [
-                        'on_liveliness_changed()',                   # index = 0
-                        pexpect.TIMEOUT                              # index = 1
+                        'on_liveliness_changed()', # index = 0
+                        pexpect.TIMEOUT # index = 1
                     ],
                     time_out
                 )
@@ -138,8 +139,8 @@ def subscriber(
                     log_message('S: Waiting for receiving samples', verbosity)
                     index = child_sub.expect(
                             [
-                                '\[[0-9][0-9]\]',                    # index = 0
-                                pexpect.TIMEOUT                      # index = 1
+                                '\[[0-9][0-9]\]', # index = 0
+                                pexpect.TIMEOUT # index = 1
                             ],
                             time_out
                         )
@@ -161,8 +162,8 @@ def subscriber(
                                             verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]',        # index = 0
-                                            pexpect.TIMEOUT          # index = 1
+                                            '\[[0-9][0-9]\]', # index = 0
+                                            pexpect.TIMEOUT # index = 1
                                             ],
                                             time_out
                                 )
@@ -192,8 +193,8 @@ def subscriber(
                                             verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]',        # index = 0
-                                            pexpect.TIMEOUT          # index = 1
+                                            '\[[0-9][0-9]\]', # index = 0
+                                            pexpect.TIMEOUT # index = 1
                                             ],
                                             time_out
                                 )
@@ -222,8 +223,8 @@ def subscriber(
                                             verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]',        # index = 0
-                                            pexpect.TIMEOUT          # index = 1
+                                            '\[[0-9][0-9]\]', # index = 0
+                                            pexpect.TIMEOUT # index = 1
                                             ],
                                             time_out
                                 )
@@ -248,12 +249,13 @@ def publisher(
         producedCode,
         samplesSent,
         id_pub,
-        subscriber_finished, publisher_finished,
+        subscriber_finished,
+        publisher_finished,
         file,
         verbosity):
 
-    """ Run the executable with the parameters and save
-        the error code obtained
+    """ This function runs the publisher application with the specified parameters.
+        Then it will save the error code in the variable produced_code.
 
         name_executable     : name of the ShapeApplication to run
                               as a Publisher
@@ -261,9 +263,9 @@ def publisher(
         testCase            : testCase is being tested
                              (from rtps_test_suite_1)
         time_out            : time pexpect waits until it finds a pattern
-        producedCode                : this variable will be overwritten with
+        producedCode        : this variable will be overwritten with
                               the obtained ReturnCode
-        samplesSent                : this variable contains the samples
+        samplesSent         : this variable contains the samples
                               the Publisher sends
         id_pub              : Publisher's id (1|2)
         subscriber_finished : object event from multiprocessing that is set
@@ -299,11 +301,11 @@ def publisher(
     log_message('P: Waiting for topic creation', verbosity)
     index = child_pub.expect(
         [
-            'Create topic:',                                              # index == 0
-            pexpect.TIMEOUT,                                              # index == 1
-            'please specify topic name',                                  # index == 2
-            'unrecognized value',                                         # index == 3
-            pexpect.EOF                                                   # index == 4
+            'Create topic:', # index == 0
+            pexpect.TIMEOUT, # index == 1
+            'please specify topic name', # index == 2
+            'unrecognized value', # index == 3
+            pexpect.EOF # index == 4
         ],
         time_out
     )
@@ -317,8 +319,8 @@ def publisher(
         log_message('P: Waiting for DW creation', verbosity)
         index = child_pub.expect(
             [
-                'Create writer for topic',                           # index = 0
-                pexpect.TIMEOUT                                      # index = 1
+                'Create writer for topic', # index = 0
+                pexpect.TIMEOUT # index = 1
             ],
             time_out
         )
@@ -329,9 +331,9 @@ def publisher(
             log_message('P: Waiting for DR matching', verbosity)
             index = child_pub.expect(
                 [
-                    'on_publication_matched()',                      # index = 0
-                    pexpect.TIMEOUT,                                 # index = 1
-                    'on_offered_incompatible_qos'                    # index = 2
+                    'on_publication_matched()', # index = 0
+                    pexpect.TIMEOUT, # index = 1
+                    'on_offered_incompatible_qos' # index = 2
                 ],
                 time_out
             )
@@ -345,8 +347,8 @@ def publisher(
                     log_message('P: Waiting for sending samples', verbosity)
                     index = child_pub.expect(
                             [
-                                '\[[0-9][0-9]\]',                    # index = 0
-                                pexpect.TIMEOUT                      # index = 1
+                                '\[[0-9][0-9]\]', # index = 0
+                                pexpect.TIMEOUT # index = 1
                             ],
                             time_out
                         )
@@ -363,8 +365,8 @@ def publisher(
                                 log_message('P: Waiting for sending samples',
                                             verbosity)
                                 child_pub.expect([
-                                            '\[[0-9][0-9]\]',        # index = 0
-                                            pexpect.TIMEOUT          # index = 1
+                                            '\[[0-9][0-9]\]', # index = 0
+                                            pexpect.TIMEOUT # index = 1
                                                 ],
                                             time_out
                                 )
@@ -411,14 +413,14 @@ def run_test(
         we expected.
     """
     log_message(f'run_test parameters: \
-                    name_pub: {name_pub}\
-                    name_sub: {name_sub}\
-                    testCase: {testCase.name}\
-                    param_pub: {param_pub}\
-                    param_sub: {param_sub}\
-                    expected_code_pub: {expected_code_pub}\
-                    expected_code_sub: {expected_code_sub}\
-                    verbosity: {verbosity}\
+                    name_pub: {name_pub} \
+                    name_sub: {name_sub} \
+                    testCase: {testCase.name} \
+                    param_pub: {param_pub} \
+                    param_sub: {param_sub} \
+                    expected_code_pub: {expected_code_pub} \
+                    expected_code_sub: {expected_code_sub} \
+                    verbosity: {verbosity} \
                     time_out: {time_out}',
                     verbosity)
 
@@ -498,7 +500,7 @@ def run_test(
         additional_info_sub = information_subscriber.replace('\n', '<br>')
         testCase.result = [Failure(f'<table> \
                                     <tr> \
-                                        <th></th> \
+                                        <th/>  \
                                         <th>Expected Code</th> \
                                         <th>Code Produced</th> \
                                     </tr> \
@@ -547,7 +549,7 @@ def run_test_pub_pub_sub(
                              in a non error situation
         expected_code_sub  : ReturnCode the Subscriber would obtain
                              in a non error situation
-        verbosity            : boolean. True means the Publisher and Subscriber's
+        verbosity          : boolean. True means the Publisher and Subscriber's
                              output will be shown on the console if there is
                              an error.
         time_out           : timeout for pexpect.
@@ -558,16 +560,16 @@ def run_test_pub_pub_sub(
         we expected.
     """
     log_message(f'run_test parameters: \
-                    name_pub: {name_pub}\
-                    name_sub: {name_sub}\
-                    testCase: {testCase.name}\
-                    param_pub1: {param_pub1}\
-                    param_pub2: {param_pub2}\
-                    param_sub: {param_sub}\
-                    expected_code_pub1: {expected_code_pub1}\
-                    expected_code_pub2: {expected_code_pub2}\
-                    expected_code_sub: {expected_code_sub}\
-                    verbosity: {verbosity}\
+                    name_pub: {name_pub} \
+                    name_sub: {name_sub} \
+                    testCase: {testCase.name} \
+                    param_pub1: {param_pub1} \
+                    param_pub2: {param_pub2} \
+                    param_sub: {param_sub} \
+                    expected_code_pub1: {expected_code_pub1} \
+                    expected_code_pub2: {expected_code_pub2} \
+                    expected_code_sub: {expected_code_sub} \
+                    verbosity: {verbosity} \
                     time_out: {time_out}',
                     verbosity)
 
@@ -722,7 +724,7 @@ def run_test_pub_pub_sub(
 
         testCase.result = [Failure(f'<table> \
                                     <tr> \
-                                        <th></th> \
+                                        <th/> \
                                         <th>Expected Code</th> \
                                         <th>Code Produced</th> \
                                     </tr> \
