@@ -6,34 +6,35 @@ from rtps_test_utilities import ReturnCode
 #       'name' : [parameters_publisher, parameters_subscriber,
 #              expected_return_code_publisher, expected_return_code_subscriber]
 # where:
-#       * name is the TestCase's name (defined by us)
-#       * parameters_publisher are the parameters we will run with
-#         the shape_main publisher application
-#       * parameters_subscriber are the parameters we will run with
-#         the shape_main subscriber application
-#       * expected_return_code_publisher is the ReturnCode the publisher
-#         is expected to produce in a non error situation
-#       * expected_return_code_subscriber is the ReturnCode the subscriber
-#         is expected to produce in a non error situation
+#       * name: TestCase's name (defined by us)
+#       * parameters_publisher: parameters the shape_main application
+#         uses for the publisher process
+#       * parameters_subscriber: parameters the shape_main application
+#         uses for the subscriber process
+#       * expected_return_code_publisher: expected publisher ReturnCode
+#         for a succeed test execution.
+#       * expected_return_code_subscriber: expected subscriber ReturnCode
+#         for a succeed test execution.
 #
 # There are also two testCases that contains more parameters:
 #       Test_Ownership_3 and Test_Ownership_4.
-# That is because in these two cases two publishers are run
-# (and one subscriber).
+# That is because these two cases run two publishers and one subscriber.
+# These two cases are handled manually in the interoperability_report.py
+# script.
 # The parameters in this case are:
-#       * name is the TestCase's name (defined by us)
-#       * parameters_publisher1 are the parameters we will run
-#         with the shape_main publisher 1 application
-#       * parameters_publisher2 are the parameters we will run
-#         with the shape_main publisher 2 application
-#       * parameters_subscriber are the parameters we will run
-#         with the shape_main subscriber application
-#       * expected_return_code_publisher1 is the ReturnCode the
-#         publisher 1 is expected to produce in a non error situation
-#       * expected_return_code_publisher2 is the ReturnCode the publisher 2
-#         is expected to produce in a non error situation
-#       * expected_return_code_subscriber is the ReturnCode the subscriber
-#         is expected to produce in a non error situation
+#       * name: TestCase's name (defined by us)
+#       * parameters_publisher1: parameters the shape_main application
+#         uses for the publisher1 process
+#       * parameters_publisher2: parameters the shape_main application
+#         uses for the publisher2 process
+#       * parameters_subscriber: parameters the shape_main application
+#         uses for the subscriber process
+#       * expected_return_code_publisher1: expected publisher1 ReturnCode
+#         for a succeed test execution.
+#       * expected_return_code_publisher2: expected publisher2 ReturnCode
+#         for a succeed test execution.
+#       * expected_return_code_subscriber: expected subscriber ReturnCode
+#         for a succeed test execution.
 
 rtps_test_suite_1 = {
     # DATA REPRESENTATION
