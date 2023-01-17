@@ -1,5 +1,7 @@
 from utilities import ReturnCode
-
+ 
+# definir el diccionario
+# cambiar el nombre de lfichero
 rtps_test_suite_1 = {
     # DATA REPRESENTATION
     'Test_DataRepresentation_0' : ['-P -t Square -x 1', '-S -t Square -x 1', ReturnCode.OK, ReturnCode.OK],

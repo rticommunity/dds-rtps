@@ -17,37 +17,41 @@ def log_message(message, verbosity):
     if verbosity:
         print(message)
 
-def subscriber(
-        name_executable,
-        parameters,
-        testCase,
-        time_out,
-        producedCode,
-        samplesSent,
-        subscriber_finished,
-        publisher_finished,
-        file,
-        verbosity):
+# TODO add info in comments about if they are in or out
+
+def run_subscriber_shape_main(
+        name_executable: str,
+        parameters: str,
+        test_name: str,
+        produced_code: "list[int]",
+        produced_code_index: int,
+        samples_sent: Queue,
+        verbosity: bool,
+        time_out: int,
+        file: tempfile.TemporaryFile,
+        subscriber_finished: Event,
+        publisher_finished: Event,):
 
     """ This function runs the subscriber application with the specified parameters.
         Then it will save the error code in the variable produced_code.
 
-        name_executable     : name of the ShapeApplication to run
-                              as a Subscriber
-        parameters          : QOS to use with the Shape Application
-        testCase            : testCase is being tested
-                             (from rtps_test_suite_1)
-        time_out            : time pexpect waits until it finds a pattern
-        producedCode        : this variable will be overwritten with
-                              the obtained ReturnCode
-        samplesSent         : this variable contains the samples
-                              the Publisher sends
-        subscriber_finished : object event from multiprocessing that is set
-                              when the subscriber is finished
-        publisher_finished  : object event from multiprocessing that is set
-                              when the publisher is finished
-        file                : temporal file to save Shape Application output
-        verbosity           : print debug information
+        name_executable <<in>>: name of the shape_main application to run
+                as a Subscriber
+        parameters <<in>>: shape_main application parameter list
+        test_name <<in>>: name of the test that is being tested
+        produced_code <<out>>: this variable will be overwritten with
+                the obtained ReturnCode
+        produced_code_index <<in>>: index of the produced_code list where the ReturnCode
+            will be saved
+        samples_sent <<in>>: this variable contains the samples
+                the Publisher sends
+        verbosity <<in>>: print debug information
+        time_out <<in>>: time pexpect waits until it finds a pattern
+        file <<inout>>: temporal file to save Shape Application output
+        subscriber_finished <<inout>>: object event from multiprocessing that is set
+                when the subscriber is finished
+        publisher_finished <<inout>>: object event from multiprocessing that is set
+                when the publisher is finished
 
         The function runs the Shape Application as a Subscriber
         with the parameters defined.
@@ -70,7 +74,7 @@ def subscriber(
     # Step 1 : run the executable
     log_message('Running Shape Application Subscriber', verbosity)
     child_sub = pexpect.spawnu(f'{name_executable} {parameters}')
-    child_sub.logfile =  file
+    child_sub.logfile = file
 
     # Step 2 : Check if the topic is created
     log_message('S: Waiting for topic creation', verbosity)
@@ -86,9 +90,9 @@ def subscriber(
     )
 
     if index == 1 or index == 2 or index == 4:
-        producedCode[0] = ReturnCode.TOPIC_NOT_CREATED
+        produced_code[produced_code_index] = ReturnCode.TOPIC_NOT_CREATED
     elif index == 3:
-        producedCode[0] = ReturnCode.UNRECOGNIZED_VALUE
+        produced_code[produced_code_index] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the reader is created
         log_message('S: Waiting for DR creation', verbosity)
@@ -102,9 +106,9 @@ def subscriber(
         )
 
         if index == 1:
-            producedCode[0] = ReturnCode.READER_NOT_CREATED
+            produced_code[produced_code_index] = ReturnCode.READER_NOT_CREATED
         elif index == 2:
-            producedCode[0] = ReturnCode.FILTER_NOT_CREATED
+            produced_code[produced_code_index] = ReturnCode.FILTER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the reader matches the writer
             log_message('S: Waiting for DW matching', verbosity)
@@ -118,9 +122,9 @@ def subscriber(
             )
 
             if index == 1:
-                producedCode[0] = ReturnCode.WRITER_NOT_MATCHED
+                produced_code[produced_code_index] = ReturnCode.WRITER_NOT_MATCHED
             elif index == 2:
-                producedCode[0] = ReturnCode.INCOMPATIBLE_QOS
+                produced_code[produced_code_index] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
                 # Step 5: Check if the reader detects the writer as alive
                 log_message('S: Waiting for detecting DW alive', verbosity)
@@ -133,7 +137,7 @@ def subscriber(
                 )
 
                 if index == 1:
-                    producedCode[0] = ReturnCode.WRITER_NOT_ALIVE
+                    produced_code[produced_code_index] = ReturnCode.WRITER_NOT_ALIVE
                 elif index == 0:
                     #Step 6 : Check if the reader receives the samples
                     log_message('S: Waiting for receiving samples', verbosity)
@@ -146,17 +150,17 @@ def subscriber(
                         )
 
                     if index == 1:
-                        producedCode[0] = ReturnCode.DATA_NOT_RECEIVED
+                        produced_code[produced_code_index] = ReturnCode.DATA_NOT_RECEIVED
                     elif index == 0:
                         # This test checks that data is received in the right order
-                        if testCase == 'Test_Reliability_4':
+                        if test_name == 'Test_Reliability_4':
                             for x in range(0, 3, 1):
                                 sub_string = re.search('[0-9]{3} [0-9]{3}',
                                                         child_sub.before)
-                                if samplesSent.get() == sub_string.group(0):
-                                    producedCode[0] = ReturnCode.OK
+                                if samples_sent.get() == sub_string.group(0):
+                                    produced_code[produced_code_index] = ReturnCode.OK
                                 else:
-                                    producedCode[0] = ReturnCode.DATA_NOT_CORRECT
+                                    produced_code[produced_code_index] = ReturnCode.DATA_NOT_CORRECT
                                     break
                                 log_message('S: Waiting for receiving samples',
                                             verbosity)
@@ -170,10 +174,10 @@ def subscriber(
                         # Two Publishers and One Subscriber to test that if
                         # each one has a different color, the ownership strength
                         # does not matter
-                        elif testCase == 'Test_Ownership_3':
+                        elif test_name == 'Test_Ownership_3':
                             red_received = False
                             blue_received = False
-                            producedCode[0] = ReturnCode.RECEIVING_FROM_ONE
+                            produced_code[produced_code_index] = ReturnCode.RECEIVING_FROM_ONE
                             for x in range(0,100,1):
                                 sub_string_red = re.search('RED',
                                                         child_sub.before)
@@ -187,7 +191,7 @@ def subscriber(
                                     blue_received = True
 
                                 if blue_received and red_received:
-                                    producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
+                                    produced_code[produced_code_index] = ReturnCode.RECEIVING_FROM_BOTH
                                     break
                                 log_message('S: Waiting for receiving samples',
                                             verbosity)
@@ -201,7 +205,7 @@ def subscriber(
                         # Two Publishers and One Subscriber to test that
                         # the Subscriber only receives samples from
                         # the Publisher with the greatest ownership
-                        elif testCase == 'Test_Ownership_4':
+                        elif test_name == 'Test_Ownership_4':
                             first_received = False
                             second_received = False
                             list_data_received_second = []
@@ -210,7 +214,7 @@ def subscriber(
                                                         child_sub.before)
 
                                 try:
-                                    list_data_received_second.append(samplesSent.get(True, 5))
+                                    list_data_received_second.append(samples_sent.get(True, 5))
                                 except:
                                     break;
                                 if sub_string.group(0) not in list_data_received_second:
@@ -218,7 +222,7 @@ def subscriber(
                                 elif sub_string.group(0) in list_data_received_second \
                                     and first_received:
                                     second_received = True
-                                    producedCode[0] = ReturnCode.RECEIVING_FROM_BOTH
+                                    produced_code[produced_code_index] = ReturnCode.RECEIVING_FROM_BOTH
                                 log_message('S: Waiting for receiving samples',
                                             verbosity)
                                 child_sub.expect(
@@ -230,10 +234,10 @@ def subscriber(
                                 )
 
                             if second_received == False:
-                                producedCode[0] = ReturnCode.RECEIVING_FROM_ONE
+                                produced_code[produced_code_index] = ReturnCode.RECEIVING_FROM_ONE
 
                         else:
-                            producedCode[0] = ReturnCode.OK
+                            produced_code[produced_code_index] = ReturnCode.OK
 
     subscriber_finished.set()   # set subscriber as finished
     log_message('S: Waiting for Publisher to finish', verbosity)
@@ -241,39 +245,40 @@ def subscriber(
     return
 
 
-def publisher(
-        name_executable,
-        parameters,
-        testCase,
-        time_out,
-        producedCode,
-        samplesSent,
-        id_pub,
-        subscriber_finished,
-        publisher_finished,
-        file,
-        verbosity):
+def run_publisher_shape_main(
+        name_executable: str,
+        parameters: str,
+        test_name: str,
+        produced_code: "list[int]",
+        produced_code_index: int,
+        samples_sent: Queue,
+        verbosity: bool,
+        time_out: int,
+        file: tempfile.TemporaryFile,
+        subscriber_finished: Event,
+        publisher_finished: Event
+):
 
     """ This function runs the publisher application with the specified parameters.
         Then it will save the error code in the variable produced_code.
 
-        name_executable     : name of the ShapeApplication to run
-                              as a Publisher
-        parameters          : QOS to use with the Shape Application
-        testCase            : testCase is being tested
-                             (from rtps_test_suite_1)
-        time_out            : time pexpect waits until it finds a pattern
-        producedCode        : this variable will be overwritten with
-                              the obtained ReturnCode
-        samplesSent         : this variable contains the samples
-                              the Publisher sends
-        id_pub              : Publisher's id (1|2)
-        subscriber_finished : object event from multiprocessing that is set
-                              when the subscriber is finished
-        publisher_finished  : object event from multiprocessing that is set
-                              when the publisher is finished
-        file                : temporal file to save Shape Application output
-        verbosity           : print debug information
+        name_executable: <<in>> name of the ShapeApplication to run
+                as a Publisher
+        parameters <<in>>: shape_main application parameter list
+        test_name <<in>>: name of the test that is being tested
+        produced_code <<out>>: this variable will be overwritten with
+                the obtained ReturnCode
+        produced_code_index <<in>>: index of the produced_code list where the ReturnCode
+            will be saved
+        samples_sent <<out>>: this variable contains the samples
+                the Publisher sends
+        verbosity <<in>>: print debug information
+        time_out <<in>>: time pexpect waits until it finds a pattern
+        file <<inout>>: temporal file to save Shape Application output
+        subscriber_finished <<inout>>: object event from multiprocessing that is set
+                when the subscriber is finished
+        publisher_finished <<inout>>: object event from multiprocessing that is set
+                when the publisher is finished
 
         The function runs the Shape Application as a Publisher
         with the parameters defined.
@@ -311,9 +316,9 @@ def publisher(
     )
 
     if index == 1 or index == 2 or index == 4:
-        producedCode[id_pub] = ReturnCode.TOPIC_NOT_CREATED
+        produced_code[produced_code_index] = ReturnCode.TOPIC_NOT_CREATED
     elif index == 3:
-        producedCode[id_pub] = ReturnCode.UNRECOGNIZED_VALUE
+        produced_code[produced_code_index] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the writer is created
         log_message('P: Waiting for DW creation', verbosity)
@@ -325,7 +330,7 @@ def publisher(
             time_out
         )
         if index == 1:
-            producedCode[id_pub] = ReturnCode.WRITER_NOT_CREATED
+            produced_code[produced_code_index] = ReturnCode.WRITER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the writer matches the reader
             log_message('P: Waiting for DR matching', verbosity)
@@ -338,9 +343,9 @@ def publisher(
                 time_out
             )
             if index == 1:
-                producedCode[id_pub] = ReturnCode.READER_NOT_MATCHED
+                produced_code[produced_code_index] = ReturnCode.READER_NOT_MATCHED
             elif index == 2:
-                producedCode[id_pub] = ReturnCode.INCOMPATIBLE_QOS
+                produced_code[produced_code_index] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
                 if '-w' in parameters:
                     #Step  5: Check if the writer sends the samples
@@ -353,15 +358,15 @@ def publisher(
                             time_out
                         )
                     if index == 0:
-                        producedCode[id_pub] = ReturnCode.OK
+                        produced_code[produced_code_index] = ReturnCode.OK
                         # With these tests we check if we receive the data correctly,
                         # in order to do it we are saving the samples sent
-                        if testCase == 'Test_Reliability_4' \
-                                    or testCase == 'Test_Ownership_4':
+                        if test_name == 'Test_Reliability_4' \
+                                    or test_name == 'Test_Ownership_4':
                             for x in range(0, 80 ,1):
                                 pub_string = re.search('[0-9]{3} [0-9]{3}',
                                                             child_pub.before )
-                                samplesSent.put(pub_string.group(0))
+                                samples_sent.put(pub_string.group(0))
                                 log_message('P: Waiting for sending samples',
                                             verbosity)
                                 child_pub.expect([
@@ -372,40 +377,42 @@ def publisher(
                                 )
 
                     elif index == 1:
-                        producedCode[id_pub] = ReturnCode.DATA_NOT_SENT
+                        produced_code[produced_code_index] = ReturnCode.DATA_NOT_SENT
                 else:
-                    producedCode[id_pub] = ReturnCode.OK
+                    produced_code[produced_code_index] = ReturnCode.OK
 
     log_message('P: Waiting for Subscriber to finish', verbosity)
     subscriber_finished.wait() # wait for subscriber to finish
     publisher_finished.set()   # set publisher as finished
     return
 
-
+# TODO change name pub
 def run_test(
-        name_pub, name_sub,
-        testCase,
-        param_pub, param_sub,
-        expected_code_pub, expected_code_sub,
-        verbosity,
-        time_out):
+        name_executable_pub: str,
+        name_executable_sub: str,
+        test_case: TestCase,
+        param_pub: str,
+        param_sub: str,
+        expected_code_pub: ReturnCode,
+        expected_code_sub: ReturnCode,
+        verbosity: bool,
+        time_out: int):
 
     """ Run the Publisher and the Subscriber and check the ReturnCode
 
-        name_pub          : name of the Shape Application to run
-                            as a Publisher
-        name_sub          : name of the Shape Application to run
-                            as a Subscriber
-        testCase          : testCase is being tested
-                            (from rtps_test_suite_1)
-        param_pub         : QoS for the Publisher
-        param_sub         : QoS for the Subscriber
-        expected_code_pub : ReturnCode the Publisher would obtain
-                            in a non error situation
-        expected_code_sub : ReturnCode the Subscriber would obtain
-                            in a non error situation
-        verbosity         : print debug information
-        time_out          : timeout for pexpect.
+        name_executable_pub <<in>>: name of the Shape Application to run
+                as a Publisher
+        name_executable_sub <<in>>: name of the Shape Application to run
+                as a Subscriber
+        test_case <<inout>>: testCase object to test
+        param_pub <<in>>: shape_main application publisher parameter list
+        param_sub <<in>>: shape_main application subscriber parameter list
+        expected_code_pub <<in>>: ReturnCode the Publisher would obtain
+                in a non error situation
+        expected_code_sub <<in>>: ReturnCode the Subscriber would obtain
+                in a non error situation
+        verbosity <<in>>: print debug information
+        time_out <<in>>: timeout for pexpect.
 
         The function runs in two different Processes
         the Publisher and the Subscriber.
@@ -413,9 +420,9 @@ def run_test(
         we expected.
     """
     log_message(f'run_test parameters: \
-                    name_pub: {name_pub} \
-                    name_sub: {name_sub} \
-                    testCase: {testCase.name} \
+                    name_executable_pub: {name_executable_pub} \
+                    name_executable_sub: {name_executable_sub} \
+                    test_case: {test_case.name} \
                     param_pub: {param_pub} \
                     param_sub: {param_sub} \
                     expected_code_pub: {expected_code_pub} \
@@ -427,49 +434,71 @@ def run_test(
     manager = Manager()
      # used for storing the obtained ReturnCode
      # (from Publisher and Subscriber)
-    code = manager.list(range(2))
+    return_code = manager.list(range(2))
     data = Queue() # used for storing the samples
 
     subscriber_finished = Event()
     publisher_finished = Event()
 
-
+    log_message('Creating temporary files', verbosity)
     file_publisher = tempfile.TemporaryFile(mode='w+t')
     file_subscriber = tempfile.TemporaryFile(mode='w+t')
 
+    # Manager is a share memory section where both processes can access.
+    # return_code is a list of two elements where the different processes
+    # (publisher and subscriber applications) will copy their ReturnCode.
+    # These ReturnCodes are identified by the index within the list,
+    # every index identifies one application. Therefore, only one application
+    # modifies one element of the list.
+    # Once both processes are finished, the list contains the ReturnCode
+    # in the corresponding index. This index is set manually and we need it
+    # in order to use it later.
+    # Example:
+    #   Processes:
+    #     - Publisher Process (produced_code_index = 1)
+    #     - Subscriber Process (produced_code_index = 0)
+    #   Code contains:
+    #     - return_code[1] contains Publisher Application ReturnCode
+    #     - return_code[0] contains Subscriber Application ReturnCode
+    publisher_index = 1
+    subscriber_index = 0
+
+    # TODO parameters in the right order and name
     log_message('Assigning tasks to processes', verbosity)
-    pub = Process(target=publisher,
+    pub = Process(target=run_publisher_shape_main,
                     kwargs={
-                        'name_executable':name_pub,
+                        'name_executable':name_executable_pub,
                         'parameters':param_pub,
-                        'testCase':testCase.name,
+                        'test_name':test_case.name,
+                        'produced_code':return_code,
+                        'produced_code_index':publisher_index,
+                        'samples_sent':data,
+                        'verbosity':verbosity,
                         'time_out':time_out,
-                        'producedCode':code,
-                        'samplesSent':data,
-                        'id_pub':1,
-                        'subscriber_finished':subscriber_finished,
-                        'publisher_finished':publisher_finished,
                         'file':file_publisher,
-                        'verbosity':verbosity
-                    })
-    sub = Process(target=subscriber,
-                    kwargs={
-                        'name_executable':name_sub,
-                        'parameters':param_sub,
-                        'testCase':testCase.name,
-                        'time_out':time_out,
-                        'producedCode':code,
-                        'samplesSent':data,
                         'subscriber_finished':subscriber_finished,
-                        'publisher_finished':publisher_finished,
+                        'publisher_finished':publisher_finished
+                    })
+    sub = Process(target=run_subscriber_shape_main,
+                    kwargs={
+                        'name_executable':name_executable_sub,
+                        'parameters':param_sub,
+                        'test_case':test_case.name,
+                        'produced_code':return_code,
+                        'produced_code_index':subscriber_index,
+                        'samples_sent':data,
+                        'verbosity':verbosity,
+                        'time_out':time_out,
                         'file':file_subscriber,
-                        'verbosity':verbosity
+                        'subscriber_finished':subscriber_finished,
+                        'publisher_finished':publisher_finished
                     })
 
     log_message('Running Subscriber process', verbosity)
     sub.start()
     log_message('Running Publisher process', verbosity)
     pub.start()
+    # Wait until these processes finish
     sub.join()
     pub.join()
 
@@ -479,26 +508,29 @@ def run_test(
     information_publisher = file_publisher.read()
     information_subscriber = file_subscriber.read()
 
-    testCase.param_pub = param_pub
-    testCase.param_sub = param_sub
+    test_case.param_pub = param_pub
+    test_case.param_sub = param_sub
 
-    if expected_code_pub ==  code[1] and expected_code_sub == code[0]:
-        print (f'{testCase.name} : Ok')
+    # code[1] contains shape_main publisher application ReturnCode
+    # and code[0] the shape_main subscriber application ReturnCode.
+    if expected_code_pub == return_code[publisher_index] and expected_code_sub == return_code[subscriber_index]:
+        print (f'{test_case.name} : Ok')
 
     else:
-        print(f'Error in : {testCase.name}')
+        print(f'Error in : {test_case.name}')
         print(f'Publisher expected code: {expected_code_pub}; \
-                Code found: {code[1].name}')
+                Code found: {return_code[publisher_index].name}')
         print(f'Subscriber expected code: {expected_code_sub}; \
-                Code found: {code[0].name}')
+                Code found: {return_code[subscriber_index].name}')
         log_message(f'\nInformation about the Publisher:\n\
                       {information_publisher} \
                       \nInformation about the Subscriber:\n\
                       {information_subscriber}', verbosity)
 
+        # TODO CHECK TH
         additional_info_pub = information_publisher.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
-        testCase.result = [Failure(f'<table> \
+        test_case.result = [Failure(f'<table> \
                                     <tr> \
                                         <th/>  \
                                         <th>Expected Code</th> \
@@ -507,12 +539,12 @@ def run_test(
                                     <tr> \
                                         <th>Publisher</th> \
                                         <th>{expected_code_pub.name}</th> \
-                                        <th>{code[1].name}</th> \
+                                        <th>{return_code[publisher_index].name}</th> \
                                     </tr> \
                                     <tr> \
                                         <th>Subscriber</th> \
                                         <th>{expected_code_sub.name}</th> \
-                                        <th>{code[0].name}</th> \
+                                        <th>{return_code[subscriber_index].name}</th> \
                                     </tr> \
                                 </table> \
                                <strong> Information Publisher: </strong> \
@@ -525,34 +557,36 @@ def run_test(
 
 
 def run_test_pub_pub_sub(
-            name_pub, name_sub,
-            testCase,
-            param_pub1, param_pub2, param_sub,
-            expected_code_pub1, expected_code_pub2, expected_code_sub,
-            verbosity,
-            time_out):
+        name_executable_pub: str,
+        name_executable_sub: str,
+        test_case: TestCase,
+        param_pub1: str,
+        param_pub2: str,
+        param_sub: str,
+        expected_code_pub1: ReturnCode,
+        expected_code_pub2: ReturnCode,
+        expected_code_sub: ReturnCode,
+        verbosity: bool,
+        time_out: int):
 
     """ Run two Publisher and one Subscriber and check the ReturnCode
 
-        name_pub           : name of the Shape Application to run
-                             as a Publisher
-        name_sub           : name of the Shape Application to run
-                             as a Subscriber
-        testCase           : testCase that is being tested
-                            (from rtps_test_suite_1)
-        param_pub1         : QoS for the Publisher 1
-        param_pub2         : QoS for the Publisher 2
-        param_sub          : QoS for the Subscriber
-        expected_code_pub1 : ReturnCode the Publisher 1 would obtain
-                             in a non error situation
-        expected_code_pub2 : ReturnCode the Publisher 2 would obtain
-                             in a non error situation
-        expected_code_sub  : ReturnCode the Subscriber would obtain
-                             in a non error situation
-        verbosity          : boolean. True means the Publisher and Subscriber's
-                             output will be shown on the console if there is
-                             an error.
-        time_out           : timeout for pexpect.
+        name_executable_pub <<in>>: name of the Shape Application to run
+                as a Publisher
+        name_executable_sub <<in>>: name of the Shape Application to run
+                as a Subscriber
+        test_case <<inout>>: testCase object to test
+        param_pub1 <<in>>: shape_main application publisher 1 parameter list
+        param_pub2 <<in>>: shape_main application publisher 1 parameter list
+        param_sub <<in>>: shape_main application subscriber parameter list
+        expected_code_pub1 <<in>>: ReturnCode the Publisher 1 would obtain
+                in a non error situation
+        expected_code_pub2 <<in>>: ReturnCode the Publisher 2 would obtain
+                in a non error situation
+        expected_code_sub <<in>>: ReturnCode the Subscriber would obtain
+                in a non error situation
+        verbosity <<in>>: print debug information
+        time_out <<in>>: timeout for pexpect.
 
         The function runs in three different Processes
         the first Publisher, the second Publisher and the Subscriber.
@@ -560,9 +594,9 @@ def run_test_pub_pub_sub(
         we expected.
     """
     log_message(f'run_test parameters: \
-                    name_pub: {name_pub} \
-                    name_sub: {name_sub} \
-                    testCase: {testCase.name} \
+                    name_executable_pub: {name_executable_pub} \
+                    name_executable_sub: {name_executable_sub} \
+                    test_case: {test_case.name} \
                     param_pub1: {param_pub1} \
                     param_pub2: {param_pub2} \
                     param_sub: {param_sub} \
@@ -587,91 +621,116 @@ def run_test_pub_pub_sub(
     file_publisher1 = tempfile.TemporaryFile(mode='w+t')
     file_publisher2 = tempfile.TemporaryFile(mode='w+t')
 
+    # TODO add comments
+    # TODO parameters in the right order
+    # Manager is a share memory section where the three processes can access.
+    # return_code is a list of three elements where the different processes
+    # (publisher 1, publisher 2 and subscriber applications) will copy their ReturnCode.
+    # These ReturnCodes are identified by the index within the list,
+    # every index identifies one application. Therefore, only one application
+    # modifies one element of the list.
+    # Once both processes are finished, the list contains the ReturnCode
+    # in the corresponding index. This index is set manually and we need it
+    # in order to use it later.
+    # Example:
+    #   Processes:
+    #     - Publisher 1 Process (produced_code_index = 1)
+    #     - Publisher 2 Process (produced_code_index = 2)
+    #     - Subscriber Process (produced_code_index = 0)
+    #   Code contains:
+    #     - return_code[1] contains Publisher 1 Application ReturnCode
+    #     - return_code[2] contains Publisher 2 Application ReturnCode
+    #     - return_code[0] contains Subscriber Application ReturnCode
+    publisher1_index = 1
+    publisher2_index = 2
+    subscriber_index = 0
     log_message('Assigning tasks to processes', verbosity)
-    if testCase.name == 'Test_Ownership_3':
-        pub1 = Process(target=publisher,
+    if test_case.name == 'Test_Ownership_3':
+        pub1 = Process(target=run_publisher_shape_main,
                         kwargs={
-                            'name_executable':name_pub,
+                            'name_executable':name_executable_pub,
                             'parameters':param_pub1,
-                            'testCase':testCase.name,
+                            'test_name':test_case.name,
+                            'produced_code':code,
+                            'produced_code_index':publisher1_index,
+                            'samples_sent':data,
+                            'verbosity':verbosity,
                             'time_out':time_out,
-                            'producedCode':code,
-                            'samplesSent':data,
-                            'id_pub':1,
-                            'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished,
                             'file':file_publisher1,
-                            'verbosity':verbosity
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
                         })
-        pub2 = Process(target=publisher,
+        pub2 = Process(target=run_publisher_shape_main,
                         kwargs={
-                            'name_executable':name_pub,
+                            'name_executable':name_executable_pub,
                             'parameters':param_pub2,
-                            'testCase':testCase.name,
+                            'test_name':test_case.name,
+                            'produced_code':code,
+                            'produced_code_index':publisher2_index,
+                            'samples_sent':data,
+                            'verbosity':verbosity,
                             'time_out':time_out,
-                            'producedCode':code,
-                            'samplesSent':data,
-                            'id_pub':2,
-                            'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished,
                             'file':file_publisher2,
-                            'verbosity':verbosity
-                        })
-        sub = Process(target=subscriber,
-                        kwargs={
-                            'name_executable':name_sub,
-                            'parameters':param_sub,
-                            'testCase':testCase.name,
-                            'time_out':time_out,
-                            'producedCode':code,
-                            'samplesSent':data,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished,
+                            'publisher_finished':publisher_finished
+                        })
+        sub = Process(target=run_subscriber_shape_main,
+                        kwargs={
+                            'name_executable':name_executable_sub,
+                            'parameters':param_sub,
+                            'test_name':test_case.name,
+                            'produced_code':code,
+                            'produced_code_index':subscriber_index,
+                            'samples_sent':data,
+                            'verbosity':verbosity,
+                            'time_out':time_out,
                             'file':file_subscriber,
-                            'verbosity':verbosity
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
                         })
 
-    if testCase.name == 'Test_Ownership_4':
-        pub1 = Process(target=publisher,
+    if test_case.name == 'Test_Ownership_4':
+        pub1 = Process(target=run_publisher_shape_main,
                         kwargs={
-                            'name_executable':name_pub,
+                            'name_executable':name_executable_pub,
                             'parameters':param_pub1,
-                            'testCase':testCase.name,
+                            'test_name':test_case.name,
+                            'produced_code':code,
+                            'produced_code_index':publisher1_index,
+                            'samples_sent':Queue(),
+                            'verbosity':verbosity,
                             'time_out':time_out,
-                            'producedCode':code,
-                            'samplesSent':Queue(),
-                            'id_pub':1,
-                            'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished,
                             'file':file_publisher1,
-                            'verbosity':verbosity
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
                         })
-        pub2 = Process(target=publisher,
+        pub2 = Process(target=run_publisher_shape_main,
                         kwargs={
-                            'name_executable':name_pub,
+                            'name_executable':name_executable_pub,
                             'parameters':param_pub2,
-                            'testCase':testCase.name,
+                            'test_name':test_case.name,
+                            'produced_code':code,
+                            'produced_code_index':publisher2_index,
+                            'samples_sent':data,
+                            'verbosity':verbosity,
                             'time_out':time_out,
-                            'producedCode':code,
-                            'samplesSent':data,
-                            'id_pub':2,
-                            'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished,
                             'file':file_publisher2,
-                            'verbosity':verbosity
-                        })
-        sub = Process(target=subscriber,
-                        kwargs={
-                            'name_executable':name_sub,
-                            'parameters':param_sub,
-                            'testCase':testCase.name,
-                            'time_out':time_out,
-                            'producedCode':code,
-                            'samplesSent':data,
                             'subscriber_finished':subscriber_finished,
-                            'publisher_finished':publisher_finished,
+                            'publisher_finished':publisher_finished
+                        })
+        sub = Process(target=run_subscriber_shape_main,
+                        kwargs={
+                            'name_executable':name_executable_sub,
+                            'parameters':param_sub,
+                            'test_name':test_case.name,
+                            'produced_code':code,
+                            'produced_code_index':subscriber_index,
+                            'samples_sent':data,
+                            'verbosity':verbosity,
+                            'time_out':time_out,
                             'file':file_subscriber,
-                            'verbosity':verbosity
+                            'subscriber_finished':subscriber_finished,
+                            'publisher_finished':publisher_finished
                         })
 
     log_message('Running Subscriber process', verbosity)
@@ -695,22 +754,22 @@ def run_test_pub_pub_sub(
     information_publisher2 = file_publisher2.read()
     information_subscriber = file_subscriber.read()
 
-    testCase.param_pub1 = param_pub1
-    testCase.param_pub2 = param_pub2
-    testCase.param_sub = param_sub
+    test_case.param_pub1 = param_pub1
+    test_case.param_pub2 = param_pub2
+    test_case.param_sub = param_sub
 
-    if expected_code_pub1 ==  code[1] and expected_code_sub == code[0] \
-        and expected_code_pub2 == code[2]:
-        print (f'{testCase.name} : Ok')
+    if expected_code_pub1 ==  code[publisher1_index] and expected_code_sub == code[subscriber_index] \
+        and expected_code_pub2 == code[publisher2_index]:
+        print (f'{test_case.name} : Ok')
 
     else:
-        print(f'Error in : {testCase.name}')
+        print(f'Error in : {test_case.name}')
         print(f'Publisher 1 expected code: {expected_code_pub1}; \
-                Code found: {code[1].name}')
+                Code found: {code[publisher1_index].name}')
         print(f'Publisher 2 expected code: {expected_code_pub2}; \
-                Code found: {code[2].name}')
+                Code found: {code[publisher2_index].name}')
         print(f'Subscriber expected code: {expected_code_sub}; \
-                Code found: {code[0].name}')
+                Code found: {code[subscriber_index].name}')
         log_message(f'\nInformation about the Publisher 1:\n\
                       {information_publisher1} \
                       \nInformation about the Publisher 2:\n\
@@ -722,7 +781,7 @@ def run_test_pub_pub_sub(
         additional_info_pub2 = information_publisher2.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
 
-        testCase.result = [Failure(f'<table> \
+        test_case.result = [Failure(f'<table> \
                                     <tr> \
                                         <th/> \
                                         <th>Expected Code</th> \
@@ -731,17 +790,17 @@ def run_test_pub_pub_sub(
                                     <tr> \
                                         <th>Publisher 1</th> \
                                         <th>{expected_code_pub1.name}</th> \
-                                        <th>{code[1].name}</th> \
+                                        <th>{code[publisher1_index].name}</th> \
                                     </tr> \
                                     <tr> \
                                         <th>Publisher 2</th> \
                                         <th>{expected_code_pub2.name}</th> \
-                                        <th>{code[2].name}</th> \
+                                        <th>{code[publisher2_index].name}</th> \
                                     </tr> \
                                     <tr> \
                                         <th>Subscriber</th> \
                                         <th>{expected_code_sub.name}</th> \
-                                        <th>{code[0].name}</th> \
+                                        <th>{code[subscriber_index].name}</th> \
                                     </tr> \
                                 </table> \
                                <strong> Information Publisher 1: </strong> \
@@ -831,7 +890,6 @@ def main():
         else:
             xml = JUnitXml()
 
-
     suite = TestSuite(f"{name_publisher}---{name_subscriber}")
     TestCase.param_pub = Attr('Parameters_Publisher')
     TestCase.param_sub = Attr('Parameters_Subscriber')
@@ -841,12 +899,17 @@ def main():
     timeout = 10
     now = datetime.now()
     for k, v in rtps_test_suite_1.items():
+        # TestCase is an class from junitparser whose attributes
+        # are: name and result (OK, Failure, Error and Skipped),
+        # apart from other custom attributes (in this case param_pub,
+        # param_sub, param_pub1 and param_pub2). Each object TestSuite
+        # contains objects TestCase.
         case = TestCase(f'{k}')
         now_test_case = datetime.now()
         if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
-            run_test_pub_pub_sub(name_pub=options['publisher'],
-                                 name_sub=options['subscriber'],
-                                 testCase=case,
+            run_test_pub_pub_sub(name_executable_pub=options['publisher'],
+                                 name_executable_sub=options['subscriber'],
+                                 test_case=case,
                                  param_pub1=v[0],
                                  param_pub2=v[1],
                                  param_sub=v[2],
@@ -858,9 +921,9 @@ def main():
             )
 
         else:
-            run_test(name_pub=options['publisher'],
-                     name_sub=options['subscriber'],
-                     testCase=case,
+            run_test(name_executable_pub=options['publisher'],
+                     name_executable_sub=options['subscriber'],
+                     test_case=case,
                      param_pub=v[0],
                      param_sub=v[1],
                      expected_code_pub=v[2],
