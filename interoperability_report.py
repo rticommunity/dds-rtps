@@ -862,6 +862,13 @@ def main():
         'subscriber': args.subscriber,
         'verbosity' : args.verbose,
     }
+    # The executables's names are supposed to follow the pattern: name_shape_main
+    # We will keep only the part of the name that is useful, deleting the path and
+    # the substring _shape_main.
+    # Example: if the shape_main application's name (including the path) is:
+    #  ./srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux
+    # we will take the substring rti_connext_dds-6.1.1.
+    # That will be the name that will appear in the report.
     name_publisher = (options['publisher'].split('_shape')[0]).split('/')[-1]
     name_subscriber = (options['subscriber'].split('_shape')[0]).split('/')[-1]
 
