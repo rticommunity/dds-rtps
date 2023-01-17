@@ -28,7 +28,7 @@ def run_subscriber_shape_main(
         time_out: int,
         file: tempfile.TemporaryFile,
         subscriber_finished: Event,
-        publisher_finished: Event,):
+        publisher_finished: Event):
 
     """ This function runs the subscriber application with the specified parameters.
         Then it will save the return code in the variable produced_code.
@@ -253,8 +253,7 @@ def run_publisher_shape_main(
         time_out: int,
         file: tempfile.TemporaryFile,
         subscriber_finished: Event,
-        publisher_finished: Event
-):
+        publisher_finished: Event):
 
     """ This function runs the publisher application with the specified parameters.
         Then it will save the return code in the variable produced_code.
