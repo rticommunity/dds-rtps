@@ -10,7 +10,7 @@ from datetime import datetime
 import tempfile
 from os.path import exists
 
-from utilities import ReturnCode
+from rtps_test_utilities import ReturnCode
 from test_suite import rtps_test_suite_1
 
 def log_message(message, verbosity):
@@ -61,9 +61,9 @@ def run_subscriber_shape_main(
             * The Data Reader detects the Data Writer as alive
             * The Data Reader receives data
 
-        If the Shape Application achieves one step, it will print a specific
+        If the Shape Application passes one step, it prints a specific
         string pattern. This function matches that pattern and and waits
-        for the next input string from the ShapeApplication. If the
+        for the next input string from the Shape Application. If the
         ShapeApplication stops at some step, it prints an error message.
         When this function matches an error string (or doesn't match
         an expected pattern in the specified timeout),
@@ -287,9 +287,9 @@ def run_publisher_shape_main(
             * The Data Writer matches with a Data Reader
             * The Data Writer sends data
 
-        If the Shape Application achieves one step, it will print a specific
+        If the Shape Application passes one step, it prints a specific
         string pattern. This function matches that pattern and and waits
-        for the next input string from the ShapeApplication. If the
+        for the next input string from the Shape Application. If the
         ShapeApplication stops at some step, it prints an error message.
         When this function matches an error string (or doesn't match
         an expected pattern in the specified timeout),

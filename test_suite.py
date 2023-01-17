@@ -1,4 +1,4 @@
-from utilities import ReturnCode
+from rtps_test_utilities import ReturnCode
 
 # rtps_test_suite_1 is a dictionary where we define the TestSuite
 # (with its TestCases that we will test in interoperability_report.py).
