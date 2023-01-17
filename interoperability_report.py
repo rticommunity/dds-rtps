@@ -25,13 +25,14 @@ def run_subscriber_shape_main(
         produced_code_index: int,
         samples_sent: Queue,
         verbosity: bool,
-        time_out: int,
+        timeout: int,
         file: tempfile.TemporaryFile,
         subscriber_finished: Event,
         publisher_finished: Event):
 
-    """ This function runs the subscriber application with the specified parameters.
-        Then it will save the return code in the variable produced_code.
+    """ This function runs the subscriber application with
+        the specified parameters. Then it saves the
+        return code in the variable produced_code.
 
         name_executable <<in>>: name of the shape_main application to run
                 as a Subscriber
@@ -39,17 +40,17 @@ def run_subscriber_shape_main(
         test_name <<in>>: name of the test that is being tested
         produced_code <<out>>: this variable will be overwritten with
                 the obtained ReturnCode
-        produced_code_index <<in>>: index of the produced_code list where the ReturnCode
-                will be saved
+        produced_code_index <<in>>: index of the produced_code list
+                where the ReturnCode is saved
         samples_sent <<in>>: this variable contains the samples
                 the Publisher sends
         verbosity <<in>>: print debug information
-        time_out <<in>>: time pexpect waits until it finds a pattern
+        timeout <<in>>: time pexpect waits until it matches a pattern
         file <<inout>>: temporal file to save shape_main application output
-        subscriber_finished <<inout>>: object event from multiprocessing that is set
-                when the subscriber is finished
-        publisher_finished <<inout>>: object event from multiprocessing that is set
-                when the publisher is finished
+        subscriber_finished <<inout>>: object event from multiprocessing
+                that is set when the subscriber is finished
+        publisher_finished <<inout>>: object event from multiprocessing
+                that is set when the publisher is finished
 
         The function runs the Shape Application as a Subscriber
         with the parameters defined.
@@ -60,13 +61,14 @@ def run_subscriber_shape_main(
             * The Data Reader detects the Data Writer as alive
             * The Data Reader receives data
 
-        If the Shape Application achieves one step, it will print an specific
-        string pattern. The function will recognize that pattern and it will
-        continue to the next step too, waiting again for the next
-        corresponding pattern to be recognized. If the Shape Application
-        stops at some step, the function will not recognized the expected pattern
-        (or it will recognized an error pattern), it will save
-        the obtained ReturnCode and it will finish too.
+        If the Shape Application achieves one step, it will print a specific
+        string pattern. This function matches that pattern and and waits
+        for the next input string from the ShapeApplication. If the
+        ShapeApplication stops at some step, it prints an error message.
+        When this function matches an error string (or doesn't match
+        an expected pattern in the specified timeout),
+        the corresponding ReturnCode is saved in
+        produced_code[produced_code_index] and the process finishes.
 
     """
     # Step 1 : run the executable
@@ -84,7 +86,7 @@ def run_subscriber_shape_main(
             'unrecognized value', # index = 3
             pexpect.EOF # index = 4
         ],
-        time_out
+        timeout
     )
 
     if index == 1 or index == 2 or index == 4:
@@ -100,7 +102,7 @@ def run_subscriber_shape_main(
                 pexpect.TIMEOUT, # index = 1
                 'failed to create content filtered topic' # index = 2
             ],
-            time_out
+            timeout
         )
 
         if index == 1:
@@ -116,7 +118,7 @@ def run_subscriber_shape_main(
                     pexpect.TIMEOUT, # index = 1
                     'on_requested_incompatible_qos()' # index = 2
                 ],
-                time_out
+                timeout
             )
 
             if index == 1:
@@ -131,7 +133,7 @@ def run_subscriber_shape_main(
                         'on_liveliness_changed()', # index = 0
                         pexpect.TIMEOUT # index = 1
                     ],
-                    time_out
+                    timeout
                 )
 
                 if index == 1:
@@ -144,7 +146,7 @@ def run_subscriber_shape_main(
                                 '\[[0-9][0-9]\]', # index = 0
                                 pexpect.TIMEOUT # index = 1
                             ],
-                            time_out
+                            timeout
                         )
 
                     if index == 1:
@@ -167,7 +169,7 @@ def run_subscriber_shape_main(
                                                 '\[[0-9][0-9]\]', # index = 0
                                                 pexpect.TIMEOUT # index = 1
                                             ],
-                                            time_out
+                                            timeout
                                 )
                         # Two Publishers and One Subscriber to test that if
                         # each one has a different color, the ownership strength
@@ -198,7 +200,7 @@ def run_subscriber_shape_main(
                                                 '\[[0-9][0-9]\]', # index = 0
                                                 pexpect.TIMEOUT # index = 1
                                             ],
-                                            time_out
+                                            timeout
                                 )
                         # Two Publishers and One Subscriber to test that
                         # the Subscriber only receives samples from
@@ -227,7 +229,7 @@ def run_subscriber_shape_main(
                                                 '\[[0-9][0-9]\]', # index = 0
                                                 pexpect.TIMEOUT # index = 1
                                             ],
-                                            time_out
+                                            timeout
                                 )
 
                             if second_received == False:
@@ -250,13 +252,14 @@ def run_publisher_shape_main(
         produced_code_index: int,
         samples_sent: Queue,
         verbosity: bool,
-        time_out: int,
+        timeout: int,
         file: tempfile.TemporaryFile,
         subscriber_finished: Event,
         publisher_finished: Event):
 
-    """ This function runs the publisher application with the specified parameters.
-        Then it will save the return code in the variable produced_code.
+    """ This function runs the publisher application with
+        the specified parameters. Then it saves the
+        return code in the variable produced_code.
 
         name_executable: <<in>> name of the shape_main application to run
                 as a Publisher
@@ -264,17 +267,17 @@ def run_publisher_shape_main(
         test_name <<in>>: name of the test that is being tested
         produced_code <<out>>: this variable will be overwritten with
                 the obtained ReturnCode
-        produced_code_index <<in>>: index of the produced_code list where the ReturnCode
-            will be saved
+        produced_code_index <<in>>: index of the produced_code list
+                where the ReturnCode is saved
         samples_sent <<out>>: this variable contains the samples
                 the Publisher sends
         verbosity <<in>>: print debug information
-        time_out <<in>>: time pexpect waits until it finds a pattern
+        timeout <<in>>: time pexpect waits until it matches a pattern
         file <<inout>>: temporal file to save shape_main application output
-        subscriber_finished <<inout>>: object event from multiprocessing that is set
-                when the subscriber is finished
-        publisher_finished <<inout>>: object event from multiprocessing that is set
-                when the publisher is finished
+        subscriber_finished <<inout>>: object event from multiprocessing
+                that is set when the subscriber is finished
+        publisher_finished <<inout>>: object event from multiprocessing
+                that is set when the publisher is finished
 
         The function runs the Shape Application as a Publisher
         with the parameters defined.
@@ -284,13 +287,14 @@ def run_publisher_shape_main(
             * The Data Writer matches with a Data Reader
             * The Data Writer sends data
 
-        If the Shape Application achieves one step, it will print an specific
-        string pattern.The function will recognize that pattern and it will
-        continue to the next step too, waiting again for the next
-        corresponding pattern to be recognized. If the Shape Application
-        stops at some step, the function will not recognized the expected pattern
-        (or it will recognized an error pattern), it will save
-        the obtained ReturnCode and it will finish too.
+        If the Shape Application achieves one step, it will print a specific
+        string pattern. This function matches that pattern and and waits
+        for the next input string from the ShapeApplication. If the
+        ShapeApplication stops at some step, it prints an error message.
+        When this function matches an error string (or doesn't match
+        an expected pattern in the specified timeout),
+        the corresponding ReturnCode is saved in
+        produced_code[produced_code_index] and the process finishes.
     """
 
     # Step 1 : run the executable
@@ -308,7 +312,7 @@ def run_publisher_shape_main(
             'unrecognized value', # index == 3
             pexpect.EOF # index == 4
         ],
-        time_out
+        timeout
     )
 
     if index == 1 or index == 2 or index == 4:
@@ -323,7 +327,7 @@ def run_publisher_shape_main(
                 'Create writer for topic', # index = 0
                 pexpect.TIMEOUT # index = 1
             ],
-            time_out
+            timeout
         )
         if index == 1:
             produced_code[produced_code_index] = ReturnCode.WRITER_NOT_CREATED
@@ -336,7 +340,7 @@ def run_publisher_shape_main(
                     pexpect.TIMEOUT, # index = 1
                     'on_offered_incompatible_qos' # index = 2
                 ],
-                time_out
+                timeout
             )
             if index == 1:
                 produced_code[produced_code_index] = ReturnCode.READER_NOT_MATCHED
@@ -351,7 +355,7 @@ def run_publisher_shape_main(
                                 '\[[0-9][0-9]\]', # index = 0
                                 pexpect.TIMEOUT # index = 1
                             ],
-                            time_out
+                            timeout
                         )
                     if index == 0:
                         produced_code[produced_code_index] = ReturnCode.OK
@@ -369,7 +373,7 @@ def run_publisher_shape_main(
                                             '\[[0-9][0-9]\]', # index = 0
                                             pexpect.TIMEOUT # index = 1
                                                 ],
-                                            time_out
+                                            timeout
                                 )
 
                     elif index == 1:
@@ -391,7 +395,7 @@ def run_test(
         expected_code_pub: ReturnCode,
         expected_code_sub: ReturnCode,
         verbosity: bool,
-        time_out: int):
+        timeout: int):
 
     """ Run the Publisher and the Subscriber and check the ReturnCode
 
@@ -407,12 +411,11 @@ def run_test(
         expected_code_sub <<in>>: ReturnCode the Subscriber would obtain
                 in a non error situation
         verbosity <<in>>: print debug information
-        time_out <<in>>: timeout for pexpect.
+        timeout <<in>>: time pexpect waits until it matches a pattern
 
-        The function runs in two different Processes
-        the Publisher and the Subscriber.
-        Then it checks that the code obtained is the one
-        we expected.
+        The function runs two different processes: one publisher
+        application and one subscriber application.
+        Then it checks that the code obtained is the expected one.
     """
     log_message(f'run_test parameters: \
                     name_executable_pub: {name_executable_pub} \
@@ -423,7 +426,7 @@ def run_test(
                     expected_code_pub: {expected_code_pub} \
                     expected_code_sub: {expected_code_sub} \
                     verbosity: {verbosity} \
-                    time_out: {time_out}',
+                    timeout: {timeout}',
                     verbosity)
 
     manager = Manager()
@@ -439,12 +442,12 @@ def run_test(
     file_publisher = tempfile.TemporaryFile(mode='w+t')
     file_subscriber = tempfile.TemporaryFile(mode='w+t')
 
-    # Manager is a share memory section where both processes can access.
+    # Manager is a shared memory section where both processes can access.
     # return_code is a list of two elements where the different processes
-    # (publisher and subscriber applications) will copy their ReturnCode.
+    # (publisher and subscriber applications) copy their ReturnCode.
     # These ReturnCodes are identified by the index within the list,
     # every index identifies one application. Therefore, only one application
-    # modifies one element of the list.
+    # must modifies one element of the list.
     # Once both processes are finished, the list contains the ReturnCode
     # in the corresponding index. This index is set manually and we need it
     # in order to use it later.
@@ -468,7 +471,7 @@ def run_test(
                         'produced_code_index':publisher_index,
                         'samples_sent':data,
                         'verbosity':verbosity,
-                        'time_out':time_out,
+                        'timeout':timeout,
                         'file':file_publisher,
                         'subscriber_finished':subscriber_finished,
                         'publisher_finished':publisher_finished
@@ -482,7 +485,7 @@ def run_test(
                         'produced_code_index':subscriber_index,
                         'samples_sent':data,
                         'verbosity':verbosity,
-                        'time_out':time_out,
+                        'timeout':timeout,
                         'file':file_subscriber,
                         'subscriber_finished':subscriber_finished,
                         'publisher_finished':publisher_finished
@@ -560,7 +563,7 @@ def run_test_pub_pub_sub(
         expected_code_pub2: ReturnCode,
         expected_code_sub: ReturnCode,
         verbosity: bool,
-        time_out: int):
+        timeout: int):
 
     """ Run two Publisher and one Subscriber and check the ReturnCode
 
@@ -570,7 +573,7 @@ def run_test_pub_pub_sub(
                 as a Subscriber
         test_case <<inout>>: testCase object to test
         param_pub1 <<in>>: shape_main application publisher 1 parameter list
-        param_pub2 <<in>>: shape_main application publisher 1 parameter list
+        param_pub2 <<in>>: shape_main application publisher 2 parameter list
         param_sub <<in>>: shape_main application subscriber parameter list
         expected_code_pub1 <<in>>: ReturnCode the Publisher 1 would obtain
                 in a non error situation
@@ -579,12 +582,11 @@ def run_test_pub_pub_sub(
         expected_code_sub <<in>>: ReturnCode the Subscriber would obtain
                 in a non error situation
         verbosity <<in>>: print debug information
-        time_out <<in>>: timeout for pexpect.
+        timeout <<in>>: time pexpect waits until it matches a pattern
 
-        The function runs in three different Processes
-        the first Publisher, the second Publisher and the Subscriber.
-        Then it checks that the code obtained is the one
-        we expected.
+        This function runs three different processes: two publisher
+        applications and one subscriber application.
+        Then it checks that the code obtained is the expected one.
     """
     log_message(f'run_test parameters: \
                     name_executable_pub: {name_executable_pub} \
@@ -597,7 +599,7 @@ def run_test_pub_pub_sub(
                     expected_code_pub2: {expected_code_pub2} \
                     expected_code_sub: {expected_code_sub} \
                     verbosity: {verbosity} \
-                    time_out: {time_out}',
+                    timeout: {timeout}',
                     verbosity)
 
     manager = Manager()
@@ -614,12 +616,12 @@ def run_test_pub_pub_sub(
     file_publisher1 = tempfile.TemporaryFile(mode='w+t')
     file_publisher2 = tempfile.TemporaryFile(mode='w+t')
 
-    # Manager is a share memory section where the three processes can access.
+    # Manager is a shared memory section where the three processes can access.
     # return_code is a list of three elements where the different processes
-    # (publisher 1, publisher 2 and subscriber applications) will copy their ReturnCode.
+    # (publisher 1, publisher 2 and subscriber applications) copy their ReturnCode.
     # These ReturnCodes are identified by the index within the list,
     # every index identifies one application. Therefore, only one application
-    # modifies one element of the list.
+    # must modifies one element of the list.
     # Once both processes are finished, the list contains the ReturnCode
     # in the corresponding index. This index is set manually and we need it
     # in order to use it later.
@@ -646,7 +648,7 @@ def run_test_pub_pub_sub(
                             'produced_code_index':publisher1_index,
                             'samples_sent':data,
                             'verbosity':verbosity,
-                            'time_out':time_out,
+                            'timeout':timeout,
                             'file':file_publisher1,
                             'subscriber_finished':subscriber_finished,
                             'publisher_finished':publisher_finished
@@ -660,7 +662,7 @@ def run_test_pub_pub_sub(
                             'produced_code_index':publisher2_index,
                             'samples_sent':data,
                             'verbosity':verbosity,
-                            'time_out':time_out,
+                            'timeout':timeout,
                             'file':file_publisher2,
                             'subscriber_finished':subscriber_finished,
                             'publisher_finished':publisher_finished
@@ -674,7 +676,7 @@ def run_test_pub_pub_sub(
                             'produced_code_index':subscriber_index,
                             'samples_sent':data,
                             'verbosity':verbosity,
-                            'time_out':time_out,
+                            'timeout':timeout,
                             'file':file_subscriber,
                             'subscriber_finished':subscriber_finished,
                             'publisher_finished':publisher_finished
@@ -690,7 +692,7 @@ def run_test_pub_pub_sub(
                             'produced_code_index':publisher1_index,
                             'samples_sent':Queue(),
                             'verbosity':verbosity,
-                            'time_out':time_out,
+                            'timeout':timeout,
                             'file':file_publisher1,
                             'subscriber_finished':subscriber_finished,
                             'publisher_finished':publisher_finished
@@ -704,7 +706,7 @@ def run_test_pub_pub_sub(
                             'produced_code_index':publisher2_index,
                             'samples_sent':data,
                             'verbosity':verbosity,
-                            'time_out':time_out,
+                            'timeout':timeout,
                             'file':file_publisher2,
                             'subscriber_finished':subscriber_finished,
                             'publisher_finished':publisher_finished
@@ -718,7 +720,7 @@ def run_test_pub_pub_sub(
                             'produced_code_index':subscriber_index,
                             'samples_sent':data,
                             'verbosity':verbosity,
-                            'time_out':time_out,
+                            'timeout':timeout,
                             'file':file_subscriber,
                             'subscriber_finished':subscriber_finished,
                             'publisher_finished':publisher_finished
@@ -918,7 +920,7 @@ def main():
                                  expected_code_pub2=v[4],
                                  expected_code_sub=v[5],
                                  verbosity=options['verbosity'],
-                                 time_out=timeout
+                                 timeout=timeout
             )
 
         else:
@@ -930,7 +932,7 @@ def main():
                      expected_code_pub=v[2],
                      expected_code_sub=v[3],
                      verbosity=options['verbosity'],
-                     time_out=timeout
+                     timeout=timeout
             )
         case.time = (datetime.now() - now_test_case).total_seconds()
         suite.add_testcase(case)

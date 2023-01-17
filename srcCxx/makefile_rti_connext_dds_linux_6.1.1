@@ -45,7 +45,7 @@ LINKER_FLAGS += -g
 LIBS = -L$(NDDSHOME)/lib/$(TARGET_ARCH) \
         -lnddscppzd -lnddsczd -lnddscorezd $(SYSLIBS)
 else
-# This option strip the executable symbols
+# This option strips the executable symbols
 LINKER_FLAGS += -s
 LIBS = -L$(NDDSHOME)/lib/$(TARGET_ARCH) \
         -lnddscppz -lnddscz -lnddscorez $(SYSLIBS)
