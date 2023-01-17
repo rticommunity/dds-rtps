@@ -891,6 +891,9 @@ def main():
         else:
             xml = JUnitXml()
 
+    # TestSuite is a class from junitparser that will contain the
+    # results of running different TestCases between two shape_main
+    # applications. A TestSuite contains a collection of TestCases.
     suite = TestSuite(f"{name_publisher}---{name_subscriber}")
     TestCase.param_pub = Attr('Parameters_Publisher')
     TestCase.param_sub = Attr('Parameters_Subscriber')
@@ -903,8 +906,7 @@ def main():
         # TestCase is an class from junitparser whose attributes
         # are: name and result (OK, Failure, Error and Skipped),
         # apart from other custom attributes (in this case param_pub,
-        # param_sub, param_pub1 and param_pub2). Each object TestSuite
-        # contains objects TestCase.
+        # param_sub, param_pub1 and param_pub2).
         case = TestCase(f'{k}')
         now_test_case = datetime.now()
         if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
