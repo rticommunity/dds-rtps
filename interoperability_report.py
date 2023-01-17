@@ -516,9 +516,9 @@ def run_test(
                 Code found: {return_code[publisher_index].name}')
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {return_code[subscriber_index].name}')
-        log_message(f'\nInformation about the Publisher:\n\
+        log_message(f'\nInformation about the Publisher:\n \
                       {information_publisher} \
-                      \nInformation about the Subscriber:\n\
+                      \nInformation about the Subscriber:\n \
                       {information_subscriber}', verbosity)
 
         additional_info_pub = information_publisher.replace('\n', '<br>')
@@ -541,7 +541,7 @@ def run_test(
                                     </tr> \
                                 </table> \
                                <strong> Information Publisher: </strong> \
-                                 <br> {additional_info_pub} <br>\
+                                 <br> {additional_info_pub} <br> \
                                <strong> Information Subscriber: </strong> \
                                  <br> {additional_info_sub}')]
 
@@ -764,11 +764,11 @@ def run_test_pub_pub_sub(
                 Code found: {code[publisher2_index].name}')
         print(f'Subscriber expected code: {expected_code_sub}; \
                 Code found: {code[subscriber_index].name}')
-        log_message(f'\nInformation about the Publisher 1:\n\
+        log_message(f'\nInformation about the Publisher 1:\n \
                       {information_publisher1} \
-                      \nInformation about the Publisher 2:\n\
+                      \nInformation about the Publisher 2:\n \
                       {information_publisher2} \
-                      \nInformation about the Subscriber:\n\
+                      \nInformation about the Subscriber:\n \
                       {information_subscriber}', verbosity)
 
         additional_info_pub1 = information_publisher1.replace('\n', '<br>')
@@ -798,9 +798,9 @@ def run_test_pub_pub_sub(
                                     </tr> \
                                 </table> \
                                <strong> Information Publisher 1: </strong> \
-                                 <br> {additional_info_pub1} <br>\
+                                 <br> {additional_info_pub1} <br> \
                                <strong> Information Publisher 2: </strong> \
-                                 <br> {additional_info_pub2} <br>\
+                                 <br> {additional_info_pub2} <br> \
                                <strong> Information Subscriber: </strong> \
                                  <br> {additional_info_sub}')]
 
@@ -829,7 +829,6 @@ class Arguments:
             help='Subscriber Shape Application')
 
         optional = parser.add_argument_group(title='optional parameters')
-
         optional.add_argument('-v','--verbose',
             default=False,
             required=False,
@@ -837,7 +836,6 @@ class Arguments:
             help='Print more information to stdout.')
 
         out_opts = parser.add_argument_group(title='output options')
-
         out_opts.add_argument('-f', '--output-format',
             default='junit',
             required=False,
@@ -860,7 +858,7 @@ def main():
     options = {
         'publisher': args.publisher,
         'subscriber': args.subscriber,
-        'verbosity' : args.verbose,
+        'verbosity': args.verbose,
     }
     # The executables's names are supposed to follow the pattern: name_shape_main
     # We will keep only the part of the name that is useful, deleting the path and
@@ -909,7 +907,7 @@ def main():
         # param_sub, param_pub1 and param_pub2).
         case = TestCase(f'{k}')
         now_test_case = datetime.now()
-        if k ==  'Test_Ownership_3' or k == 'Test_Ownership_4':
+        if k == 'Test_Ownership_3' or k == 'Test_Ownership_4':
             run_test_pub_pub_sub(name_executable_pub=options['publisher'],
                                  name_executable_sub=options['subscriber'],
                                  test_case=case,
