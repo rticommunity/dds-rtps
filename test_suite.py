@@ -1,7 +1,26 @@
 from utilities import ReturnCode
  
-# definir el diccionario
-# cambiar el nombre de lfichero
+# rtps_test_suite_1 is a dictionary where we define the TestSuite (with its TestCases that we will test in interoperability_report.py).
+# The dictionary has the following structure:
+#       'name' : [parameters_publisher, parameters_subscriber, expected_return_code_publisher, expected_return_code_subscriber]
+# where:
+#       name is the TestCase's name (defined by us)
+#       parameters_publisher are the parameters we will run with the shape_main publisher application
+#       parameters_subscriber are the parameters we will run with the shape_main subscriber application
+#       expected_return_code_publisher is the ReturnCode the publisher is expected to produce in a non error situation
+#       expected_return_code_subscriber is the ReturnCode the subscriber is expected to produce in a non error situation
+#
+# There are also two testCases that contains more parameters: Test_Ownership_3 and Test_Ownership_4.
+# That is because in these two cases two publishers are run (and one subscriber).
+# The parameters in this case are:
+#       name is the TestCase's name (defined by us)
+#       parameters_publisher1 are the parameters we will run with the shape_main publisher 1 application
+#       parameters_publisher2 are the parameters we will run with the shape_main publisher 2 application
+#       parameters_subscriber are the parameters we will run with the shape_main subscriber application
+#       expected_return_code_publisher1 is the ReturnCode the publisher 1 is expected to produce in a non error situation
+#       expected_return_code_publisher2 is the ReturnCode the publisher 2 is expected to produce in a non error situation
+#       expected_return_code_subscriber is the ReturnCode the subscriber is expected to produce in a non error situation
+
 rtps_test_suite_1 = {
     # DATA REPRESENTATION
     'Test_DataRepresentation_0' : ['-P -t Square -x 1', '-S -t Square -x 1', ReturnCode.OK, ReturnCode.OK],

@@ -11,13 +11,11 @@ import tempfile
 from os.path import exists
 
 from utilities import ReturnCode
-from testSuite import rtps_test_suite_1
+from test_suite import rtps_test_suite_1
 
 def log_message(message, verbosity):
     if verbosity:
         print(message)
-
-# TODO add info in comments about if they are in or out
 
 def run_subscriber_shape_main(
         name_executable: str,
@@ -33,7 +31,7 @@ def run_subscriber_shape_main(
         publisher_finished: Event,):
 
     """ This function runs the subscriber application with the specified parameters.
-        Then it will save the error code in the variable produced_code.
+        Then it will save the return code in the variable produced_code.
 
         name_executable <<in>>: name of the shape_main application to run
                 as a Subscriber
@@ -42,12 +40,12 @@ def run_subscriber_shape_main(
         produced_code <<out>>: this variable will be overwritten with
                 the obtained ReturnCode
         produced_code_index <<in>>: index of the produced_code list where the ReturnCode
-            will be saved
+                will be saved
         samples_sent <<in>>: this variable contains the samples
                 the Publisher sends
         verbosity <<in>>: print debug information
         time_out <<in>>: time pexpect waits until it finds a pattern
-        file <<inout>>: temporal file to save Shape Application output
+        file <<inout>>: temporal file to save shape_main application output
         subscriber_finished <<inout>>: object event from multiprocessing that is set
                 when the subscriber is finished
         publisher_finished <<inout>>: object event from multiprocessing that is set
@@ -64,7 +62,7 @@ def run_subscriber_shape_main(
 
         If the Shape Application achieves one step, it will print an specific
         string pattern. The function will recognize that pattern and it will
-        continue also to the next step, waiting again for the next
+        continue to the next step too, waiting again for the next
         corresponding pattern to be recognized. If the Shape Application
         stops at some step, the function will not recognized the expected pattern
         (or it will recognized an error pattern), it will save
@@ -166,8 +164,8 @@ def run_subscriber_shape_main(
                                             verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]', # index = 0
-                                            pexpect.TIMEOUT # index = 1
+                                                '\[[0-9][0-9]\]', # index = 0
+                                                pexpect.TIMEOUT # index = 1
                                             ],
                                             time_out
                                 )
@@ -197,8 +195,8 @@ def run_subscriber_shape_main(
                                             verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]', # index = 0
-                                            pexpect.TIMEOUT # index = 1
+                                                '\[[0-9][0-9]\]', # index = 0
+                                                pexpect.TIMEOUT # index = 1
                                             ],
                                             time_out
                                 )
@@ -212,7 +210,6 @@ def run_subscriber_shape_main(
                             for x in range(0,80,1):
                                 sub_string = re.search('[0-9]{3} [0-9]{3}',
                                                         child_sub.before)
-
                                 try:
                                     list_data_received_second.append(samples_sent.get(True, 5))
                                 except:
@@ -220,15 +217,15 @@ def run_subscriber_shape_main(
                                 if sub_string.group(0) not in list_data_received_second:
                                     first_received = True
                                 elif sub_string.group(0) in list_data_received_second \
-                                    and first_received:
+                                            and first_received:
                                     second_received = True
                                     produced_code[produced_code_index] = ReturnCode.RECEIVING_FROM_BOTH
                                 log_message('S: Waiting for receiving samples',
                                             verbosity)
                                 child_sub.expect(
                                             [
-                                            '\[[0-9][0-9]\]', # index = 0
-                                            pexpect.TIMEOUT # index = 1
+                                                '\[[0-9][0-9]\]', # index = 0
+                                                pexpect.TIMEOUT # index = 1
                                             ],
                                             time_out
                                 )
@@ -260,9 +257,9 @@ def run_publisher_shape_main(
 ):
 
     """ This function runs the publisher application with the specified parameters.
-        Then it will save the error code in the variable produced_code.
+        Then it will save the return code in the variable produced_code.
 
-        name_executable: <<in>> name of the ShapeApplication to run
+        name_executable: <<in>> name of the shape_main application to run
                 as a Publisher
         parameters <<in>>: shape_main application parameter list
         test_name <<in>>: name of the test that is being tested
@@ -274,7 +271,7 @@ def run_publisher_shape_main(
                 the Publisher sends
         verbosity <<in>>: print debug information
         time_out <<in>>: time pexpect waits until it finds a pattern
-        file <<inout>>: temporal file to save Shape Application output
+        file <<inout>>: temporal file to save shape_main application output
         subscriber_finished <<inout>>: object event from multiprocessing that is set
                 when the subscriber is finished
         publisher_finished <<inout>>: object event from multiprocessing that is set
@@ -290,7 +287,7 @@ def run_publisher_shape_main(
 
         If the Shape Application achieves one step, it will print an specific
         string pattern.The function will recognize that pattern and it will
-        continue also to the next step, waiting again for the next
+        continue to the next step too, waiting again for the next
         corresponding pattern to be recognized. If the Shape Application
         stops at some step, the function will not recognized the expected pattern
         (or it will recognized an error pattern), it will save
@@ -386,7 +383,6 @@ def run_publisher_shape_main(
     publisher_finished.set()   # set publisher as finished
     return
 
-# TODO change name pub
 def run_test(
         name_executable_pub: str,
         name_executable_sub: str,
@@ -400,9 +396,9 @@ def run_test(
 
     """ Run the Publisher and the Subscriber and check the ReturnCode
 
-        name_executable_pub <<in>>: name of the Shape Application to run
+        name_executable_pub <<in>>: name of the shape_main application to run
                 as a Publisher
-        name_executable_sub <<in>>: name of the Shape Application to run
+        name_executable_sub <<in>>: name of the shape_main application to run
                 as a Subscriber
         test_case <<inout>>: testCase object to test
         param_pub <<in>>: shape_main application publisher parameter list
@@ -463,7 +459,6 @@ def run_test(
     publisher_index = 1
     subscriber_index = 0
 
-    # TODO parameters in the right order and name
     log_message('Assigning tasks to processes', verbosity)
     pub = Process(target=run_publisher_shape_main,
                     kwargs={
@@ -483,7 +478,7 @@ def run_test(
                     kwargs={
                         'name_executable':name_executable_sub,
                         'parameters':param_sub,
-                        'test_case':test_case.name,
+                        'test_name':test_case.name,
                         'produced_code':return_code,
                         'produced_code_index':subscriber_index,
                         'samples_sent':data,
@@ -527,7 +522,6 @@ def run_test(
                       \nInformation about the Subscriber:\n\
                       {information_subscriber}', verbosity)
 
-        # TODO CHECK TH
         additional_info_pub = information_publisher.replace('\n', '<br>')
         additional_info_sub = information_subscriber.replace('\n', '<br>')
         test_case.result = [Failure(f'<table> \
@@ -571,9 +565,9 @@ def run_test_pub_pub_sub(
 
     """ Run two Publisher and one Subscriber and check the ReturnCode
 
-        name_executable_pub <<in>>: name of the Shape Application to run
+        name_executable_pub <<in>>: name of the shape_main application to run
                 as a Publisher
-        name_executable_sub <<in>>: name of the Shape Application to run
+        name_executable_sub <<in>>: name of the shape_main application to run
                 as a Subscriber
         test_case <<inout>>: testCase object to test
         param_pub1 <<in>>: shape_main application publisher 1 parameter list
@@ -621,8 +615,6 @@ def run_test_pub_pub_sub(
     file_publisher1 = tempfile.TemporaryFile(mode='w+t')
     file_publisher2 = tempfile.TemporaryFile(mode='w+t')
 
-    # TODO add comments
-    # TODO parameters in the right order
     # Manager is a share memory section where the three processes can access.
     # return_code is a list of three elements where the different processes
     # (publisher 1, publisher 2 and subscriber applications) will copy their ReturnCode.
@@ -758,6 +750,9 @@ def run_test_pub_pub_sub(
     test_case.param_pub2 = param_pub2
     test_case.param_sub = param_sub
 
+    # code[1] contains shape_main publisher 1 application ReturnCode,
+    # code[2] the shape_main publisher 2 application ReturnCode
+    # and code[0] the shape_main subscriber application ReturnCode.
     if expected_code_pub1 ==  code[publisher1_index] and expected_code_sub == code[subscriber_index] \
         and expected_code_pub2 == code[publisher2_index]:
         print (f'{test_case.name} : Ok')
