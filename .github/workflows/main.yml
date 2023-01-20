@@ -21,9 +21,9 @@ jobs:
           pip install -r requirements.txt
           cd executables
           for i in ./* ; \
-          do for j in ./*; \
-          do python3 ./../interoperability_report.py -P $i -S $j -o=./../junit_interoperability_report.xml; \
-          done; \
+            do for j in ./*; \
+              do python3 ./../interoperability_report.py -P $i -S $j -o=./../junit_interoperability_report.xml; \
+            done; \
           done
       - name: XUnit Viewer
         id: xunit-viewer
