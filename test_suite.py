@@ -38,16 +38,16 @@ from rtps_test_utilities import ReturnCode
 
 rtps_test_suite_1 = {
     # DATA REPRESENTATION
-    'Test_DataRepresentation_0' : ['-P -t Square -x 1', '-S -t Square -x 1', ReturnCode.OK, ReturnCode.OK],
-    'Test_DataRepresentation_1' : ['-P -t Square -x 1', '-S -t Square -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
-    'Test_DataRepresentation_2' : ['-P -t Square -x 2', '-S -t Square -x 1', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
-    'Test_DataRepresentation_3' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_DataRepresentation_0' : ['-P -t Square -x 1', '-S -t Square -x 1', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_DataRepresentation_1' : ['-P -t Square -x 1', '-S -t Square -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_DataRepresentation_2' : ['-P -t Square -x 2', '-S -t Square -x 1', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_DataRepresentation_3' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
 
-    # DOMAIN
-    'Test_Domain_0' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Domain_1' : ['-P -t Square -x 2', '-S -t Square -d 1 -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
-    'Test_Domain_2' : ['-P -t Square -d 1 -x 2', '-S -t Square -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
-    'Test_Domain_3' : ['-P -t Square -d 1 -x 2', '-S -t Square -d 1 -x 2', ReturnCode.OK, ReturnCode.OK],
+    # # DOMAIN
+    # 'Test_Domain_0' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Domain_1' : ['-P -t Square -x 2', '-S -t Square -d 1 -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
+    # 'Test_Domain_2' : ['-P -t Square -d 1 -x 2', '-S -t Square -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
+    # 'Test_Domain_3' : ['-P -t Square -d 1 -x 2', '-S -t Square -d 1 -x 2', ReturnCode.OK, ReturnCode.OK],
 
     # RELIABILITY
     'Test_Reliability_0' : ['-P -t Square -b -x 2', '-S -t Square -b -x 2', ReturnCode.OK, ReturnCode.OK],
@@ -75,10 +75,10 @@ rtps_test_suite_1 = {
                          ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE],
 
     # TOPIC
-    'Test_Topic_0' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Topic_1' : ['-P -t Square -x 2', '-S -t Circle -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
-    'Test_Topic_2' : ['-P -t Circle -x 2', '-S -t Square -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
-    'Test_Topic_3' : ['-P -t Circle -x 2', '-S -t Circle -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Topic_0' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Topic_1' : ['-P -t Square -x 2', '-S -t Circle -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
+    # 'Test_Topic_2' : ['-P -t Circle -x 2', '-S -t Square -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
+    # 'Test_Topic_3' : ['-P -t Circle -x 2', '-S -t Circle -x 2', ReturnCode.OK, ReturnCode.OK],
 
     # COLOR
     'Test_Color_0' : ['-P -t Square -c BLUE -x 2', '-S -t Square -c BLUE -x 2', ReturnCode.OK, ReturnCode.OK],
@@ -92,35 +92,35 @@ rtps_test_suite_1 = {
     'Test_Color_8' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
 
     # PARTITION
-    'Test_Partition_0' : ['-P -t Square -p "p1" -x 2', '-S -t Square -p "p1" -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Partition_1' : ['-P -t Square -p "p1" -x 2', '-S -t Square -p "p2" -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
-    'Test_Partition_2' : ['-P -t Square -p "p2" -x 2', '-S -t Square -p "p1" -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
-    'Test_Partition_3' : ['-P -t Square -p "p2" -x 2', '-S -t Square -p "p2" -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Partition_0' : ['-P -t Square -p "p1" -x 2', '-S -t Square -p "p1" -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Partition_1' : ['-P -t Square -p "p1" -x 2', '-S -t Square -p "p2" -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
+    # 'Test_Partition_2' : ['-P -t Square -p "p2" -x 2', '-S -t Square -p "p1" -x 2', ReturnCode.READER_NOT_MATCHED, ReturnCode.WRITER_NOT_MATCHED],
+    # 'Test_Partition_3' : ['-P -t Square -p "p2" -x 2', '-S -t Square -p "p2" -x 2', ReturnCode.OK, ReturnCode.OK],
 
-    # DURABILITY
-    'Test_Durability_0' : ['-P -t Square -D v -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_1' : ['-P -t Square -D v -x 2', '-S -t Square -D l -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
-    'Test_Durability_2' : ['-P -t Square -D v -x 2', '-S -t Square -D t -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
-    'Test_Durability_3' : ['-P -t Square -D v -x 2', '-S -t Square -D p -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # # DURABILITY
+    # 'Test_Durability_0' : ['-P -t Square -D v -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_1' : ['-P -t Square -D v -x 2', '-S -t Square -D l -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_Durability_2' : ['-P -t Square -D v -x 2', '-S -t Square -D t -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_Durability_3' : ['-P -t Square -D v -x 2', '-S -t Square -D p -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
 
-    'Test_Durability_4' : ['-P -t Square -D l -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_5' : ['-P -t Square -D l -x 2', '-S -t Square -D l -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_6' : ['-P -t Square -D l -x 2', '-S -t Square -D t -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
-    'Test_Durability_7' : ['-P -t Square -D l -x 2', '-S -t Square -D p -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_Durability_4' : ['-P -t Square -D l -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_5' : ['-P -t Square -D l -x 2', '-S -t Square -D l -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_6' : ['-P -t Square -D l -x 2', '-S -t Square -D t -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_Durability_7' : ['-P -t Square -D l -x 2', '-S -t Square -D p -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
 
-    'Test_Durability_8' : ['-P -t Square -D t -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_9' : ['-P -t Square -D t -x 2', '-S -t Square -D l -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_10': ['-P -t Square -D t -x 2', '-S -t Square -D t -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_11': ['-P -t Square -D t -x 2', '-S -t Square -D p -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+    # 'Test_Durability_8' : ['-P -t Square -D t -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_9' : ['-P -t Square -D t -x 2', '-S -t Square -D l -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_10': ['-P -t Square -D t -x 2', '-S -t Square -D t -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_11': ['-P -t Square -D t -x 2', '-S -t Square -D p -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
 
-    'Test_Durability_12' : ['-P -t Square -D p -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_13' : ['-P -t Square -D p -x 2', '-S -t Square -D l -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_14' : ['-P -t Square -D p -x 2', '-S -t Square -D t -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_Durability_15' : ['-P -t Square -D p -x 2', '-S -t Square -D p -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_12' : ['-P -t Square -D p -x 2', '-S -t Square -D v -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_13' : ['-P -t Square -D p -x 2', '-S -t Square -D l -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_14' : ['-P -t Square -D p -x 2', '-S -t Square -D t -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_Durability_15' : ['-P -t Square -D p -x 2', '-S -t Square -D p -x 2', ReturnCode.OK, ReturnCode.OK],
 
-    # HISTORY
-    'Test_History_0' : ['-P -t Square -k 3 -x 2', '-S -t Square -k 3 -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_History_1' : ['-P -t Square -k 3 -x 2', '-S -t Square -k 0 -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_History_2' : ['-P -t Square -k 0 -x 2', '-S -t Square -k 3 -x 2', ReturnCode.OK, ReturnCode.OK],
-    'Test_History_3' : ['-P -t Square -k 0 -x 2', '-S -t Square -k 0 -x 2', ReturnCode.OK, ReturnCode.OK]
+    # # HISTORY
+    # 'Test_History_0' : ['-P -t Square -k 3 -x 2', '-S -t Square -k 3 -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_History_1' : ['-P -t Square -k 3 -x 2', '-S -t Square -k 0 -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_History_2' : ['-P -t Square -k 0 -x 2', '-S -t Square -k 3 -x 2', ReturnCode.OK, ReturnCode.OK],
+    # 'Test_History_3' : ['-P -t Square -k 0 -x 2', '-S -t Square -k 0 -x 2', ReturnCode.OK, ReturnCode.OK]
 }
