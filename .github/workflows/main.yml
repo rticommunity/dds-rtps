@@ -13,7 +13,9 @@ jobs:
           latest: true
           fileName: "*"
       - name: Unzip
-        run: tar -xvf *.zip -d executables
+        uses: montudor/action-zip@v1
+        with:
+          args: unzip -qq *.zip -d executables
       - name: Run Interoperability script
         run: |
           python3 -m venv .venv
