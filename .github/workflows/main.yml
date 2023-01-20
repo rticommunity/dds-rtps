@@ -13,7 +13,7 @@ jobs:
           latest: true
           fileName: "*"
       - name: Unzip
-        run: tar -xvf *.zip -C executables
+        run: unzip '*.zip' -d executables
       - name: Run Interoperability script
         run: |
           python3 -m venv .venv
