@@ -40,7 +40,7 @@ You can run the script either automatically or manually.
 
     * 1.5. [Where can I find the last report?](#lastreport)
 
-* 2\. [Run the Tests manually](#manually)
+* 2\. [Run the tests manually](#manually)
 
     * 2.1. [Options of interoperability_report](#options)
 
