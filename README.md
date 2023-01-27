@@ -14,47 +14,49 @@ Once the script finishes, it generates a report with the result
 of the interoperability tests between both executables.
 
 ## Table of contents
-1. [Run the tests automatically](#automatically)
 
-  1.1. [Create a release](#release)
+* 1.[Run the tests automatically](#automatically)
 
-      1.1.1. [When to create a release](#whenrelease)
+    * 1.1. [Create a release](#release)
 
-      1.1.2. [Release and tag name](#releasename)
+      * 1.1.1. [When to create a release](#whenrelease)
 
-      1.1.3. [Process of creating the release](#createrelease)
+      * 1.1.2. [Release and tag name](#releasename)
 
-  1.2. [Process of uploading the executable](#executable)
+      * 1.1.3. [Process of creating the release](#createrelease)
 
-  1.3. [Process of generating the report](#generatereport)
+    * 1.2. [Process of uploading the executable](#executable)
 
-      1.3.1. [How to delete a report](#deletereport)
+    * 1.3. [Process of generating the report](#generatereport)
 
-      1.3.2. [Report](#report)
+      * 1.3.1. [How to delete a report](#deletereport)
 
-  1.4. [Reporting failures](#failures)
+      * 1.3.2. [Report](#report)
 
-      1.4.1. [How to create a label](#createlabel)
+    * 1.4. [Reporting failures](#failures)
 
-  1.5. [Where can I find the last report?](#lastreport)
+      * 1.4.1. [How to create a label](#createlabel)
 
-2. [Run the Tests manually](#manually)
+    * 1.5. [Where can I find the last report?](#lastreport)
 
-  2.1. [Options of interoperability_report](#options)
+* 2.[Run the Tests manually](#manually)
 
-    2.1.1. [Example of use interoperability_report](#example)
+    * 2.1. [Options of interoperability_report](#options)
 
-  2.2. [Requirements] (#requirements)
+      * 2.1.1. [Example of use interoperability_report](#example)
 
-  2.3. [Using virtual environments](#virtual)
 
-    2.3.1. [Create virtual environment](#createvirtual)
+    * 2.2. [Requirements](#requirements)
 
-    2.3.2. [Activate virtual environment](#activatevirtual)
+    * 2.3. [Using virtual environments](#virtual)
 
-    2.3.3. [Install requirements](#installvirtual)
+    * 2.3.1. [Create virtual environment](#createvirtual)
 
-3. [How to make changes in the repository](#changes)
+    * 2.3.2. [Activate virtual environment](#activatevirtual)
+
+    * 2.3.3. [Install requirements](#installvirtual)
+
+* 3.[How to make changes in the repository](#changes)
 
 # **Run the tests automatically** <a name="automatically"></a>
 To run the tests automatically we need to upload the executables of the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#executable).
