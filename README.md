@@ -331,7 +331,7 @@ used, the date and the time in which it was generated. For example:
 `<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
 
 > **Note**: to visualize the report in a more friendly-human way you can use `junit-viewer`.
-> `junit-viewer --results=<xml_file> --save=<report_name>
+> `junit-viewer --results=<xml_file> --save=<report_name>`
 ## **Requirements** <a name="requirements"></a>
 
 - Python 3.8+
