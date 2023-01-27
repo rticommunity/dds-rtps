@@ -13,6 +13,7 @@ The tests that the script runs must be defined previously (for example
 Once the script finishes, it generates a report with the result
 of the interoperability tests between both executables.
 
+You can run the script either automatically or manually.
 ## Table of contents
 
 * 1\. [Run the tests automatically](#automatically)
@@ -327,7 +328,8 @@ $ python3 interoperability_report.py -P <path_to_publisher_executable> -S <path_
 ```
 
 This generates a report file in JUnit (xml) with the name of both executables
-used, the date and the time in which it was generated. For example:
+used, the date and the time in which it was generated. \
+For example:
 `<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
 
 > **Note**: to visualize the report in a more friendly-human way you can use `junit-viewer`. \
