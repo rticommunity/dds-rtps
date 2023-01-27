@@ -15,6 +15,7 @@ of the interoperability tests between both executables.
 
 ## Table of contents
 1. [Run the tests automatically](#automatically)
+
   1.1. [Create a release](#release)
 
       1.1.1. [When to create a release](#whenrelease)
