@@ -107,8 +107,10 @@ Here it is explained how to create the release with the graphic interface.
 
 > **Note**: to do it with the command line see `gh release` \
 > You should also create the tag first. In order to do it: \
-> `git checkout master` \
-> `git tag <tag_name>`
+> ~~~
+> git checkout master
+> git tag <tag_name>
+> ~~~
 
 
 The name of the release and the tag should be as explained in [Release and tag name](#releasename).
