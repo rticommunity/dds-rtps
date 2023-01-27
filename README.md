@@ -59,7 +59,7 @@ of the interoperability tests between both executables.
 * 3\. [How to make changes in the repository](#changes)
 
 # **Run the tests automatically** <a name="automatically"></a>
-To run the tests automatically we need to upload the executables of the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#executable).
+To run the tests automatically we need to upload the executables generated with the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#executable).
 
 To manage the upload of the executables in a long period of time we will organize them into releases. This process is explained in [Create a release](#release).
 
@@ -83,7 +83,7 @@ Every time we create a new release we need to select which executables we want t
 
 ### **Release and tag name**<a name="releasename"></a>
 
-The name of the release and the tag associated with it will be the same. It should follow the next rule:
+The name of the release and the tag associated with it will be the same. It should follow the next rule: \
 `vx.y.z`
 * x: major version
 * y: minor version
