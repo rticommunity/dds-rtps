@@ -106,7 +106,7 @@ It is important that we set the release that we are creating as the latest relea
 Here it is explained how to create the release with the graphic interface.
 
 > **Note**: to do it with the command line see `gh release` \
-> You should also create the tag first. In order to do it: \
+> You should also create the tag first. In order to do it:
 > ~~~
 > git checkout master
 > git tag <tag_name>
@@ -330,7 +330,8 @@ This generates a report file in JUnit (xml) with the name of both executables
 used, the date and the time in which it was generated. For example:
 `<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
 
-
+> **Note**: to visualize the report in a more friendly-human way you can use `junit-viewer`.
+> `junit-viewer --results=<xml_file> --save=<report_name>
 ## **Requirements** <a name="requirements"></a>
 
 - Python 3.8+
