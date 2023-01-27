@@ -51,11 +51,11 @@ You can run the script either automatically or manually.
 
     * 2.3. [Using virtual environments](#virtual)
 
-    * 2.3.1. [Create virtual environment](#createvirtual)
+      * 2.3.1. [Create virtual environment](#createvirtual)
 
-    * 2.3.2. [Activate virtual environment](#activatevirtual)
+      * 2.3.2. [Activate virtual environment](#activatevirtual)
 
-    * 2.3.3. [Install requirements](#installvirtual)
+      * 2.3.3. [Install requirements](#installvirtual)
 
 * 3\. [How to make changes in the repository](#changes)
 
