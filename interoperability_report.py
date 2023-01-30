@@ -814,7 +814,11 @@ def run_test_pub_pub_sub(
 class Arguments:
     def parser():
         parser = argparse.ArgumentParser(
-            description='Interoperability Test',
+            description='Validation of interoperability of products compliant \
+                with OMG DDS-RTPS standard. This script generates automatically \
+                the verification between two executables compiled with the \
+                shape_main application. It will generate a xml report in a \
+                junit format',
             add_help=True)
 
         gen_opts = parser.add_argument_group(title='general options')
@@ -823,33 +827,36 @@ class Arguments:
             required=True,
             type=str,
             metavar='publisher_name',
-            help='Publisher shape_main application')
+            help='Path to the Publisher shape_main application')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
             metavar='subscriber_name',
-            help='Subscriber shape_main application')
+            help='Path to the Subscriber shape_main application')
 
         optional = parser.add_argument_group(title='optional parameters')
         optional.add_argument('-v','--verbose',
             default=False,
             required=False,
             action='store_true',
-            help='Print more information to stdout.')
+            help='Print debug information to stdout. It will track the \
+                interoperability_report execution and it will show the \
+                shape_main application output in case of error. \
+                By default is non selected and the console output \
+                will be the results of the tests.')
 
         out_opts = parser.add_argument_group(title='output options')
-        out_opts.add_argument('-f', '--output-format',
-            default='junit',
-            required=False,
-            type=str,
-            choices=['junit', 'csv', 'xlxs'],
-            help='Output format.')
         out_opts.add_argument('-o', '--output-name',
             required=False,
             metavar='filename',
             type=str,
-            help='Report filename.')
+            help='Name of the xml report that will be generated. \
+                By default the report name will be: \
+                    <publisher_name>-<subscriber_name>-date.xml \
+                If the file passed already exists, it will add \
+                the new results to it. In other case it will create \
+                a new file.')
 
         return parser
 
@@ -873,10 +880,6 @@ def main():
     name_publisher = (options['publisher'].split('_shape')[0]).split('/')[-1]
     name_subscriber = (options['subscriber'].split('_shape')[0]).split('/')[-1]
 
-    if args.output_format is None:
-        options['output_format'] = 'junit'
-    else:
-        options['output_format'] = args.output_format
     if args.output_name is None:
         now = datetime.now()
         date_time = now.strftime('%Y%m%d-%H_%M_%S')
