@@ -67,12 +67,6 @@ rtps_test_suite_1 = {
     'Test_Ownership_0': ['-P -t Square -s -1 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.OK, ReturnCode.OK],
     'Test_Ownership_1': ['-P -t Square -s -1 -x 2', '-S -t Square -s 3 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
     'Test_Ownership_2': ['-P -t Square -s 3 -x 2', '-S -t Square -s -1 -x 2', ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
-    # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
-    'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE -w -x 2', '-P -t Square -s 4 -c RED -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
-                         ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH],
-    # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
-    'Test_Ownership_4': ['-P -t Square -s 5 -r -k 0 -w -x 2', '-P -t Square -s 4 -r -k 0 -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
-                         ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE],
 
     # TOPIC
     'Test_Topic_0' : ['-P -t Square -x 2', '-S -t Square -x 2', ReturnCode.OK, ReturnCode.OK],
@@ -123,4 +117,15 @@ rtps_test_suite_1 = {
     'Test_History_1' : ['-P -t Square -k 3 -x 2', '-S -t Square -k 0 -x 2', ReturnCode.OK, ReturnCode.OK],
     'Test_History_2' : ['-P -t Square -k 0 -x 2', '-S -t Square -k 3 -x 2', ReturnCode.OK, ReturnCode.OK],
     'Test_History_3' : ['-P -t Square -k 0 -x 2', '-S -t Square -k 0 -x 2', ReturnCode.OK, ReturnCode.OK]
+}
+
+
+rtps_test_suite_2 = {
+    # OWNERSHIP
+    # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
+    'Test_Ownership_3': ['-P -t Square -s 3 -c BLUE -w -x 2', '-P -t Square -s 4 -c RED -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
+                         ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH],
+    # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
+    'Test_Ownership_4': ['-P -t Square -s 5 -r -k 0 -w -x 2', '-P -t Square -s 4 -r -k 0 -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2',
+                         ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE],
 }

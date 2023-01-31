@@ -9,9 +9,10 @@ import multiprocessing
 from datetime import datetime
 import tempfile
 from os.path import exists
+import inspect
 
 from rtps_test_utilities import ReturnCode
-from test_suite import rtps_test_suite_1
+import test_suite
 
 def log_message(message, verbosity):
     if verbosity:
@@ -818,7 +819,7 @@ class Arguments:
                 with OMG DDS-RTPS standard. This script generates automatically \
                 the verification between two executables compiled with the \
                 shape_main application. It will generate a xml report in a \
-                junit format',
+                junit format.',
             add_help=True)
 
         gen_opts = parser.add_argument_group(title='general options')
@@ -827,13 +828,13 @@ class Arguments:
             required=True,
             type=str,
             metavar='publisher_name',
-            help='Path to the Publisher shape_main application')
+            help='Path to the Publisher shape_main application.')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
             metavar='subscriber_name',
-            help='Path to the Subscriber shape_main application')
+            help='Path to the Subscriber shape_main application.')
 
         optional = parser.add_argument_group(title='optional parameters')
         optional.add_argument('-v','--verbose',
@@ -845,6 +846,37 @@ class Arguments:
                 shape_main application output in case of error. \
                 By default is non selected and the console output \
                 will be the results of the tests.')
+
+        tests = parser.add_argument_group(title='Test Case and Test Suite')
+        tests.add_argument('-s', '--suite',
+            nargs='+',
+            default='[rtps_test_suite_1]',
+            required=False,
+            metavar='test_suite_dictionary',
+            type=str,
+            help='Test Suite that is going to be tested. \
+                Test Suite is a dictionary defined in the file test_suite.py. \
+                By default is rtps_test_suite_1.')
+
+        enable_disable = tests.add_mutually_exclusive_group(required=False)
+        enable_disable.add_argument('-t', '--test',
+            nargs='+',
+            default=None,
+            required=False,
+            type=str,
+            metavar='test_cases',
+            help='Test Case that the script will run. By default it will \
+                run all the Test Cases contained in the Test Suite. \
+                This options is not supported with --disable_test.')
+        enable_disable.add_argument('-d', '--disable_test',
+            nargs='+',
+            default=None,
+            required=False,
+            type=str,
+            metavar='test_cases_disabled',
+            help='Test Case that the script will skip. By default it will \
+                run all the Test Cases contained in the Test Suite. \
+                This option is not supported with --test.')
 
         out_opts = parser.add_argument_group(title='output options')
         out_opts.add_argument('-o', '--output-name',
@@ -860,6 +892,12 @@ class Arguments:
 
         return parser
 
+def check_test_case_in_test_suite(test_suite, suite_name, test_cases):
+    if test_cases != None:
+        for i in test_cases:
+            if i not in test_suite:
+                print('Test Case <'+ i + '> not contained in Test Suite <'+suite_name+'>.')
+
 def main():
 
     parser = Arguments.parser()
@@ -869,7 +907,11 @@ def main():
         'publisher': args.publisher,
         'subscriber': args.subscriber,
         'verbosity': args.verbose,
+        'test_suite': args.suite,
+        'test_cases': args.test,
+        'test_cases_disabled': args.disable_test
     }
+
     # The executables's names are supposed to follow the pattern: name_shape_main
     # We will keep only the part of the name that is useful, deleting the path and
     # the substring _shape_main.
@@ -906,40 +948,48 @@ def main():
 
     timeout = 10
     now = datetime.now()
-    for k, v in rtps_test_suite_1.items():
-        # TestCase is an class from junitparser whose attributes
-        # are: name and result (OK, Failure, Error and Skipped),
-        # apart from other custom attributes (in this case param_pub,
-        # param_sub, param_pub1 and param_pub2).
-        case = junitparser.TestCase(f'{k}')
-        now_test_case = datetime.now()
-        if k == 'Test_Ownership_3' or k == 'Test_Ownership_4':
-            run_test_pub_pub_sub(name_executable_pub=options['publisher'],
-                                 name_executable_sub=options['subscriber'],
-                                 test_case=case,
-                                 param_pub1=v[0],
-                                 param_pub2=v[1],
-                                 param_sub=v[2],
-                                 expected_code_pub1=v[3],
-                                 expected_code_pub2=v[4],
-                                 expected_code_sub=v[5],
-                                 verbosity=options['verbosity'],
-                                 timeout=timeout
-            )
 
-        else:
-            run_test(name_executable_pub=options['publisher'],
-                     name_executable_sub=options['subscriber'],
-                     test_case=case,
-                     param_pub=v[0],
-                     param_sub=v[1],
-                     expected_code_pub=v[2],
-                     expected_code_sub=v[3],
-                     verbosity=options['verbosity'],
-                     timeout=timeout
-            )
-        case.time = (datetime.now() - now_test_case).total_seconds()
-        suite.add_testcase(case)
+    for s_name, t_suite in inspect.getmembers(test_suite):
+        if s_name in options['test_suite']:
+            check_test_case_in_test_suite(t_suite, s_name, options['test_cases'])
+            check_test_case_in_test_suite(t_suite, s_name, options['test_cases_disabled'])
+
+            for k, v in t_suite.items():
+                # TestCase is an class from junitparser whose attributes
+                # are: name and result (OK, Failure, Error and Skipped),
+                # apart from other custom attributes (in this case param_pub,
+                # param_sub, param_pub1 and param_pub2).
+                if (options['test_cases'] == None or k in options['test_cases']) \
+                    and (options['test_cases_disabled'] == None or k not in options['test_cases_disabled']):
+                    case = junitparser.TestCase(f'{k}')
+                    now_test_case = datetime.now()
+                    if len(v) == 6:
+                        run_test_pub_pub_sub(name_executable_pub=options['publisher'],
+                                            name_executable_sub=options['subscriber'],
+                                            test_case=case,
+                                            param_pub1=v[0],
+                                            param_pub2=v[1],
+                                            param_sub=v[2],
+                                            expected_code_pub1=v[3],
+                                            expected_code_pub2=v[4],
+                                            expected_code_sub=v[5],
+                                            verbosity=options['verbosity'],
+                                            timeout=timeout
+                        )
+
+                    else:
+                        run_test(name_executable_pub=options['publisher'],
+                                name_executable_sub=options['subscriber'],
+                                test_case=case,
+                                param_pub=v[0],
+                                param_sub=v[1],
+                                expected_code_pub=v[2],
+                                expected_code_sub=v[3],
+                                verbosity=options['verbosity'],
+                                timeout=timeout
+                        )
+                    case.time = (datetime.now() - now_test_case).total_seconds()
+                    suite.add_testcase(case)
 
     suite.time = (datetime.now() - now).total_seconds()
     xml.add_testsuite(suite)
