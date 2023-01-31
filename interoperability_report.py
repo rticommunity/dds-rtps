@@ -483,6 +483,118 @@ def run_test_general(
     code = manager.list(range(num_entity))
     data = multiprocessing.Queue() # used for storing the samples
 
+    subscriber_finished = multiprocessing.Event()
+    publisher_finished = multiprocessing.Event()
+
+    file = []
+    information = []
+    index = []
+    entity = []
+    additional_info = []
+    for i in range(num_entity):
+        file[i] = tempfile.TemporaryFile(mode='w+t')
+        index[i] = i
+        if 'P' in parameters[i]:
+            entity[i] = multiprocessing.Process(target=run_publisher_shape_main,
+                            kwargs={
+                                'name_executable':name_executable_pub,
+                                'parameters':parameters[i],
+                                'test_name':test_case.name,
+                                'produced_code':code,
+                                'produced_code_index':index[i],
+                                'samples_sent':data,
+                                'verbosity':verbosity,
+                                'timeout':timeout,
+                                'file':file[i],
+                                'subscriber_finished':subscriber_finished,
+                                'publisher_finished':publisher_finished
+            })
+        else:
+            entity[i] = multiprocessing.Process(target=run_subscriber_shape_main,
+                            kwargs={
+                                'name_executable':name_executable_sub,
+                                'parameters':parameters[i],
+                                'test_name':test_case.name,
+                                'produced_code':code,
+                                'produced_code_index':index[i],
+                                'samples_sent':data,
+                                'verbosity':verbosity,
+                                'timeout':timeout,
+                                'file':file[i],
+                                'subscriber_finished':subscriber_finished,
+                                'publisher_finished':publisher_finished,
+                                'function':function
+            })
+        entity[i].start()
+        time.sleep(1)
+
+    for i in range(num_entity):
+        entity[i].join()
+
+    log_message('Reading information from temporary files', verbosity)
+    for i in range(num_entity):
+        file[i].seek(0)
+        information[i] = file[i].read()
+
+
+    # test_case.param_pub1 = param_pub1
+    # test_case.param_pub2 = param_pub2
+    # test_case.param_sub = param_sub
+
+    # code[1] contains publisher 1 shape_main application ReturnCode,
+    # code[2] publisher 2 shape_main application ReturnCode
+    # and code[0] subscriber shape_main application ReturnCode.
+    everything_ok = True
+    for i in range(num_entity):
+        if expected_codes[i] != code[index[i]]:
+            everything_ok = False
+
+    if everything_ok:
+        print (f'{test_case.name} : Ok')
+
+    else:
+        print(f'Error in : {test_case.name}')
+        for i in range(num_entity):
+            print(f'....... expected code: {expected_codes[i]}; \
+                Code found: {code[index[i]].name}')
+
+            log_message(f'\nInformation about ....:\n \
+                      {information[i]} ', verbosity)
+
+            additional_info[i] = information[i].replace('\n', '<br>')
+
+
+        test_case.result = [junitparser.Failure(f'<table> \
+                                    <tr> \
+                                        <th/> \
+                                        <th>Expected Code</th> \
+                                        <th>Code Produced</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Publisher 1</th> \
+                                        <th>{expected_code_pub1.name}</th> \
+                                        <th>{code[publisher1_index].name}</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Publisher 2</th> \
+                                        <th>{expected_code_pub2.name}</th> \
+                                        <th>{code[publisher2_index].name}</th> \
+                                    </tr> \
+                                    <tr> \
+                                        <th>Subscriber</th> \
+                                        <th>{expected_code_sub.name}</th> \
+                                        <th>{code[subscriber_index].name}</th> \
+                                    </tr> \
+                                </table> \
+                               <strong> Information Publisher 1: </strong> \
+                                 <br> {additional_info_pub1} <br> \
+                               <strong> Information Publisher 2: </strong> \
+                                 <br> {additional_info_pub2} <br> \
+                               <strong> Information Subscriber: </strong> \
+                                 <br> {additional_info_sub}')]
+
+    for i in range(num_entity):
+        file[i].close()
 
 def run_test_pub_pub_sub(
         name_executable_pub: str,
