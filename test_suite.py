@@ -125,7 +125,8 @@ rtps_test_suite_1 = {
     'Test_Ownership_4': [['-P -t Square -s 5 -r -k 0 -w -x 2', '-P -t Square -s 4 -r -k 0 -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2'],
                          [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE], rtps_test_utilities.check_receiving_from]
 }
-
+#__import__name
+#load module
 
 rtps_test_suite_2 = {
     # OWNERSHIP

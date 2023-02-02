@@ -41,17 +41,18 @@ def log_message(message, verbosity):
     if verbosity:
         print(message)
 
+#test_ownership3-4 explain what is doing
 def check_receiving_from(child_sub, samples_sent, timeout, verbosity):
     first_received_first_time = False
     second_received_first_time = False
     first_received = False
     second_received = False
     list_data_received_second = []
-    for x in range(0,80,1):
+    for x in range(0,80,1): #variable instead of 80
         sub_string = re.search('[0-9]{3} [0-9]{3}',
             child_sub.before)
         try:
-            list_data_received_second.append(samples_sent[1].get(True, 5))
+            list_data_received_second.append(samples_sent[1].get(True, 5)) #timeout instead of 5
         except:
             break;
         if sub_string.group(0) not in list_data_received_second \

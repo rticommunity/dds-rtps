@@ -487,12 +487,16 @@ def run_test_general(
 
     subscribers_finished = []
     publishers_finished = []
-    for i in range(0, num_entity):
-        if '-P' in parameters[i]:
+    for i in range(0, num_entity): # for element in parameters
+        if '-P ' in parameters[i]: #comprobar que si esta solo P no lo coja ej: -qos_future P -S
             publishers_finished.append(multiprocessing.Event())
             data.append(multiprocessing.Queue())
-        else:
+        elif '-S ' in parameters[i]:
             subscribers_finished.append(multiprocessing.Event())
+        else:
+            print('error....') # warning:
+            return
+    # explicar por que se crea antes
     file = []
     information = []
     index = []
@@ -548,7 +552,7 @@ def run_test_general(
     log_message('Reading information from temporary files', verbosity)
     for i in range(0,num_entity):
         file[i].seek(0)
-        information.append(file[i].read())
+        information.append(file[i].read()) #change information to another name
 
     for i in range(0,num_entity):
         junitparser.TestCase.i = junitparser.Attr(entity_type[i])
@@ -557,7 +561,7 @@ def run_test_general(
     # code[1] contains publisher 1 shape_main application ReturnCode,
     # code[2] publisher 2 shape_main application ReturnCode
     # and code[0] subscriber shape_main application ReturnCode.
-    everything_ok = True
+    everything_ok = True #cambiarle el nmbre tambn (ok/test_result/test_result_correct y explicarlo)
     for i in range(0,num_entity):
         if expected_codes[i] != code[i]:
             everything_ok = False
@@ -948,7 +952,9 @@ def main():
 
     timeout = 10
     now = datetime.now()
-
+# name, value
+# value.ismodule, value.isclass
+#type(value) is dict
     for s_name, t_suite in inspect.getmembers(test_suite):
         if s_name in options['test_suite']:
             check_test_case_in_test_suite(t_suite, s_name, options['test_cases'])
@@ -971,7 +977,7 @@ def main():
                                             expected_codes=v[1],
                                             verbosity=options['verbosity'],
                                             timeout=timeout,
-                                            function=v[2])
+                                            function=v[2]) #check_function
                     # if len(v) == 7:
                     #     run_test_pub_pub_sub(name_executable_pub=options['publisher'],
                     #                         name_executable_sub=options['subscriber'],
