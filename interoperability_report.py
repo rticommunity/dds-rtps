@@ -25,8 +25,8 @@ def run_subscriber_shape_main(
         verbosity: bool,
         timeout: int,
         file: tempfile.TemporaryFile,
-        subscriber_finished: multiprocessing.Event,
-        publisher_finished: multiprocessing.Event,
+        subscriber_finished,
+        publishers_finished,
         function):
 
     """ This function runs the subscriber shape_main application with
@@ -155,7 +155,8 @@ def run_subscriber_shape_main(
 
     subscriber_finished.set()   # set subscriber as finished
     log_message('S: Waiting for Publisher to finish', verbosity)
-    publisher_finished.wait()   # wait for publisher to finish
+    for i in range (0, len(publishers_finished)):
+        publishers_finished[i].wait()   # wait for publisher to finish
     return
 
 
@@ -169,7 +170,7 @@ def run_publisher_shape_main(
         verbosity: bool,
         timeout: int,
         file: tempfile.TemporaryFile,
-        subscriber_finished: multiprocessing.Event,
+        subscribers_finished: multiprocessing.Event,
         publisher_finished: multiprocessing.Event):
 
     """ This function runs the publisher shape_main application with
@@ -295,7 +296,8 @@ def run_publisher_shape_main(
                     produced_code[produced_code_index] = ReturnCode.OK
 
     log_message('P: Waiting for Subscriber to finish', verbosity)
-    subscriber_finished.wait() # wait for subscriber to finish
+    for i in range(0, len(subscribers_finished)):
+        subscribers_finished[i].wait() # wait for subscriber to finish
     publisher_finished.set()   # set publisher as finished
     return
 
@@ -483,19 +485,26 @@ def run_test_general(
     code = manager.list(range(num_entity))
     data = multiprocessing.Queue() # used for storing the samples
 
-    subscriber_finished = multiprocessing.Event()
-    publisher_finished = multiprocessing.Event()
-
+    subscribers_finished = []
+    publishers_finished = []
+    for i in range(0, num_entity):
+        if '-P' in parameters[i]:
+            publishers_finished.append(multiprocessing.Event())
+        else:
+            subscribers_finished.append(multiprocessing.Event())
     file = []
     information = []
     index = []
     entity = []
     additional_info = []
-    for i in range(num_entity):
-        file[i] = tempfile.TemporaryFile(mode='w+t')
-        index[i] = i
+    entity_type = []
+    num_publishers = 0
+    num_subscribers = 0
+    for i in range(0,num_entity):
+        file.append(tempfile.TemporaryFile(mode='w+t'))
+        index.append(i)
         if 'P' in parameters[i]:
-            entity[i] = multiprocessing.Process(target=run_publisher_shape_main,
+            entity.append(multiprocessing.Process(target=run_publisher_shape_main,
                             kwargs={
                                 'name_executable':name_executable_pub,
                                 'parameters':parameters[i],
@@ -506,11 +515,13 @@ def run_test_general(
                                 'verbosity':verbosity,
                                 'timeout':timeout,
                                 'file':file[i],
-                                'subscriber_finished':subscriber_finished,
-                                'publisher_finished':publisher_finished
-            })
+                                'subscribers_finished':subscribers_finished,
+                                'publisher_finished':publishers_finished[num_publishers]
+            }))
+            num_publishers+=1
+            entity_type.append(f'Publisher_{num_publishers}')
         else:
-            entity[i] = multiprocessing.Process(target=run_subscriber_shape_main,
+            entity.append(multiprocessing.Process(target=run_subscriber_shape_main,
                             kwargs={
                                 'name_executable':name_executable_sub,
                                 'parameters':parameters[i],
@@ -521,32 +532,33 @@ def run_test_general(
                                 'verbosity':verbosity,
                                 'timeout':timeout,
                                 'file':file[i],
-                                'subscriber_finished':subscriber_finished,
-                                'publisher_finished':publisher_finished,
+                                'subscriber_finished':subscribers_finished[num_subscribers],
+                                'publishers_finished':publishers_finished,
                                 'function':function
-            })
+            }))
+            num_subscribers+=1
+            entity_type.append(f'Subscriber_{num_subscribers}')
         entity[i].start()
         time.sleep(1)
 
-    for i in range(num_entity):
+    for i in range(0,num_entity):
         entity[i].join()
 
     log_message('Reading information from temporary files', verbosity)
-    for i in range(num_entity):
+    for i in range(0,num_entity):
         file[i].seek(0)
-        information[i] = file[i].read()
+        information.append(file[i].read())
 
-
-    # test_case.param_pub1 = param_pub1
-    # test_case.param_pub2 = param_pub2
-    # test_case.param_sub = param_sub
+    for i in range(0,num_entity):
+        junitparser.TestCase.i = junitparser.Attr(entity_type[i])
+        test_case.i = parameters[i]
 
     # code[1] contains publisher 1 shape_main application ReturnCode,
     # code[2] publisher 2 shape_main application ReturnCode
     # and code[0] subscriber shape_main application ReturnCode.
     everything_ok = True
-    for i in range(num_entity):
-        if expected_codes[i] != code[index[i]]:
+    for i in range(0,num_entity):
+        if expected_codes[i] != code[i]:
             everything_ok = False
 
     if everything_ok:
@@ -555,43 +567,32 @@ def run_test_general(
     else:
         print(f'Error in : {test_case.name}')
         for i in range(num_entity):
-            print(f'....... expected code: {expected_codes[i]}; \
-                Code found: {code[index[i]].name}')
+            print(f'{entity_type[i]} expected code: {expected_codes[i]}; \
+                Code found: {code[i].name}')
 
-            log_message(f'\nInformation about ....:\n \
+            log_message(f'\nInformation about {entity_type[i]}:\n \
                       {information[i]} ', verbosity)
 
-            additional_info[i] = information[i].replace('\n', '<br>')
+            additional_info.append(information[i].replace('\n', '<br>'))
 
 
-        test_case.result = [junitparser.Failure(f'<table> \
-                                    <tr> \
-                                        <th/> \
-                                        <th>Expected Code</th> \
-                                        <th>Code Produced</th> \
-                                    </tr> \
-                                    <tr> \
-                                        <th>Publisher 1</th> \
-                                        <th>{expected_code_pub1.name}</th> \
-                                        <th>{code[publisher1_index].name}</th> \
-                                    </tr> \
-                                    <tr> \
-                                        <th>Publisher 2</th> \
-                                        <th>{expected_code_pub2.name}</th> \
-                                        <th>{code[publisher2_index].name}</th> \
-                                    </tr> \
-                                    <tr> \
-                                        <th>Subscriber</th> \
-                                        <th>{expected_code_sub.name}</th> \
-                                        <th>{code[subscriber_index].name}</th> \
-                                    </tr> \
-                                </table> \
-                               <strong> Information Publisher 1: </strong> \
-                                 <br> {additional_info_pub1} <br> \
-                               <strong> Information Publisher 2: </strong> \
-                                 <br> {additional_info_pub2} <br> \
-                               <strong> Information Subscriber: </strong> \
-                                 <br> {additional_info_sub}')]
+        message = '<table> \
+                        <tr> \
+                            <th/> \
+                            <th> Expected Code </th> \
+                            <th> Code Produced </th> \
+                        </tr> '
+        for i in range(num_entity):
+            message += '<tr> \
+                            <th> ' + entity_type[i] + ' </th> \
+                            <th> ' + expected_codes[i].name + '</th>  \
+                            <th> ' + code[i].name + '</th> \
+                        </tr>'
+        message += '</table>'
+        for i in range(num_entity):
+            message += '<strong> Information ' + entity_type[i] + ' </strong> \
+                        <br> ' + additional_info[i] + '<br>'
+        test_case.result = [junitparser.Failure(message)]
 
     for i in range(num_entity):
         file[i].close()
@@ -942,10 +943,7 @@ def main():
     # results of running different TestCases between two shape_main
     # applications. A TestSuite contains a collection of TestCases.
     suite = junitparser.TestSuite(f"{name_publisher}---{name_subscriber}")
-    junitparser.TestCase.param_pub = junitparser.Attr('Parameters_Publisher')
-    junitparser.TestCase.param_sub = junitparser.Attr('Parameters_Subscriber')
-    junitparser.TestCase.param_pub1 = junitparser.Attr('Parameters_Publisher_1')
-    junitparser.TestCase.param_pub2 = junitparser.Attr('Parameters_Publisher_2')
+
 
     timeout = 10
     now = datetime.now()
@@ -964,33 +962,41 @@ def main():
                     and (options['test_cases_disabled'] == None or k not in options['test_cases_disabled']):
                     case = junitparser.TestCase(f'{k}')
                     now_test_case = datetime.now()
-                    if len(v) == 7:
-                        run_test_pub_pub_sub(name_executable_pub=options['publisher'],
+                    run_test_general(name_executable_pub=options['publisher'],
                                             name_executable_sub=options['subscriber'],
                                             test_case=case,
-                                            param_pub1=v[0],
-                                            param_pub2=v[1],
-                                            param_sub=v[2],
-                                            expected_code_pub1=v[3],
-                                            expected_code_pub2=v[4],
-                                            expected_code_sub=v[5],
+                                            parameters=v[0],
+                                            expected_codes=v[1],
                                             verbosity=options['verbosity'],
                                             timeout=timeout,
-                                            function=v[6]
-                        )
+                                            function=v[2])
+                    # if len(v) == 7:
+                    #     run_test_pub_pub_sub(name_executable_pub=options['publisher'],
+                    #                         name_executable_sub=options['subscriber'],
+                    #                         test_case=case,
+                    #                         param_pub1=v[0],
+                    #                         param_pub2=v[1],
+                    #                         param_sub=v[2],
+                    #                         expected_code_pub1=v[3],
+                    #                         expected_code_pub2=v[4],
+                    #                         expected_code_sub=v[5],
+                    #                         verbosity=options['verbosity'],
+                    #                         timeout=timeout,
+                    #                         function=v[6]
+                    #     )
 
-                    else:
-                        run_test(name_executable_pub=options['publisher'],
-                                name_executable_sub=options['subscriber'],
-                                test_case=case,
-                                param_pub=v[0],
-                                param_sub=v[1],
-                                expected_code_pub=v[2],
-                                expected_code_sub=v[3],
-                                verbosity=options['verbosity'],
-                                timeout=timeout,
-                                function=v[4]
-                        )
+                    # else:
+                    #     run_test(name_executable_pub=options['publisher'],
+                    #             name_executable_sub=options['subscriber'],
+                    #             test_case=case,
+                    #             param_pub=v[0],
+                    #             param_sub=v[1],
+                    #             expected_code_pub=v[2],
+                    #             expected_code_sub=v[3],
+                    #             verbosity=options['verbosity'],
+                    #             timeout=timeout,
+                    #             function=v[4]
+                    #     )
                     case.time = (datetime.now() - now_test_case).total_seconds()
                     suite.add_testcase(case)
 
