@@ -483,13 +483,14 @@ def run_test_general(
     # used for storing the obtained ReturnCode
     # (from Publisher 1, Publisher 2 and Subscriber)
     code = manager.list(range(num_entity))
-    data = multiprocessing.Queue() # used for storing the samples
+    data = [] # used for storing the samples
 
     subscribers_finished = []
     publishers_finished = []
     for i in range(0, num_entity):
         if '-P' in parameters[i]:
             publishers_finished.append(multiprocessing.Event())
+            data.append(multiprocessing.Queue())
         else:
             subscribers_finished.append(multiprocessing.Event())
     file = []
@@ -511,7 +512,7 @@ def run_test_general(
                                 'test_name':test_case.name,
                                 'produced_code':code,
                                 'produced_code_index':index[i],
-                                'samples_sent':data,
+                                'samples_sent':data[num_publishers],
                                 'verbosity':verbosity,
                                 'timeout':timeout,
                                 'file':file[i],
@@ -958,6 +959,7 @@ def main():
                 # are: name and result (OK, Failure, Error and Skipped),
                 # apart from other custom attributes (in this case param_pub,
                 # param_sub, param_pub1 and param_pub2).
+                assert(len(v) == 3 and (len(v[0]) == len(v[1])))
                 if (options['test_cases'] == None or k in options['test_cases']) \
                     and (options['test_cases_disabled'] == None or k not in options['test_cases_disabled']):
                     case = junitparser.TestCase(f'{k}')

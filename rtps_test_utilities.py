@@ -51,7 +51,7 @@ def check_receiving_from(child_sub, samples_sent, timeout, verbosity):
         sub_string = re.search('[0-9]{3} [0-9]{3}',
             child_sub.before)
         try:
-            list_data_received_second.append(samples_sent.get(True, 5))
+            list_data_received_second.append(samples_sent[1].get(True, 5))
         except:
             break;
         if sub_string.group(0) not in list_data_received_second \
@@ -81,7 +81,7 @@ def check_receiving_from(child_sub, samples_sent, timeout, verbosity):
 def check_reliability(child_sub, samples_sent, timeout, verbosity):
     for x in range(0, 3, 1):
         sub_string = re.search('[0-9]{3} [0-9]{3}', child_sub.before)
-        if samples_sent.get() == sub_string.group(0):
+        if samples_sent[0].get(True,5) == sub_string.group(0):
             produced_code = ReturnCode.OK
         else:
             produced_code = ReturnCode.DATA_NOT_CORRECT
