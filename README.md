@@ -15,60 +15,147 @@ and can interoperate with each other.
 
 ## Table of contents
 
-* 1\. [Run tests automatically](#run-tests-automatically)
+* 1\. [Run tests manually](#run-tests-manually)
+    * 1.1. [Requirements](#requirements)
 
-    * 1.1. [Create a release](#create-a-release)
+      * 1.1.1. [Using virtual environments](#using-virtual-environments)
 
-      * 1.1.1. [When to create a release](#when-to-create-a-release)
+        * 1.1.1.1. [Create virtual environment](#create-virtual-environment)
 
-      * 1.1.2. [Release and tag name](#release-and-tag-name)
+        * 1.1.1.2. [Activate virtual environment](#activate-virtual-environment)
 
-      * 1.1.3. [Process of creating the release](#process-of-creating-the-release)
+        * 1.1.1.3. [Install requirements](#install-requirements)
 
-    * 1.2. [Process of uploading the executable](#process-of-uploading-the-executable)
+    * 1.2. [Options of interoperability_report](#options-of-interoperability_report)
 
-    * 1.3. [Process of generating the report](#process-of-generating-the-report)
+    * 1.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
 
-      * 1.3.1. [How to delete a report](#how-to-delete-a-report)
+    * 1.4. [Report]
 
-      * 1.3.2. [Report](#report)
+* 2\. [Run tests automatically](#run-tests-automatically)
 
-    * 1.4. [Reporting failures](#reporting-failures)
+    * 2.1. [Process of uploading the executable](#process-of-uploading-the-executable)
 
-      * 1.4.1. [How to create a label](#how-to-create-a-label)
+    * 2.2. [Create a release](#create-a-release)
 
-    * 1.5. [Where can I find the last report?](#where-can-i-find-the-last-report)
+      * 2.1.1. [When to create a release](#when-to-create-a-release)
 
-* 2\. [Run tests manually](#run-tests-manually)
+      * 2.1.2. [Release and tag name](#release-and-tag-name)
 
-    * 2.1. [Options of interoperability_report](#options-of-interoperability_report)
+      * 2.1.3. [Process of creating the release](#process-of-creating-the-release)
 
-      * 2.1.1. [Example of use interoperability_report](#example-of-use-interoperability_report)
+    * 2.3. [Process of generating the report](#process-of-generating-the-report)
 
+      * 2.3.1. [How to delete a report](#how-to-delete-a-report)
 
-    * 2.2. [Requirements](#requirements)
+      * 2.3.2. [Report](#report)
 
-    * 2.3. [Using virtual environments](#using-virtual-environments)
+    * 2.4. [Reporting failures](#reporting-failures)
 
-      * 2.3.1. [Create virtual environment](#create-virtual-environment)
+      * 2.4.1. [How to create a label](#how-to-create-a-label)
 
-      * 2.3.2. [Activate virtual environment](#activate-virtual-environment)
+    * 2.5. [Where can I find the last report?](#where-can-i-find-the-last-report)
 
-      * 2.3.3. [Install requirements](#install-requirements)
 
 * 3\. [How to make changes in the repository](#how-to-make-changes-in-the-repository)
 # Automatic Interoperability Tests
 
 The script `interoperability_report.py` generates automatically
 the verification between two executables of these interoperability tests.
-The tests that the script runs must be defined previously (for example
-`test_suite.py`).
+The tests that the script runs must be defined previously in a python file following the pattern described in `test_suite.py`. By default it will run the tests from `test_suite.py`.
 Once the script finishes, it generates a report with the result
 of the interoperability tests between both executables.
 
 You can run the script either automatically or manually.
 
+# Run tests manually
 
+## Requirements
+
+- Python 3.8+
+- Create and enable a virtual environment (installing requirements)
+
+### Using virtual environments
+
+The build will be done using virtual environments, you should create and
+activate the virtual environment and then install all dependencies. This can be
+done by following these steps:
+
+#### Create virtual environment
+
+In Linux® systems, you may need to install the corresponding python venv
+package:
+
+```
+sudo apt install python3.8-venv
+```
+
+To create the virtual environment:
+
+```
+python3 -m venv .venv
+```
+
+#### Activate virtual environment
+
+```
+source .venv/bin/activate
+```
+
+#### Install requirements
+
+This step is only required the first time or when the requirements change:
+
+```
+pip install -r requirements.txt
+```
+## Options of interoperability_report
+
+The `interoperability_report.py` may configure the following options:
+
+```
+$ python3 interoperability_report.py -h
+
+usage: interoperability_report.py [-h] -P publisher_name -S subscriber_name
+                                  [-v] [-f {junit,csv,xlxs}] [-o filename]
+Interoperability Test
+optional arguments:
+  -h, --help            show this help message and exit
+general options:
+  -P publisher_name, --publisher publisher_name
+                        Publisher Shape Application
+  -S subscriber_name, --subscriber subscriber_name
+                        Subscriber Shape Application
+optional parameters:
+  -v, --verbose         Print more information to stdout.
+output options:
+  -f {junit,csv,xlxs}, --output-format {junit,csv,xlxs}
+                        Output format.
+  -o filename, --output-name filename
+                        Report filename.
+```
+
+**NOTE**: The option `-f` only supports junit.
+
+## Example of use interoperability_report
+
+This is an example that runs the `interoperability_report.py`
+with the test suite `test_suite.py`
+
+```
+$ python3 interoperability_report.py -P <path_to_publisher_executable> -S <path_to_subscriber_executable>
+```
+
+This generates a report file in JUnit (xml) with the name of both executables
+used, the date and the time in which it was generated. \
+For example:
+`<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
+
+> **Note**: to visualize the report in a more friendly-human way you can use
+`junit-viewer`. \
+> `junit-viewer --results=<xml_name> --save=<html_name>`
+
+## Report
 # Run tests automatically
 
 To run the tests automatically we need to upload the executables generated
@@ -87,6 +174,32 @@ The interoperability problems found can be reported as in
 Finally, to find easily the last report available, see
 [Where can I find the last report](#where-can-i-find-the-last-report).
 
+## Process of uploading the executable
+
+Each vendor should compile their own version of their product with
+the `shape_main.cxx` application. They should name the executable created as: `<product_name>_shape_main_linux` and compress it into a `.zip.`
+
+Example:
+
+![zip](./doc/Doc9.png)
+
+Then they should upload the executable to git in the following way:
+
+> **Note**: to do it with the command line see `gh release`
+
+1. In the main page, go to *Releases*.
+
+![Releases](./doc/Doc1.png)
+
+2. Inside the latest release, go to *Edit*.
+
+![Edit](./doc/Doc3.png)
+
+3. Upload the executables in *Attach binaries by dropping them here or
+selecting them* (leave all the other fields as they were).
+Keep marked *Set as the latest release*, and press *Update release*.
+
+![Attach](./doc/Doc4.png)
 ## Create a release
 
 ### When to create a release
@@ -171,32 +284,7 @@ The name of the release and the tag should be as explained in
 
 ![Create release](./doc/doc2.png)
 
-## Process of uploading the executable
 
-Each vendor should compile their own version of their product with
-the `shape_main.cxx` application. They should name the executable created as: `<product_name>_shape_main_linux` and compress it into a `.zip.`
-
-Example:
-
-![zip](./doc/Doc9.png)
-
-Then they should upload the executable to git in the following way:
-
-> **Note**: to do it with the command line see `gh release`
-
-1. In the main page, go to *Releases*.
-
-![Releases](./doc/Doc1.png)
-
-2. Inside the latest release, go to *Edit*.
-
-![Edit](./doc/Doc3.png)
-
-3. Upload the executables in *Attach binaries by dropping them here or
-selecting them* (leave all the other fields as they were).
-Keep marked *Set as the latest release*, and press *Update release*.
-
-![Attach](./doc/Doc4.png)
 
 ## Process of generating the report
 
@@ -353,91 +441,6 @@ a report that is easily accessible and we will know which products
 this report is related to (they are attached as assets).
 
 ![last-report](./doc/Doc23.png)
-# Run tests manually
-## Options of interoperability_report
-
-The `interoperability_report.py` may configure the following options:
-
-```
-$ python3 interoperability_report.py -h
-
-usage: interoperability_report.py [-h] -P publisher_name -S subscriber_name
-                                  [-v] [-f {junit,csv,xlxs}] [-o filename]
-Interoperability Test
-optional arguments:
-  -h, --help            show this help message and exit
-general options:
-  -P publisher_name, --publisher publisher_name
-                        Publisher Shape Application
-  -S subscriber_name, --subscriber subscriber_name
-                        Subscriber Shape Application
-optional parameters:
-  -v, --verbose         Print more information to stdout.
-output options:
-  -f {junit,csv,xlxs}, --output-format {junit,csv,xlxs}
-                        Output format.
-  -o filename, --output-name filename
-                        Report filename.
-```
-
-**NOTE**: The option `-f` only supports junit.
-
-### Example of use interoperability_report
-
-This is an example that runs the `interoperability_report.py`
-with the test suite `test_suite.py`
-
-```
-$ python3 interoperability_report.py -P <path_to_publisher_executable> -S <path_to_subscriber_executable>
-```
-
-This generates a report file in JUnit (xml) with the name of both executables
-used, the date and the time in which it was generated. \
-For example:
-`<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
-
-> **Note**: to visualize the report in a more friendly-human way you can use
-`junit-viewer`. \
-> `junit-viewer --results=<xml_name> --save=<html_name>`
-## Requirements
-
-- Python 3.8+
-- Create and enable a virtual environment (installing requirements)
-
-## Using virtual environments
-
-The build will be done using virtual environments, you should create and
-activate the virtual environment and then install all dependencies. This can be
-done by following these steps:
-
-### Create virtual environment
-
-In Linux® systems, you may need to install the corresponding python venv
-package:
-
-```
-sudo apt install python3.8-venv
-```
-
-To create the virtual environment:
-
-```
-python3 -m venv .venv
-```
-
-### Activate virtual environment
-
-```
-source .venv/bin/activate
-```
-
-### Install requirements
-
-This step is only required the first time or when the requirements change:
-
-```
-pip install -r requirements.txt
-```
 
 
 # How to make changes in the repository
