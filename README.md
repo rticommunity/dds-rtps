@@ -132,25 +132,68 @@ The `interoperability_report.py` may configure the following options:
 $ python3 interoperability_report.py -h
 
 usage: interoperability_report.py [-h] -P publisher_name -S subscriber_name
-                                  [-v] [-f {junit,csv,xlxs}] [-o filename]
-Interoperability Test
+                                  [-v]
+                                  [-s test_suite_dictionary_file [test_suite_dictionary_file ...]]
+                                  [-t test_cases [test_cases ...] | -d
+                                  test_cases_disabled
+                                  [test_cases_disabled ...]] [-o filename]
+
+Validation of interoperability of products compliant with OMG DDS-RTPS
+standard. This script generates automatically the verification between two
+executables compiled with the shape_main application. It will generate a xml
+report in a junit format.
+
 optional arguments:
   -h, --help            show this help message and exit
+
 general options:
   -P publisher_name, --publisher publisher_name
-                        Publisher Shape Application
+                        Path to the Publisher shape_main application. If the
+                        executable is in the same folder as the script it
+                        should contain the "./". Example:
+                        ./rti_connext_dds-6.1.1_shape_main_linux
   -S subscriber_name, --subscriber subscriber_name
-                        Subscriber Shape Application
+                        Path to the Subscriber shape_main application. If the
+                        executable is in the same folder as the script it
+                        should contain the "./". Example:
+                        ./rti_connext_dds-6.1.1_shape_main_linux
+
 optional parameters:
-  -v, --verbose         Print more information to stdout.
+  -v, --verbose         Print debug information to stdout. It will track the
+                        interoperability_report execution and it will show the
+                        shape_main application output in case of error. By
+                        default is non selected and the console output will be
+                        the results of the tests.
+
+Test Case and Test Suite:
+  -s test_suite_dictionary_file [test_suite_dictionary_file ...], --suite test_suite_dictionary_file [test_suite_dictionary_file ...]
+                        Test Suite that is going to be tested. Test Suite is a
+                        file with a dictionary defined, it should be located
+                        on the same directory as interoperability_report. By
+                        default is test_suite. To call it do not write ".py",
+                        only the name of the file. It will run all the
+                        dictionaries defined in the file. Multiple files can
+                        be passed.
+  -t test_cases [test_cases ...], --test test_cases [test_cases ...]
+                        Test Case that the script will run. By default it will
+                        run all the Test Cases contained in the Test Suite.
+                        This options is not supported with --disable_test.
+  -d test_cases_disabled [test_cases_disabled ...], --disable_test test_cases_disabled [test_cases_disabled ...]
+                        Test Case that the script will skip. By default it
+                        will run all the Test Cases contained in the Test
+                        Suite. This option is not supported with --test.
+
 output options:
-  -f {junit,csv,xlxs}, --output-format {junit,csv,xlxs}
-                        Output format.
   -o filename, --output-name filename
-                        Report filename.
+                        Name of the xml report that will be generated. By
+                        default the report name will be:
+                        <publisher_name>-<subscriber_name>-date.xml If the
+                        file passed already exists, it will add the new
+                        results to it. In other case it will create a new
+                        file.
+
 ```
 
-**NOTE**: The option `-f` only supports junit.
 
 ## Example of use interoperability_report
 
@@ -162,40 +205,48 @@ $ python3 interoperability_report.py -P <path_to_publisher_executable>
 -S <path_to_subscriber_executable>
 ```
 
-This generates a report file in JUnit (xml) with the name of both executables
-used, the date and the time in which it was generated. \
-For example:
-`<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
+## Report
+
+The script will generate a report file in JUnit (xml).
 
 > **Note**: to visualize the report in a more friendly-human way you can use
 `junit-viewer`. \
 > `junit-viewer --results=<xml_name> --save=<html_name>`
 
-## Report
+The report file will contain some items:
+* **Test Suites**
+    * The headers inside the report.
+    * They have some items:
+        * Name: `<publisher>--<subscriber>`
+        * Time: time spent in the execution of all the Test Cases
+          inside the Test Suite.
+        * Error tests (cross symbol): number of Test Cases with
+          errors in the Test Suite.
+        * Success tests (check symbol): number of succeeded Test Cases
+          in the Test Suite.
+        * A set of Test Cases.
+* **Test Cases**
+    * Test that we are testing.
+    * They are green (success) or red (failure).
+    * They have some items:
+        * Name
+        * Time: time spent in the execution of the Test Case.
+        * Parameters Publisher
+        * Parameters Subscriber
+        * In case of error:
+            * Expected code and code produced
+            * Console output from the shape application publisher
+            and subscriber.
 
-TODO
 # Automation with GitHub Actions
 
-To run the tests automatically we need to upload the executables generated
-with the `shape_main.cxx` application into GitHub. This process is explained
-in [Process of uploading the executable](#process-of-uploading-the-executable).
+The process of calling the script `interoperability_report.py` and generating a `html` report can be done automatically with GitHub Actions.
 
-To manage the upload of the executables in a long period of time we will
-organize them into releases. This process is explained in
-[Create a release](#create-a-release).
+It should be done in the following cases:
+  * A new executable is uploaded
+  * A change is made in `interoperability_report.py`
+  * A change is made in `test_suite.py`
 
-After we upload the executables we can generate the report, as explained
-in [Process of generating the report](#process-of-generating-the-report).
-The interoperability problems found can be reported as in
-[Reporting failures](#reporting-failures).
-
-Finally, to find easily the last report available, see
-[Where can I find the last report](#where-can-i-find-the-last-report).
-
-## Process of generating the report
-
-A new report can be generated in any case, but it should be done when
-a change is made in the latest release, i.e when a new executable is uploaded.
 To generate the report you should follow the next steps:
 1. Go to *Actions*.
 
@@ -216,7 +267,6 @@ Example of a failed and a succeeded test:
 ![Failed test](./doc/releases9.png)
 
 
-
 5. You will find something similar to this. At the bottom of the page
 you will see an **Artifacts** section with the report generated.
 
@@ -230,10 +280,21 @@ you will have the html file generated. It will look something like this
 ![report-1](./doc/releases12.png)
 ![report-2](./doc/Doc8.png)
 
+> **Note**: The status of the GitHub Action will be **Failure** (red color), if any of the
+Test Cases that we are testing has an error, or **Success** (green color)
+if none of them reported any error.
 # Workflow
 
-## Create Executable
-## Upload Executable
+## Create executable
+
+A new executable should be created in the following cases:
+* When a new version of the product is released
+* When a change is made in `shape_main.cxx`
+
+To generate the executable you need to compile with the `shape_main.cxx` using your own makefile.
+
+> **Note**: to compile with `connext` you may want to use `makefile_rti_connext_dds_linux`.
+## Upload executable
 
 Each vendor should compile their own version of their product with
 the `shape_main.cxx` application. They should name the executable created as:
@@ -345,39 +406,7 @@ The name of the release and the tag should be as explained in
 
 ![Create release](./doc/doc2.png)
 
-
-
 ### Report
-
-The status of the GitHub Action will be **Failure** (red color), if any of the
-Test Cases that we are testing has an error, or **Success** (green color)
-if none of them reported any error.
-
-The report file will contain some items:
-* **Test Suites**
-    * The headers inside the report. There will be one for each combination
-    of executables, including each executable with themselves.
-    * They have some items:
-        * Name: `<publisher>--<subscriber>`
-        * Time: time spent in the execution of all the Test Cases
-          inside the Test Suite.
-        * Error tests (cross symbol): number of Test Cases with
-          errors in the Test Suite.
-        * Success tests (check symbol): number of succeeded Test Cases
-          in the Test Suite.
-        * A set of Test Cases.
-* **Test Cases**
-    * Test that we are testing.
-    * They are green (success) or red (failure).
-    * They have some items:
-        * Name
-        * Time: time spent in the execution of the Test Case.
-        * Parameters Publisher
-        * Parameters Subscriber
-        * In case of error:
-            * Expected code and code produced
-            * Console output from the shape application publisher
-            and subscriber.
 
 ## Report Bugs
 
