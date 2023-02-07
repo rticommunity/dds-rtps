@@ -44,7 +44,7 @@ You can run the script either automatically or manually.
 
     * 2.1. [Options of interoperability_report](#options-of-interoperability_report)
 
-      * 2.1.1. [Example of use interoperability_report](#example-of-use-interoperability-report)
+      * 2.1.1. [Example of use interoperability_report](#example-of-use-interoperability_report)
 
 
     * 2.2. [Requirements](#requirements)
@@ -130,7 +130,7 @@ The name of the release and the tag should be as explained in [Release and tag n
     * In *Choose a tag* write the name of the tag and select *Create a new tag*.
     * Write the release name on *Release title*.
     * In *Describe this release* write: 'Creating release `<name_release>`'.
-    * Attach the executables in *Attach binaries by dropping them here or selecting them* (you can perform this step later: see [Process of uploading the executable](#procress-of-uploading-the-executable)).
+    * Attach the executables in *Attach binaries by dropping them here or selecting them* (you can perform this step later: see [Process of uploading the executable](#process-of-uploading-the-executable)).
     * Mark *Set as the latest release*.
     * Make sure *Set as pre-release* is **not selected**.
     * Press *Publish release*.
@@ -290,7 +290,7 @@ In the case that your product does not appear in the labels of the repository yo
 At the beginning of the year the report from last year will be attached as an asset to the last release. This means that for each year we will have a report that is easily accessible and we will know which products this report is related to (they are attached as assets).
 
 ![last-report](./doc/Doc23.png)
-# **Run the tests manually**
+# **Run tests manually**
 ## **Options of interoperability_report**
 
 The `interoperability_report.py` may configure the following options:
