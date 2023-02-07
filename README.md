@@ -1,8 +1,17 @@
 # dds-rtps
 
-Validation of interoperability of products compliant with [OMG DDS-RTPS standard](https://www.omg.org/spec/DDSI-RTPS/). This is considered one of the core [DDS Specifications](https://www.dds-foundation.org/omg-dds-standard/). See https://www.dds-foundation.org/ for an overview of DDS.
+Validation of interoperability of products compliant with
+[OMG DDS-RTPS standard](https://www.omg.org/spec/DDSI-RTPS/).
+This is considered one of the core
+[DDS Specifications](https://www.dds-foundation.org/omg-dds-standard/).
+See https://www.dds-foundation.org/ for an overview of DDS.
 
-The executables found on the [release tab of this repository](https://github.com/omg-dds/dds-rtps/releases) test discovery, DDS Topic and QoS matching, and interoperability for different QoS settings. The goal is to validate that the implementations perform these functions in compliance with OMG DDS-RTPS standard and can interoperate with each other.
+The executables found on the
+[release tab of this repository](https://github.com/omg-dds/dds-rtps/releases)
+test discovery, DDS Topic and QoS matching, and interoperability for different
+QoS settings. The goal is to validate that the implementations perform
+these functions in compliance with OMG DDS-RTPS standard
+and can interoperate with each other.
 
 # Interoperability Automatic Tests
 
@@ -61,13 +70,21 @@ You can run the script either automatically or manually.
 
 # Run tests automatically
 
-To run the tests automatically we need to upload the executables generated with the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#process-of-uploading-the-executable).
+To run the tests automatically we need to upload the executables generated
+with the `shape_main.cxx` application into GitHub. This process is explained
+in [Process of uploading the executable](#process-of-uploading-the-executable).
 
-To manage the upload of the executables in a long period of time we will organize them into releases. This process is explained in [Create a release](#create-a-release).
+To manage the upload of the executables in a long period of time we will
+organize them into releases. This process is explained in
+[Create a release](#create-a-release).
 
-After we upload the executables we can generate the report, as explained in [Process of generating the report](#process-of-generating-the-report). The interoperability problems found can be reported as in [Reporting failures](#reporting-failures).
+After we upload the executables we can generate the report, as explained
+in [Process of generating the report](#process-of-generating-the-report).
+The interoperability problems found can be reported as in
+[Reporting failures](#reporting-failures).
 
-Finally, to find easily the last report available, see [Where can I find the last report](#where-can-i-find-the-last-report).
+Finally, to find easily the last report available, see
+[Where can I find the last report](#where-can-i-find-the-last-report).
 
 ## Create a release
 
@@ -77,21 +94,32 @@ There are two cases when we will create a new release:
 * Once a year \
     At the beginning of a new year we will create a new release.
     * Before creating the release we should:
-        * Generate a report (see [Process of generating the report](#process-of-generating-the-report)).
-        * Upload the report generated as an asset to the latest release (see [Process of uploading the executable](#process-of-uploading-the-executable) and follow the same steps but with the report instead than with the executable).
-* When there is a new functionality in `shape_main.cxx`, `interoperability_report.py`, or the creation of any other file that could be considered as a new functionality.
+        * Generate a report (see
+          [Process of generating the report](#process-of-generating-the-report)).
+        * Upload the report generated as an asset to the latest release
+          (see [Process of uploading the executable](#process-of-uploading-the-executable)
+          and follow the same steps but with the report
+          instead than with the executable).
+* When there is a new functionality in `shape_main.cxx`,
+ `interoperability_report.py`, or the creation of any other file that
+ could be considered as a new functionality.
 
-Every time we create a new release we need to select which executables we want to maintain in the new release. This new release should contain the last version uploaded for every vendor. The executables could also be uploaded (or removed) later.
+Every time we create a new release we need to select which executables
+we want to maintain in the new release. This new release should contain
+the last version uploaded for every vendor.
+The executables could also be uploaded (or removed) later.
 
 ### Release and tag name
 
-The name of the release and the tag associated with it will be the same. It should follow the next rule: \
+The name of the release and the tag associated with it will be the same.
+It should follow the next rule: \
 `vx.y.z`
 * x: major version
 * y: minor version
 * z: year
 
-Depending on the importance of the changes from the old release to the new one, it will be a major or a minor version change:
+Depending on the importance of the changes from the old release to the new one,
+it will be a major or a minor version change:
 * New functionality, major change -> major version
 * Bug fix or new functionality, minor change -> minor version
 
@@ -104,7 +132,8 @@ Depending on the importance of the changes from the old release to the new one, 
 
 ### Process of creating the release
 
-It is important that we set the release that we are creating as the latest release, and that we do not create it as a pre-release.
+It is important that we set the release that we are creating as the
+latest release, and that we do not create it as a pre-release.
 Here it is explained how to create the release with the graphic interface.
 
 > **Note**: to do it with the command line see `gh release` \
@@ -115,7 +144,8 @@ Here it is explained how to create the release with the graphic interface.
 > ~~~
 
 
-The name of the release and the tag should be as explained in [Release and tag name](#release-and-tag-name).
+The name of the release and the tag should be as explained in
+[Release and tag name](#release-and-tag-name).
 
 1. In the main page, go to *Releases*.
 
@@ -127,10 +157,13 @@ The name of the release and the tag should be as explained in [Release and tag n
 ![Draft a new release](./doc/Doc2.png)
 
 3. Do:
-    * In *Choose a tag* write the name of the tag and select *Create a new tag*.
+    * In *Choose a tag* write the name of the tag and select
+    *Create a new tag*.
     * Write the release name on *Release title*.
-    * In *Describe this release* write: 'Creating release `<name_release>`'.
-    * Attach the executables in *Attach binaries by dropping them here or selecting them* (you can perform this step later: see [Process of uploading the executable](#process-of-uploading-the-executable)).
+    * In *Describe this release* write: 'Creating release         `<name_release>`'.
+    * Attach the executables in *Attach binaries by dropping them here or
+      selecting them* (you can perform this step later: see
+      [Process of uploading the executable](#process-of-uploading-the-executable)).
     * Mark *Set as the latest release*.
     * Make sure *Set as pre-release* is **not selected**.
     * Press *Publish release*.
@@ -139,7 +172,8 @@ The name of the release and the tag should be as explained in [Release and tag n
 
 ## Process of uploading the executable
 
-Each vendor should compile their own version of their product with the `shape_main.cxx` application. They should name the executable created as: `<product_name>_shape_main_linux` and compress it into a `.zip.`
+Each vendor should compile their own version of their product with
+the `shape_main.cxx` application. They should name the executable created as: `<product_name>_shape_main_linux` and compress it into a `.zip.`
 
 Example:
 
@@ -157,13 +191,16 @@ Then they should upload the executable to git in the following way:
 
 ![Edit](./doc/Doc3.png)
 
-3. Upload the executables in *Attach binaries by dropping them here or selecting them* (leave all the other fields as they were). Keep marked *Set as the latest release*, and press *Update release*.
+3. Upload the executables in *Attach binaries by dropping them here or
+selecting them* (leave all the other fields as they were).
+Keep marked *Set as the latest release*, and press *Update release*.
 
 ![Attach](./doc/Doc4.png)
 
 ## Process of generating the report
 
-A new report can be generated in any case, but it should be done when a change is made in the latest release, i.e when a new executable is uploaded.
+A new report can be generated in any case, but it should be done when
+a change is made in the latest release, i.e when a new executable is uploaded.
 To generate the report you should follow the next steps:
 1. Go to *Actions*.
 
@@ -185,36 +222,48 @@ Example of a failed and a succeeded test:
 
 
 
-5. You will find something similar to this. At the bottom of the page you will see an **Artifacts** section with the report generated.
+5. You will find something similar to this. At the bottom of the page
+you will see an **Artifacts** section with the report generated.
 
 ![Artifacts-1](./doc/releases10.png)
 ![Artifacts-2](./doc/releases11.png)
 
-6. Open it (the html file named `index.html`, inside `report`) and you will have the html file generated. It will look something like this (set pretty option):
+6. Open it (the html file named `index.html`, inside `report`) and
+you will have the html file generated. It will look something like this
+(set pretty option):
 
 ![report-1](./doc/releases12.png)
 ![report-2](./doc/Doc8.png)
 
 ### How to delete a report
 
-In the case that you made a mistake uploading the executable and the report generated is not valid or that you want to delete an old report you can do it by deleting the workflow run. In order to do it:
+In the case that you made a mistake uploading the executable and
+the report generated is not valid or that you want to delete an old report
+you can do it by deleting the workflow run. In order to do it:
 
-* In *Actions*, select the GitHub Action workflow run you want to delete, and delete it.
+* In *Actions*, select the GitHub Action workflow run you want to delete,
+and delete it.
 
 ![delete-report](./doc/Doc22.png)
 
 ### Report
 
-The status of the GitHub Action will be **Failure** (red color), if any of the Test Cases that we are testing has an error, or **Success** (green color) if none of them reported any error.
+The status of the GitHub Action will be **Failure** (red color), if any of the
+Test Cases that we are testing has an error, or **Success** (green color)
+if none of them reported any error.
 
 The report file will contain some items:
 * **Test Suites**
-    * The headers inside the report. There will be one for each combination of executables, including each executable with themselves.
+    * The headers inside the report. There will be one for each combination
+    of executables, including each executable with themselves.
     * They have some items:
         * Name: `<publisher>--<subscriber>`
-        * Time: time spent in the execution of all the Test Cases inside the Test Suite.
-        * Error tests (cross symbol): number of Test Cases with errors in the Test Suite.
-        * Success tests (check symbol): number of succeeded Test Cases in the Test Suite.
+        * Time: time spent in the execution of all the Test Cases
+          inside the Test Suite.
+        * Error tests (cross symbol): number of Test Cases with
+          errors in the Test Suite.
+        * Success tests (check symbol): number of succeeded Test Cases
+          in the Test Suite.
         * A set of Test Cases.
 * **Test Cases**
     * Test that we are testing.
@@ -226,11 +275,16 @@ The report file will contain some items:
         * Parameters Subscriber
         * In case of error:
             * Expected code and code produced
-            * Console output from the shape application publisher and subscriber.
+            * Console output from the shape application publisher
+            and subscriber.
 
 ## Reporting failures
 
-In case of failure in any of the Test Cases, the vendors involved should check first that the problem found is not generated by their executables. If the cause of the problem is not known or it is believed to be generated by other executables, they should report the problem as an issue in the following way.
+In case of failure in any of the Test Cases, the vendors involved should
+check first that the problem found is not generated by their executables.
+If the cause of the problem is not known or it is believed to be generated
+by other executables, they should report the problem as an issue
+in the following way.
 * Go to *Issues*.
 
 ![Issues](./doc/doc11.png)
@@ -246,13 +300,15 @@ In case of failure in any of the Test Cases, the vendors involved should check f
 
 * Do:
     * Title: `Problem with <QoS or parameter>`
-    * Fill the fields (publisher and subscriber name, Test Suite, Test Case, expected codes and produced codes).
+    * Fill the fields (publisher and subscriber name, Test Suite,
+      Test Case, expected codes and produced codes).
     * Copy the link to the GitHub Action workflow run.
         * Example, from this page:
 
         ![Artifacts-1](./doc/releases10.png)
 
-    * Add any suggestion about how to fix it, or why this is happening [Optional].
+    * Add any suggestion about how to fix it, or why
+      this is happening [Optional].
     * Add another comment [Optional].
     * In the section *Labels*, assign them to the vendors involved.
 
@@ -265,9 +321,11 @@ In case of failure in any of the Test Cases, the vendors involved should check f
 
 ### How to create a label
 
-In the case that your product does not appear in the labels of the repository you should create it.
+In the case that your product does not appear in the labels of the repository
+you should create it.
 
-> **Note**: there is not one label for each version of the product, but one for each product. \
+> **Note**: there is not one label for each version of the product,
+but one for each product. \
 > Example: for `connext611` and `connext700`, the label would be `connext`.
 
 
@@ -276,7 +334,8 @@ In the case that your product does not appear in the labels of the repository yo
 ![Labels-create-1](./doc/Doc26.png)
 
 
-* Select *New Label*, and write the name of your product (you can also change the color).
+* Select *New Label*, and write the name of your product
+(you can also change the color).
 
 ![Labels-create-2](./doc/Doc18.png)
 
@@ -287,7 +346,10 @@ In the case that your product does not appear in the labels of the repository yo
 
 ## Where can I find the last report?
 
-At the beginning of the year the report from last year will be attached as an asset to the last release. This means that for each year we will have a report that is easily accessible and we will know which products this report is related to (they are attached as assets).
+At the beginning of the year the report from last year will be attached
+as an asset to the last release. This means that for each year we will have
+a report that is easily accessible and we will know which products
+this report is related to (they are attached as assets).
 
 ![last-report](./doc/Doc23.png)
 # Run tests manually
@@ -333,7 +395,8 @@ used, the date and the time in which it was generated. \
 For example:
 `<executable_name_publisher>-<executable_name_subscriber>-20230117-16_49_42.xml`
 
-> **Note**: to visualize the report in a more friendly-human way you can use `junit-viewer`. \
+> **Note**: to visualize the report in a more friendly-human way you can use
+`junit-viewer`. \
 > `junit-viewer --results=<xml_name> --save=<html_name>`
 ## Requirements
 
@@ -378,7 +441,8 @@ pip install -r requirements.txt
 
 # How to make changes in the repository
 
-To make changes in the repository you should test them before in your own repository, and then do a pull request.
+To make changes in the repository you should test them before in your
+own repository, and then do a pull request.
 
 * **First make a fork**. Select *Fork*, and then *Create a new fork*.
 
