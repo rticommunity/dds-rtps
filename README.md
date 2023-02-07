@@ -16,7 +16,7 @@ of the interoperability tests between both executables.
 You can run the script either automatically or manually.
 ## Table of contents
 
-* 1\. [Run tests automatically](#automatically)
+* 1\. [Run tests automatically](#run-tests-automatically)
 
     * 1.1. [Create a release](#release)
 
@@ -59,7 +59,7 @@ You can run the script either automatically or manually.
 
 * 3\. [How to make changes in the repository](#changes)
 
-# **Run tests automatically** {#automatically}
+# **Run tests automatically**
 
 To run the tests automatically we need to upload the executables generated with the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#executable).
 
