@@ -18,72 +18,72 @@ You can run the script either automatically or manually.
 
 * 1\. [Run tests automatically](#run-tests-automatically)
 
-    * 1.1. [Create a release](#release)
+    * 1.1. [Create a release](#create-a-release)
 
-      * 1.1.1. [When to create a release](#whenrelease)
+      * 1.1.1. [When to create a release](#when-to-create-a-release)
 
-      * 1.1.2. [Release and tag name](#releasename)
+      * 1.1.2. [Release and tag name](#release-and-tag-name)
 
-      * 1.1.3. [Process of creating the release](#createrelease)
+      * 1.1.3. [Process of creating the release](#process-of-creating-the-release)
 
-    * 1.2. [Process of uploading the executable](#executable)
+    * 1.2. [Process of uploading the executable](#process-of-uploading-the-executable)
 
-    * 1.3. [Process of generating the report](#generatereport)
+    * 1.3. [Process of generating the report](#process-of-generating-the-report)
 
-      * 1.3.1. [How to delete a report](#deletereport)
+      * 1.3.1. [How to delete a report](#how-to-delete-a-report)
 
       * 1.3.2. [Report](#report)
 
-    * 1.4. [Reporting failures](#failures)
+    * 1.4. [Reporting failures](#reporting-failures)
 
-      * 1.4.1. [How to create a label](#createlabel)
+      * 1.4.1. [How to create a label](#how-to-create-a-label)
 
-    * 1.5. [Where can I find the last report?](#lastreport)
+    * 1.5. [Where can I find the last report?](#where-can-i-find-the-last-report)
 
-* 2\. [Run the tests manually](#manually)
+* 2\. [Run tests manually](#run-tests-manually)
 
-    * 2.1. [Options of interoperability_report](#options)
+    * 2.1. [Options of interoperability_report](#options-of-interoperability_report)
 
-      * 2.1.1. [Example of use interoperability_report](#example)
+      * 2.1.1. [Example of use interoperability_report](#example-of-use-interoperability-report)
 
 
     * 2.2. [Requirements](#requirements)
 
-    * 2.3. [Using virtual environments](#virtual)
+    * 2.3. [Using virtual environments](#using-virtual-environments)
 
-      * 2.3.1. [Create virtual environment](#createvirtual)
+      * 2.3.1. [Create virtual environment](#create-virtual-environment)
 
-      * 2.3.2. [Activate virtual environment](#activatevirtual)
+      * 2.3.2. [Activate virtual environment](#activate-virtual-environment)
 
-      * 2.3.3. [Install requirements](#installvirtual)
+      * 2.3.3. [Install requirements](#install-requirements)
 
-* 3\. [How to make changes in the repository](#changes)
+* 3\. [How to make changes in the repository](#how-to-make-changes-in-the-repository)
 
 # **Run tests automatically**
 
-To run the tests automatically we need to upload the executables generated with the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#executable).
+To run the tests automatically we need to upload the executables generated with the `shape_main.cxx` application into GitHub. This process is explained in [Process of uploading the executable](#process-of-uploading-the-executable).
 
-To manage the upload of the executables in a long period of time we will organize them into releases. This process is explained in [Create a release](#release).
+To manage the upload of the executables in a long period of time we will organize them into releases. This process is explained in [Create a release](#create-a-release).
 
-After we upload the executables we can generate the report, as explained in [Process of generating the report](#generatereport). The interoperability problems found can be reported as in [Reporting failures](#failures).
+After we upload the executables we can generate the report, as explained in [Process of generating the report](#process-of-generating-the-report). The interoperability problems found can be reported as in [Reporting failures](#reporting-failures).
 
-Finally, to find easily the last report available, see [Where can I find the last report](#lastreport).
+Finally, to find easily the last report available, see [Where can I find the last report](#where-can-i-find-the-last-report).
 
-## **Create a release** <a name="release"></a>
+## **Create a release**
 
-### **When to create a release** <a name="whenrelease"></a>
+### **When to create a release**
 
 There are two cases when we will create a new release:
 * Once a year \
     At the beginning of a new year we will create a new release.
     * Before creating the release we should:
-        * Generate a report (see [Process of generating the report](#generatereport)).
-        * Upload the report generated as an asset to the latest release (see [Process of uploading the executable](#executable) and follow the same steps but with the report instead than with the executable).
+        * Generate a report (see [Process of generating the report](#process-of-generating-the-report)).
+        * Upload the report generated as an asset to the latest release (see [Process of uploading the executable](#process-of-uploading-the-executable) and follow the same steps but with the report instead than with the executable).
 * When there is a new functionality in `shape_main.cxx`, `interoperability_report.py`, or the creation of any other file that could be considered as a new functionality.
 
 Every time we create a new release we need to select which executables we want to maintain in the new release. This new release should contain the last version uploaded for every vendor. The executables could also be uploaded (or removed) later.
 
-### **Release and tag name**<a name="releasename"></a>
+### **Release and tag name**
 
 The name of the release and the tag associated with it will be the same. It should follow the next rule: \
 `vx.y.z`
@@ -102,7 +102,7 @@ Depending on the importance of the changes from the old release to the new one, 
 > * At the beginning of a new year: `v1.0.2023`
 >   * If last release was `v1.2.2022`, it would be `v1.2.2023`
 
-### **Process of creating the release** <a name="createrelease"></a>
+### **Process of creating the release**
 
 It is important that we set the release that we are creating as the latest release, and that we do not create it as a pre-release.
 Here it is explained how to create the release with the graphic interface.
@@ -115,7 +115,7 @@ Here it is explained how to create the release with the graphic interface.
 > ~~~
 
 
-The name of the release and the tag should be as explained in [Release and tag name](#releasename).
+The name of the release and the tag should be as explained in [Release and tag name](#release-and-tag-name).
 
 1. In the main page, go to *Releases*.
 
@@ -130,14 +130,14 @@ The name of the release and the tag should be as explained in [Release and tag n
     * In *Choose a tag* write the name of the tag and select *Create a new tag*.
     * Write the release name on *Release title*.
     * In *Describe this release* write: 'Creating release `<name_release>`'.
-    * Attach the executables in *Attach binaries by dropping them here or selecting them* (you can perform this step later: see [Process of uploading the executable](#executable)).
+    * Attach the executables in *Attach binaries by dropping them here or selecting them* (you can perform this step later: see [Process of uploading the executable](#procress-of-uploading-the-executable)).
     * Mark *Set as the latest release*.
     * Make sure *Set as pre-release* is **not selected**.
     * Press *Publish release*.
 
 ![Create release](./doc/doc2.png)
 
-## **Process of uploading the executable** <a name="executable"></a>
+## **Process of uploading the executable**
 
 Each vendor should compile their own version of their product with the `shape_main.cxx` application. They should name the executable created as: `<product_name>_shape_main_linux` and compress it into a `.zip.`
 
@@ -161,7 +161,7 @@ Then they should upload the executable to git in the following way:
 
 ![Attach](./doc/Doc4.png)
 
-## **Process of generating the report** <a name="generatereport"></a>
+## **Process of generating the report**
 
 A new report can be generated in any case, but it should be done when a change is made in the latest release, i.e when a new executable is uploaded.
 To generate the report you should follow the next steps:
@@ -195,7 +195,7 @@ Example of a failed and a succeeded test:
 ![report-1](./doc/releases12.png)
 ![report-2](./doc/Doc8.png)
 
-### **How to delete a report** <a name="deletereport"></a>
+### **How to delete a report**
 
 In the case that you made a mistake uploading the executable and the report generated is not valid or that you want to delete an old report you can do it by deleting the workflow run. In order to do it:
 
@@ -203,7 +203,7 @@ In the case that you made a mistake uploading the executable and the report gene
 
 ![delete-report](./doc/Doc22.png)
 
-### **Report** <a name="report"></a>
+### **Report**
 
 The status of the GitHub Action will be **Failure** (red color), if any of the Test Cases that we are testing has an error, or **Success** (green color) if none of them reported any error.
 
@@ -228,7 +228,7 @@ The report file will contain some items:
             * Expected code and code produced
             * Console output from the shape application publisher and subscriber.
 
-## **Reporting failures** <a name="failures"></a>
+## **Reporting failures**
 
 In case of failure in any of the Test Cases, the vendors involved should check first that the problem found is not generated by their executables. If the cause of the problem is not known or it is believed to be generated by other executables, they should report the problem as an issue in the following way.
 * Go to *Issues*.
@@ -263,7 +263,7 @@ In case of failure in any of the Test Cases, the vendors involved should check f
 
     ![Template](./doc/Doc25.png)
 
-### **How to create a label** <a name="createlabel"></a>
+### **How to create a label**
 
 In the case that your product does not appear in the labels of the repository you should create it.
 
@@ -285,13 +285,13 @@ In the case that your product does not appear in the labels of the repository yo
 ![Labels-create-3](./doc/Doc19.png)
 
 
-## **Where can I find the last report?** <a name="lastreport"></a>
+## **Where can I find the last report?**
 
 At the beginning of the year the report from last year will be attached as an asset to the last release. This means that for each year we will have a report that is easily accessible and we will know which products this report is related to (they are attached as assets).
 
 ![last-report](./doc/Doc23.png)
-# **Run the tests manually** <a name="manually"></a>
-## **Options of interoperability_report** <a name="options"></a>
+# **Run the tests manually**
+## **Options of interoperability_report**
 
 The `interoperability_report.py` may configure the following options:
 
@@ -319,7 +319,7 @@ output options:
 
 **NOTE**: The option `-f` only supports junit.
 
-### **Example of use interoperability_report** <a name="example"></a>
+### **Example of use interoperability_report**
 
 This is an example that runs the `interoperability_report.py`
 with the test suite `test_suite.py`
@@ -335,18 +335,18 @@ For example:
 
 > **Note**: to visualize the report in a more friendly-human way you can use `junit-viewer`. \
 > `junit-viewer --results=<xml_name> --save=<html_name>`
-## **Requirements** <a name="requirements"></a>
+## **Requirements**
 
 - Python 3.8+
 - Create and enable a virtual environment (installing requirements)
 
-## **Using virtual environments** <a name="virtual"></a>
+## **Using virtual environments**
 
 The build will be done using virtual environments, you should create and
 activate the virtual environment and then install all dependencies. This can be
 done by following these steps:
 
-### **Create virtual environment** <a name="createvirtual"></a>
+### **Create virtual environment**
 
 In Linux® systems, you may need to install the corresponding python venv
 package:
@@ -361,13 +361,13 @@ To create the virtual environment:
 python3 -m venv .venv
 ```
 
-### **Activate virtual environment** <a name="activatevirtual"></a>
+### **Activate virtual environment**
 
 ```
 source .venv/bin/activate
 ```
 
-### **Install requirements** <a name="installvirtual"></a>
+### **Install requirements**
 
 This step is only required the first time or when the requirements change:
 
@@ -376,7 +376,7 @@ pip install -r requirements.txt
 ```
 
 
-# **How to make changes in the repository** <a name="changes"></a>
+# **How to make changes in the repository**
 
 To make changes in the repository you should test them before in your own repository, and then do a pull request.
 
