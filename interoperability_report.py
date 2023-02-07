@@ -521,13 +521,17 @@ class Arguments:
             required=True,
             type=str,
             metavar='publisher_name',
-            help='Path to the Publisher shape_main application.')
+            help='Path to the Publisher shape_main application. \
+                If the executable is in the same folder as the script it should \
+                contain the "./". Example: ./rti_connext_dds-6.1.1_shape_main_linux')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
             metavar='subscriber_name',
-            help='Path to the Subscriber shape_main application.')
+            help='Path to the Subscriber shape_main application. \
+                If the executable is in the same folder as the script it should \
+                contain the "./". Example: ./rti_connext_dds-6.1.1_shape_main_linux')
 
         optional = parser.add_argument_group(title='optional parameters')
         optional.add_argument('-v','--verbose',
