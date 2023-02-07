@@ -13,16 +13,6 @@ QoS settings. The goal is to validate that the implementations perform
 these functions in compliance with OMG DDS-RTPS standard
 and can interoperate with each other.
 
-# Interoperability Automatic Tests
-
-The script `interoperability_report.py` generates automatically
-the verification between two executables of these interoperability tests.
-The tests that the script runs must be defined previously (for example
-`test_suite.py`).
-Once the script finishes, it generates a report with the result
-of the interoperability tests between both executables.
-
-You can run the script either automatically or manually.
 ## Table of contents
 
 * 1\. [Run tests automatically](#run-tests-automatically)
@@ -67,6 +57,17 @@ You can run the script either automatically or manually.
       * 2.3.3. [Install requirements](#install-requirements)
 
 * 3\. [How to make changes in the repository](#how-to-make-changes-in-the-repository)
+# Automatic Interoperability Tests
+
+The script `interoperability_report.py` generates automatically
+the verification between two executables of these interoperability tests.
+The tests that the script runs must be defined previously (for example
+`test_suite.py`).
+Once the script finishes, it generates a report with the result
+of the interoperability tests between both executables.
+
+You can run the script either automatically or manually.
+
 
 # Run tests automatically
 
