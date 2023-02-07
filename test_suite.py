@@ -4,41 +4,24 @@ import pexpect
 # rtps_test_suite_1 is a dictionary where we define the TestSuite
 # (with its TestCases that we will test in interoperability_report.py).
 # The dictionary has the following structure:
-#       'name' : [parameters_publisher, parameters_subscriber,
-#              expected_return_code_publisher, expected_return_code_subscriber]
+#       'name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
 # where:
 #       * name: TestCase's name (defined by us)
-#       * parameters_publisher: parameters the shape_main application
-#         uses for the publisher process
-#       * parameters_subscriber: parameters the shape_main application
-#         uses for the subscriber process
-#       * expected_return_code_publisher: expected publisher ReturnCode
+#       * parameters: list with parameters for the shape_main application.
+#       * expected_return_codes: list with expected ReturnCode
 #         for a succeed test execution.
-#       * expected_return_code_subscriber: expected subscriber ReturnCode
-#         for a succeed test execution.
+#       * function[OPTIONAL]: function to check how the Subscribers receive
+#         the samples from the Publishers. By default it does not check
+#         anything.
+# The number of elements in parameters will define how many shape_main
+# application we will run. It should be the same as the number of
+# elements in expected_return_codes.
 #
-# There are also two testCases that contains more parameters:
-#       Test_Ownership_3 and Test_Ownership_4.
-# That is because these two cases run two publishers and one subscriber.
-# These two cases are handled manually in the interoperability_report.py
-# script.
-# The parameters in this case are:
-#       * name: TestCase's name (defined by us)
-#       * parameters_publisher1: parameters the shape_main application
-#         uses for the publisher1 process
-#       * parameters_publisher2: parameters the shape_main application
-#         uses for the publisher2 process
-#       * parameters_subscriber: parameters the shape_main application
-#         uses for the subscriber process
-#       * expected_return_code_publisher1: expected publisher1 ReturnCode
-#         for a succeed test execution.
-#       * expected_return_code_publisher2: expected publisher2 ReturnCode
-#         for a succeed test execution.
-#       * expected_return_code_subscriber: expected subscriber ReturnCode
-#         for a succeed test execution.
+# test_ownership3_4 and test_reliability_4 are two functions defined
+# to check how the Subscriber receives the samples.
 
-#test_ownership3-4 explain what is doing
-def check_receiving_from(child_sub, samples_sent, timeout, verbosity):
+# It checks from which Publisher the Subscriber is receiving the samples.
+def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
     first_received_first_time = False
     second_received_first_time = False
     first_received = False
@@ -46,11 +29,11 @@ def check_receiving_from(child_sub, samples_sent, timeout, verbosity):
     list_data_received_second = []
     max_samples_received = 80
     max_wait_time = 5
-    for x in range(0,max_samples_received,1): #variable instead of 80
+    for x in range(0,max_samples_received,1):
         sub_string = re.search('[0-9]{3} [0-9]{3}',
             child_sub.before)
         try:
-            list_data_received_second.append(samples_sent[1].get(True, max_wait_time)) #timeout instead of 5
+            list_data_received_second.append(samples_sent[1].get(True, max_wait_time))
         except:
             break
         if sub_string.group(0) not in list_data_received_second \
@@ -77,7 +60,8 @@ def check_receiving_from(child_sub, samples_sent, timeout, verbosity):
 
     return ReturnCode.RECEIVING_FROM_ONE
 
-def check_reliability(child_sub, samples_sent, timeout, verbosity):
+# It checks if the Subscriber is receiving the samples in order.
+def test_reliability_4(child_sub, samples_sent, timeout, verbosity):
     max_samples_received = 3
     max_wait_time = 5
     for x in range(0, max_samples_received, 1):
@@ -117,7 +101,7 @@ rtps_test_suite_1 = {
     # This test only checks that data is received correctly
     'Test_Reliability_3' : [['-P -t Square -r -k 3 -x 2', '-S -t Square -r -x 2'], [ReturnCode.OK, ReturnCode.OK]],
     # This test checks that data is received in the right order
-    'Test_Reliability_4' : [['-P -t Square -r -k 0 -w -x 2', '-S -t Square -r -k 0 -x 2'], [ReturnCode.OK, ReturnCode.OK], check_reliability],
+    'Test_Reliability_4' : [['-P -t Square -r -k 0 -w -x 2', '-S -t Square -r -k 0 -x 2'], [ReturnCode.OK, ReturnCode.OK], test_reliability_4],
 
     # DEADLINE
     'Test_Deadline_0' : [['-P -t Square -f 3 -x 2', '-S -t Square -f 5 -x 2'], [ReturnCode.OK, ReturnCode.OK]],
@@ -185,8 +169,8 @@ rtps_test_suite_2 = {
     # OWNERSHIP
     # Two Publishers and One Subscriber to test that if each one has a different color, the ownership strength does not matter
     'Test_Ownership_3': [['-P -t Square -s 3 -c BLUE -w -x 2', '-P -t Square -s 4 -c RED -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2'],
-                         [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH], check_receiving_from],
+                         [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH], test_ownership3_4],
     # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
     'Test_Ownership_4': [['-P -t Square -s 5 -r -k 0 -w -x 2', '-P -t Square -s 4 -r -k 0 -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2'],
-                         [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE], check_receiving_from],
+                         [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE], test_ownership3_4],
 }
