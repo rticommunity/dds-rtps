@@ -15,7 +15,7 @@ and can interoperate with each other.
 
 ## Table of contents
 
-* 1\. [Run tests manually](#run-tests-manually)
+* 1\. [Run Interoperability Test](#run-interoperability-test)
     * 1.1. [Requirements](#requirements)
 
       * 1.1.1. [Using virtual environments](#using-virtual-environments)
@@ -30,13 +30,17 @@ and can interoperate with each other.
 
     * 1.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
 
-    * 1.4. [Report]
+    * 1.4. [Report](#report)
 
-* 2\. [Run tests automatically](#run-tests-automatically)
+* 2\. [Automation with GitHub Actions](#automation-with-github-actions)
 
-    * 2.1. [Process of uploading the executable](#process-of-uploading-the-executable)
+* 3\. [Workflow]
 
-    * 2.2. [Create a release](#create-a-release)
+    * 3.1. [Create executable](#create-executable)
+
+    * 3.2. [Upload executable](#upload-executable)
+
+    * 3.3. [Create a new release](#create-a-new-release)
 
       * 2.1.1. [When to create a release](#when-to-create-a-release)
 
@@ -44,31 +48,42 @@ and can interoperate with each other.
 
       * 2.1.3. [Process of creating the release](#process-of-creating-the-release)
 
-    * 2.3. [Process of generating the report](#process-of-generating-the-report)
+    * 3.4. [Report Bugs](#report-bugs)
 
-      * 2.3.1. [How to delete a report](#how-to-delete-a-report)
-
-      * 2.3.2. [Report](#report)
-
-    * 2.4. [Reporting failures](#reporting-failures)
-
-      * 2.4.1. [How to create a label](#how-to-create-a-label)
-
-    * 2.5. [Where can I find the last report?](#where-can-i-find-the-last-report)
-
-
-* 3\. [How to make changes in the repository](#how-to-make-changes-in-the-repository)
 # Automatic Interoperability Tests
 
 The script `interoperability_report.py` generates automatically
 the verification between two executables of these interoperability tests.
-The tests that the script runs must be defined previously in a python file following the pattern described in `test_suite.py`. By default it will run the tests from `test_suite.py`.
+The tests that the script runs must be defined previously in a python file
+following the next pattern:
+~~~python
+# test_suite_name = {
+#   'test_name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
+# }
+# where:
+#   * name: TestCase name (defined by us)
+#   * parameters: list with shape_main application parameters
+#   * expected_return_codes: list with expected ReturnCodes for a succeed test execution.
+#   * function [OPTIONAL]: function to check how the Subscribers receive the samples from the Publishers. By default it does not check anything.
+
+# Example
+rtps_test_suite_1 = {
+  # one publisher with parameters [-t Square -x 2] and one subscriber with
+  # [-t Square -c # RED -x 2]. The publisher expected return code is OK and the Subscriber, DATA_NOT_RECEIVED
+  'Test_Color_7' :  [['-P -t Square -x 2', '-S -t Square -c RED -x 2'],
+                                 [ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED]],
+  # two publishers and one subscriber, all of them with expected return codes OK.
+  'Test_DataRepresentation_0' : [['-P -t Square -x 1', '-P -t Square -x 1', '-S -t Square -x 1'], [ReturnCode.OK, ReturnCode.OK, ReturnCode.OK]],
+}
+~~~
+By default it will run the tests from `test_suite.py`.
+
 Once the script finishes, it generates a report with the result
 of the interoperability tests between both executables.
 
-You can run the script either automatically or manually.
+You can run the script either automatically (#automation-with-github-actions) or manually (#run-interoperability-test).
 
-# Run tests manually
+# Run Interoperability Test
 
 ## Requirements
 
@@ -143,7 +158,8 @@ This is an example that runs the `interoperability_report.py`
 with the test suite `test_suite.py`
 
 ```
-$ python3 interoperability_report.py -P <path_to_publisher_executable> -S <path_to_subscriber_executable>
+$ python3 interoperability_report.py -P <path_to_publisher_executable>
+-S <path_to_subscriber_executable>
 ```
 
 This generates a report file in JUnit (xml) with the name of both executables
@@ -156,7 +172,9 @@ For example:
 > `junit-viewer --results=<xml_name> --save=<html_name>`
 
 ## Report
-# Run tests automatically
+
+TODO
+# Automation with GitHub Actions
 
 To run the tests automatically we need to upload the executables generated
 with the `shape_main.cxx` application into GitHub. This process is explained
@@ -174,10 +192,52 @@ The interoperability problems found can be reported as in
 Finally, to find easily the last report available, see
 [Where can I find the last report](#where-can-i-find-the-last-report).
 
-## Process of uploading the executable
+## Process of generating the report
+
+A new report can be generated in any case, but it should be done when
+a change is made in the latest release, i.e when a new executable is uploaded.
+To generate the report you should follow the next steps:
+1. Go to *Actions*.
+
+![Actions](./doc/releases6.png)
+
+2. Go to *Testing Interoperability*.
+
+![Testing-Interoperability](./doc/Doc5.png)
+
+3. Press *Run workflow*, select master branch (for the official tests).
+
+![Run-workflow](./doc/Doc6.png)
+
+4. Wait a few minutes until the new task is finished and then press it.\
+Example of a failed and a succeeded test:
+
+![Succeeded test](./doc/Doc7.png)
+![Failed test](./doc/releases9.png)
+
+
+
+5. You will find something similar to this. At the bottom of the page
+you will see an **Artifacts** section with the report generated.
+
+![Artifacts-1](./doc/releases10.png)
+![Artifacts-2](./doc/releases11.png)
+
+6. Open it (the html file named `index.html`, inside `report`) and
+you will have the html file generated. It will look something like this
+(set pretty option):
+
+![report-1](./doc/releases12.png)
+![report-2](./doc/Doc8.png)
+
+# Workflow
+
+## Create Executable
+## Upload Executable
 
 Each vendor should compile their own version of their product with
-the `shape_main.cxx` application. They should name the executable created as: `<product_name>_shape_main_linux` and compress it into a `.zip.`
+the `shape_main.cxx` application. They should name the executable created as:
+`<product_name>_shape_main_linux` and compress it into a `.zip.`
 
 Example:
 
@@ -200,7 +260,7 @@ selecting them* (leave all the other fields as they were).
 Keep marked *Set as the latest release*, and press *Update release*.
 
 ![Attach](./doc/Doc4.png)
-## Create a release
+## Create a new release
 
 ### When to create a release
 
@@ -211,7 +271,8 @@ There are two cases when we will create a new release:
         * Generate a report (see
           [Process of generating the report](#process-of-generating-the-report)).
         * Upload the report generated as an asset to the latest release
-          (see [Process of uploading the executable](#process-of-uploading-the-executable)
+          (see
+          [Process of uploading the executable](#process-of-uploading-the-executable)
           and follow the same steps but with the report
           instead than with the executable).
 * When there is a new functionality in `shape_main.cxx`,
@@ -286,55 +347,6 @@ The name of the release and the tag should be as explained in
 
 
 
-## Process of generating the report
-
-A new report can be generated in any case, but it should be done when
-a change is made in the latest release, i.e when a new executable is uploaded.
-To generate the report you should follow the next steps:
-1. Go to *Actions*.
-
-![Actions](./doc/releases6.png)
-
-2. Go to *Testing Interoperability*.
-
-![Testing-Interoperability](./doc/Doc5.png)
-
-3. Press *Run workflow*, select master branch (for the official tests).
-
-![Run-workflow](./doc/Doc6.png)
-
-4. Wait a few minutes until the new task is finished and then press it.\
-Example of a failed and a succeeded test:
-
-![Succeeded test](./doc/Doc7.png)
-![Failed test](./doc/releases9.png)
-
-
-
-5. You will find something similar to this. At the bottom of the page
-you will see an **Artifacts** section with the report generated.
-
-![Artifacts-1](./doc/releases10.png)
-![Artifacts-2](./doc/releases11.png)
-
-6. Open it (the html file named `index.html`, inside `report`) and
-you will have the html file generated. It will look something like this
-(set pretty option):
-
-![report-1](./doc/releases12.png)
-![report-2](./doc/Doc8.png)
-
-### How to delete a report
-
-In the case that you made a mistake uploading the executable and
-the report generated is not valid or that you want to delete an old report
-you can do it by deleting the workflow run. In order to do it:
-
-* In *Actions*, select the GitHub Action workflow run you want to delete,
-and delete it.
-
-![delete-report](./doc/Doc22.png)
-
 ### Report
 
 The status of the GitHub Action will be **Failure** (red color), if any of the
@@ -367,7 +379,7 @@ The report file will contain some items:
             * Console output from the shape application publisher
             and subscriber.
 
-## Reporting failures
+## Report Bugs
 
 In case of failure in any of the Test Cases, the vendors involved should
 check first that the problem found is not generated by their executables.
