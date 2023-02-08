@@ -15,47 +15,46 @@ and can interoperate with each other.
 
 ## Table of contents
 
-* 1\. [Run Interoperability Test](#run-interoperability-test)
-    * 1.1. [Requirements](#requirements)
+* 1\. [Automatic Interoperability Tests](#automatic-interoperability-tests)
 
-      * 1.1.1. [Using virtual environments](#using-virtual-environments)
+* 2\. [Run Interoperability Test](#run-interoperability-test)
+    * 2.1. [Requirements](#requirements)
 
-        * 1.1.1.1. [Create virtual environment](#create-virtual-environment)
+      * 2.1.1. [Using virtual environments](#using-virtual-environments)
 
-        * 1.1.1.2. [Activate virtual environment](#activate-virtual-environment)
+        * 2.1.1.1. [Create virtual environment](#create-virtual-environment)
 
-        * 1.1.1.3. [Install requirements](#install-requirements)
+        * 2.1.1.2. [Activate virtual environment](#activate-virtual-environment)
 
-    * 1.2. [Options of interoperability_report](#options-of-interoperability_report)
+        * 2.1.1.3. [Install requirements](#install-requirements)
 
-    * 1.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
+    * 2.2. [Options of interoperability_report](#options-of-interoperability_report)
 
-    * 1.4. [Report](#report)
+    * 2.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
 
-* 2\. [Automation with GitHub Actions](#automation-with-github-actions)
+    * 2.4. [Report](#report)
 
-* 3\. [Workflow]
+* 3\. [Automation with GitHub Actions](#automation-with-github-actions)
 
-    * 3.1. [Create executable](#create-executable)
+* 4\. [Workflow]
 
-    * 3.2. [Upload executable](#upload-executable)
+    * 4.1. [Create executable](#create-executable)
 
-    * 3.3. [Create a new release](#create-a-new-release)
+    * 4.2. [Upload executable](#upload-executable)
 
-      * 2.1.1. [When to create a release](#when-to-create-a-release)
+    * 4.3. [Create a new release](#create-a-new-release)
 
-      * 2.1.2. [Release and tag name](#release-and-tag-name)
+      * 4.1.1. [When to create a release](#when-to-create-a-release)
 
-      * 2.1.3. [Process of creating the release](#process-of-creating-the-release)
+      * 4.1.2. [Release and tag name](#release-and-tag-name)
 
-    * 3.4. [Report Bugs](#report-bugs)
+      * 4.1.3. [Process of creating the release](#process-of-creating-the-release)
+
+    * 4.4. [Report Bugs](#report-bugs)
 
 # Automatic Interoperability Tests
 
-The script `interoperability_report.py` generates automatically
-the verification between two executables of these interoperability tests.
-The tests that the script runs must be defined previously in a python file
-following the next pattern:
+The script `interoperability_report.py` tests automatically the interoperability between two executables, generated with the shape_main application. The tests that the script runs must be defined previously in a python file following the next pattern:
 ~~~python
 # test_suite_name = {
 #   'test_name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
@@ -64,7 +63,9 @@ following the next pattern:
 #   * name: TestCase name (defined by us)
 #   * parameters: list with shape_main application parameters
 #   * expected_return_codes: list with expected ReturnCodes for a succeed test execution.
-#   * function [OPTIONAL]: function to check how the Subscribers receive the samples from the Publishers. By default it does not check anything.
+#   * function [OPTIONAL]: function to check how the Subscribers receives
+#     the samples from the Publishers. By default it does not check
+#     anything.
 
 # Example
 rtps_test_suite_1 = {
