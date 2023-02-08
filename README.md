@@ -70,7 +70,8 @@ The script `interoperability_report.py` tests automatically the interoperability
 # Example
 rtps_test_suite_1 = {
   # one publisher with parameters [-t Square -x 2] and one subscriber with
-  # [-t Square -c # RED -x 2]. The publisher expected return code is OK and the Subscriber, DATA_NOT_RECEIVED
+  # [-t Square -c # RED -x 2]. The publisher expected return code is OK
+  # and the Subscriber, DATA_NOT_RECEIVED
   'Test_Color_7' :  [['-P -t Square -x 2', '-S -t Square -c RED -x 2'],
                     [ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED]],
   # two publishers and one subscriber, all of them with expected return codes OK.
