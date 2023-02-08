@@ -223,9 +223,9 @@ The report file will contain some items:
         * Name: `<publisher>--<subscriber>`
         * Time: time spent in the execution of all the Test Cases
           inside the Test Suite.
-        * Error tests (:heavy_check_mark:): number of Test Cases with
+        * Error tests :heavy_cross_mark: : number of Test Cases with
           errors in the Test Suite.
-        * Success tests &cross; : number of succeeded Test Cases
+        * Success tests :heavy_check_mark: : number of succeeded Test Cases
           in the Test Suite.
         * A set of Test Cases.
 * **Test Cases**
