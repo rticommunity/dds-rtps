@@ -242,7 +242,7 @@ The report file will contain some items:
 
 # Automation with GitHub Actions
 
-The process of calling the script `interoperability_report.py` and generating a `html` report can be done automatically with GitHub Actions.
+The process of calling the script `interoperability_report.py` and generating an `html` report can be done automatically with GitHub Actions.
 
 It should be done in the following cases:
   * A new executable is uploaded
@@ -263,7 +263,7 @@ To generate the report you should follow the next steps:
 ![Run-workflow](./doc/Doc6.png)
 
 4. Wait a few minutes until the new task is finished and then press it.\
-Example of a failed and a succeeded test:
+Example of a successful and a failed test:
 
 ![Succeeded test](./doc/Doc7.png)
 ![Failed test](./doc/releases9.png)
@@ -276,14 +276,14 @@ you will see an **Artifacts** section with the report generated.
 ![Artifacts-2](./doc/releases11.png)
 
 6. Open it (the html file named `index.html`, inside `report`) and
-you will have the html file generated. It will look something like this
+you will have the report generated. It will look something like this
 (set pretty option):
 
 ![report-1](./doc/releases12.png)
 ![report-2](./doc/Doc8.png)
 
-> **Note**: The status of the GitHub Action will be **Failure** (red color), if any of the
-Test Cases that we are testing has an error, or **Success** (green color)
+> **Note**: The status of the GitHub Action will be **Failure** :x:, if any of the
+Test Cases that we are testing has an error, or **Success** :heavy_check_mark:
 if none of them reported any error.
 # Workflow
 
