@@ -17,7 +17,7 @@ and can interoperate with each other.
 
 * 1\. [Automatic Interoperability Tests](#automatic-interoperability-tests)
 
-* 2\. [Run Interoperability Test](#run-interoperability-test)
+* 2\. [Run Interoperability Test Manually](#run-interoperability-test-manually)
     * 2.1. [Requirements](#requirements)
 
       * 2.1.1. [Using virtual environments](#using-virtual-environments)
@@ -36,7 +36,7 @@ and can interoperate with each other.
 
 * 3\. [Automation with GitHub Actions](#automation-with-github-actions)
 
-* 4\. [Workflow]
+* 4\. [Workflow](#workflow)
 
     * 4.1. [Create executable](#create-executable)
 
@@ -84,9 +84,9 @@ By default it will run the tests from `test_suite.py`.
 Once the script finishes, it generates a report with the result
 of the interoperability tests between both executables.
 
-You can run the script either [automatically](#automation-with-github-actions) or [manually](#run-interoperability-test).
+You can run the script either [automatically](#automation-with-github-actions) or [manually](#run-interoperability-test-manually).
 
-# Run Interoperability Test
+# Run Interoperability Test Manually
 
 ## Requirements
 
@@ -223,9 +223,9 @@ The report file will contain some items:
         * Name: `<publisher>--<subscriber>`
         * Time: time spent in the execution of all the Test Cases
           inside the Test Suite.
-        * Error tests (cross symbol): number of Test Cases with
+        * Error tests (&#x2612;): number of Test Cases with
           errors in the Test Suite.
-        * Success tests (check symbol): number of succeeded Test Cases
+        * Success tests &#x2611;: number of succeeded Test Cases
           in the Test Suite.
         * A set of Test Cases.
 * **Test Cases**
