@@ -71,9 +71,10 @@ rtps_test_suite_1 = {
   # one publisher with parameters [-t Square -x 2] and one subscriber with
   # [-t Square -c # RED -x 2]. The publisher expected return code is OK and the Subscriber, DATA_NOT_RECEIVED
   'Test_Color_7' :  [['-P -t Square -x 2', '-S -t Square -c RED -x 2'],
-                                 [ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED]],
+                    [ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED]],
   # two publishers and one subscriber, all of them with expected return codes OK.
-  'Test_DataRepresentation_0' : [['-P -t Square -x 1', '-P -t Square -x 1', '-S -t Square -x 1'], [ReturnCode.OK, ReturnCode.OK, ReturnCode.OK]],
+  'Test_DataRepresentation_0' : [['-P -t Square -x 1', '-P -t Square -x 1', '-S -t Square -x 1'],
+                                [ReturnCode.OK, ReturnCode.OK, ReturnCode.OK]],
 }
 ~~~
 By default it will run the tests from `test_suite.py`.
@@ -81,7 +82,7 @@ By default it will run the tests from `test_suite.py`.
 Once the script finishes, it generates a report with the result
 of the interoperability tests between both executables.
 
-You can run the script either automatically (#automation-with-github-actions) or manually (#run-interoperability-test).
+You can run the script either [automatically](#automation-with-github-actions) or [manually](#run-interoperability-test).
 
 # Run Interoperability Test
 
@@ -406,8 +407,6 @@ The name of the release and the tag should be as explained in
 
 ![Create release](./doc/doc2.png)
 
-### Report
-
 ## Report Bugs
 
 In case of failure in any of the Test Cases, the vendors involved should
@@ -448,50 +447,3 @@ in the following way.
     * Press *Submit new issue*.
 
     ![Template](./doc/Doc25.png)
-
-### How to create a label
-
-In the case that your product does not appear in the labels of the repository
-you should create it.
-
-> **Note**: there is not one label for each version of the product,
-but one for each product. \
-> Example: for `connext611` and `connext700`, the label would be `connext`.
-
-
-* To create it go to *Issues*, then to *Labels*.
-
-![Labels-create-1](./doc/Doc26.png)
-
-
-* Select *New Label*, and write the name of your product
-(you can also change the color).
-
-![Labels-create-2](./doc/Doc18.png)
-
-* Select *Create label*.
-
-![Labels-create-3](./doc/Doc19.png)
-
-
-## Where can I find the last report?
-
-At the beginning of the year the report from last year will be attached
-as an asset to the last release. This means that for each year we will have
-a report that is easily accessible and we will know which products
-this report is related to (they are attached as assets).
-
-![last-report](./doc/Doc23.png)
-
-
-# How to make changes in the repository
-
-To make changes in the repository you should test them before in your
-own repository, and then do a pull request.
-
-* **First make a fork**. Select *Fork*, and then *Create a new fork*.
-
-![fork](./doc/Doc20.png)
-
-* Test all the changes you want to make in the repository.
-* Do a pull request to the `omg-dds/dds-rtps` repository.
