@@ -334,10 +334,10 @@ There are two cases when we will create a new release:
     At the beginning of a new year we will create a new release.
     * Before creating the release we should:
         * Generate a report (see
-          [Process of generating the report](#process-of-generating-the-report)).
+          [Automation with GitHub Actions](#automation-with-github-actions)).
         * Upload the report generated as an asset to the latest release
           (see
-          [Process of uploading the executable](#process-of-uploading-the-executable)
+          [Upload executable](#upload-executable)
           and follow the same steps but with the report
           instead than with the executable).
 * When there is a new functionality in `shape_main.cxx`,
