@@ -323,6 +323,8 @@ selecting them* (leave all the other fields as they were).
 Keep marked *Set as the latest release*, and press *Update release*.
 
 ![Attach](./doc/Doc4.png)
+
+> **Note**: when a new executable is uploaded we should generate a new report. To do it, go to [Automation with GitHub Action](#automation-with-github-action)
 ## Create a new release
 
 ### When to create a release
