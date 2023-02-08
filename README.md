@@ -54,7 +54,7 @@ and can interoperate with each other.
 
 # Automatic Interoperability Tests
 
-The script `interoperability_report.py` tests automatically the interoperability between two executables, generated with the shape_main application. The tests that the script runs must be defined previously in a python file following the next pattern:
+The script `interoperability_report.py` tests automatically the interoperability between two executables, generated with the `shape_main application`. The tests that the script runs must be defined previously in a python file following the next pattern:
 ~~~python
 # test_suite_name = {
 #   'test_name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
@@ -65,12 +65,12 @@ The script `interoperability_report.py` tests automatically the interoperability
 #   * expected_return_codes: list with expected ReturnCodes for a succeed test execution.
 #   * function [OPTIONAL]: function to check how the Subscribers receives
 #     the samples from the Publishers. By default it does not check
-#     anything.
+#     anything. The function has to be implemented by us.
 
 # Example
 rtps_test_suite_1 = {
   # one publisher with parameters [-t Square -x 2] and one subscriber with
-  # [-t Square -c # RED -x 2]. The publisher expected return code is OK
+  # [-t Square -c RED -x 2]. The publisher expected return code is OK
   # and the Subscriber, DATA_NOT_RECEIVED
   'Test_Color_7' :  [['-P -t Square -x 2', '-S -t Square -c RED -x 2'],
                     [ReturnCode.OK, ReturnCode.DATA_NOT_RECEIVED]],
@@ -101,7 +101,7 @@ done by following these steps:
 
 #### Create virtual environment
 
-In Linux® systems, you may need to install the corresponding python venv
+In Linux® systems, you may need to install the corresponding python `venv`
 package:
 
 ```
@@ -213,7 +213,7 @@ $ python3 interoperability_report.py -P <path_to_publisher_executable>
 The script will generate a report file in JUnit (xml).
 
 > **Note**: to visualize the report in a more friendly-human way you can use
-`junit-viewer`. \
+`junit-viewer`: \
 > `junit-viewer --results=<xml_name> --save=<html_name>`
 
 The report file will contain some items:
@@ -403,7 +403,7 @@ The name of the release and the tag should be as explained in
     * In *Describe this release* write: 'Creating release         `<name_release>`'.
     * Attach the executables in *Attach binaries by dropping them here or
       selecting them* (you can perform this step later: see
-      [Process of uploading the executable](#process-of-uploading-the-executable)).
+      [Upload executable](#upload-executable)).
     * Mark *Set as the latest release*.
     * Make sure *Set as pre-release* is **not selected**.
     * Press *Publish release*.
