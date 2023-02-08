@@ -223,19 +223,18 @@ The report file will contain some items:
         * Name: `<publisher>--<subscriber>`
         * Time: time spent in the execution of all the Test Cases
           inside the Test Suite.
-        * Error tests :x: : number of Test Cases with
+        * Total error tests :x: : number of Test Cases with
           errors in the Test Suite.
-        * Success tests :heavy_check_mark: : number of succeeded Test Cases
+        * Total success tests :heavy_check_mark: : number of successful Test Cases
           in the Test Suite.
         * A set of Test Cases.
 * **Test Cases**
     * Test that we are testing.
-    * They are green (success) or red (failure).
+    * They are green :heavy_check_mark: (success) or red :x: (failure).
     * They have some items:
         * Name
         * Time: time spent in the execution of the Test Case.
-        * Parameters Publisher
-        * Parameters Subscriber
+        * Parameters Publisher/Subscriber
         * In case of error:
             * Expected code and code produced
             * Console output from the shape application publisher
