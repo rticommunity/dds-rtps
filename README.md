@@ -15,7 +15,7 @@ and can interoperate with each other.
 
 ## Table of contents
 
-* 1\. [Automatic Interoperability Tests](#automatic-interoperability-tests)
+* 1\. [Introduction](#introduction)
 
 * 2\. [Run Interoperability Test Manually](#run-interoperability-test-manually)
     * 2.1. [Requirements](#requirements)
@@ -52,7 +52,7 @@ and can interoperate with each other.
 
     * 4.4. [Report Bugs](#report-bugs)
 
-# Automatic Interoperability Tests
+# Introduction
 
 The script `interoperability_report.py` tests automatically the interoperability between two executables, generated with the `shape_main application`. The tests that the script runs must be defined previously in a python file following the next pattern:
 ~~~python
@@ -242,12 +242,12 @@ The report file will contain some items:
 
 # Automation with GitHub Actions
 
-The process of calling the script `interoperability_report.py` and generating an `html` report can be done automatically with GitHub Actions.
+GitHub Actions will call automatically the script `interoperability_report.py` and it will generate an `html` report.
 
-It should be done in the following cases:
-  * A new executable is uploaded
-  * A change is made in `interoperability_report.py`
-  * A change is made in `test_suite.py`
+We will trigger the process in the following cases:
+  * With the upload of a new executable
+  * When `interoperability_report.py` changes
+  * When `test_suite.py` changes
 
 To generate the report you should follow the next steps:
 1. Go to *Actions*.
@@ -287,13 +287,19 @@ Test Cases that we are testing has an error, or **Success** :heavy_check_mark:
 if none of them reported any error.
 # Workflow
 
+This section explains which are the events you may find in the process of maintaining
+the repository.
 ## Create executable
 
-A new executable should be created in the following cases:
-* When a new version of the product is released
-* When a change is made in `shape_main.cxx`
+The cases when we should create an executable are:
 
-To generate the executable you need to compile with the `shape_main.cxx` using your own makefile.
+* With the release of a new version of the dds implementation
+* When  `shape_main.cxx` changes. In this case there will be a new release version
+  and, depending on the importance of the change, maybe the old executables are not
+  compatible.
+
+The steps to compile with `shape_main.cxx` are not defined but
+there are some `makefiles` to help you with the task in the `srcCxx` folder.
 
 > **Note**: to compile with `connext` you may want to use `makefile_rti_connext_dds_linux`.
 ## Upload executable
