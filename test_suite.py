@@ -8,11 +8,11 @@ import pexpect
 # where:
 #       * name: TestCase's name (defined by us)
 #       * parameters: list with parameters for the shape_main application.
-#       * expected_return_codes: list with expected ReturnCode
+#       * expected_return_codes: list with expected ReturnCodes
 #         for a succeed test execution.
 #       * function[OPTIONAL]: function to check how the Subscribers receive
 #         the samples from the Publishers. By default it does not check
-#         anything.
+#         anything. It has to be implemented by us.
 # The number of elements in parameters will define how many shape_main
 # application we will run. It should be the same as the number of
 # elements in expected_return_codes.
@@ -21,6 +21,18 @@ import pexpect
 # to check how the Subscriber receives the samples.
 
 # It checks from which Publisher the Subscriber is receiving the samples.
+# It does <max_samples_received> iterations and at each of them it will
+# process one sample (taken with pexpect). For each sample it will check
+# if it belongs to the second publisher (we save the samples from
+# the second publisher in a list and we take them from <samples_sent).
+# Then we will contemplate two scenarios:
+# * If we have received first another sample from the other publisher we will
+# count this publisher as "sending samples"
+# * If we have not receive samples from the other publisher, it could be
+# because the other publisher has not sent samples yet, so we won't count
+# it as "sending samples" yet.
+# In this way we will count as "RECEIVING FROM BOTH" if there is a sample
+# from one publisher between samples from the other publisher.
 def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
     first_received_first_time = False
     second_received_first_time = False
@@ -30,11 +42,18 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
     max_samples_received = 80
     max_wait_time = 5
     for x in range(0,max_samples_received,1):
+        # we take the numbers that identify the sample
         sub_string = re.search('[0-9]{3} [0-9]{3}',
             child_sub.before)
         try:
-            list_data_received_second.append(samples_sent[1].get(True, max_wait_time))
+            # we take the samples the second publisher is sending (that is why
+            # we take samples_sent[1]) and we save them in a list.
+            # In the case that samples_sent[1] is empty, the method get
+            # will wait until max_wait_time to stop the execution of the loop and
+            # save the code "RECEIVING_FROM_ONE".
+            list_data_received_second.append(samples_sent[1].get(block=True, timeout=max_wait_time))
         except:
+            print("No samples to take from Queue")
             break
         if sub_string.group(0) not in list_data_received_second \
                 and second_received_first_time:
@@ -48,6 +67,7 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
         elif sub_string.group(0) in list_data_received_second:
             second_received_first_time = True
         log_message('S: Waiting for receiving samples', verbosity)
+        # we get the next samples the subscriber is receiving
         child_sub.expect(
             [
                 '\[[0-9][0-9]\]', # index = 0
@@ -61,17 +81,37 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
     return ReturnCode.RECEIVING_FROM_ONE
 
 # It checks if the Subscriber is receiving the samples in order.
+# It does <max_samples_received> iterations and at each of them it
+# will process one sample (taken from pexpect). For each sample it
+# checks if the sample received matches with the sample sent (taken
+# from <samples_sent[0]). In case if does not match it means the
+# subscriber is not receiving the samples in order, and it will
+# save the code "DATA_NOT_CORRECT", stopping the function.
+# In case it matches it will receive another sample and it will
+# continue with another iteration.
 def test_reliability_4(child_sub, samples_sent, timeout, verbosity):
     max_samples_received = 3
     max_wait_time = 5
     for x in range(0, max_samples_received, 1):
+        # we take the numbers that identify the sample
         sub_string = re.search('[0-9]{3} [0-9]{3}', child_sub.before)
-        if samples_sent[0].get(True,max_wait_time) == sub_string.group(0):
-            produced_code = ReturnCode.OK
-        else:
-            produced_code = ReturnCode.DATA_NOT_CORRECT
+        # we take the samples the first publisher is sending (that is why
+        # we take samples_sent[0]) and we check if they matches with the
+        # samples the subscriber has received.
+        # In the case that samples_sent[1] is empty, the method get
+        # will wait until max_wait_time to stop the execution of the loop.
+        try:
+            if samples_sent[0].get(block=True,timeout=max_wait_time) == sub_string.group(0):
+                produced_code = ReturnCode.OK
+            else:
+                produced_code = ReturnCode.DATA_NOT_CORRECT
+                break
+        except:
+            print("No samples to take from Queue")
             break
+
         log_message('S: Waiting for receiving samples', verbosity)
+        # we get the next samples the subscriber is receiving
         child_sub.expect(
             [
                 '\[[0-9][0-9]\]', # index = 0
