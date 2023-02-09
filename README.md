@@ -242,7 +242,8 @@ The report file will contain some items:
 
 # Automation with GitHub Actions
 
-GitHub Actions will call automatically the script `interoperability_report.py` and it will generate an `html` report.
+With GitHub Actions we can automate the task of calling the script `interoperability_report.py`
+and generating the report.
 
 We will trigger the process in the following cases:
   * With the upload of a new executable
