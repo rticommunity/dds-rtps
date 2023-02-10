@@ -152,14 +152,17 @@ def run_subscriber_shape_main(
                     if index == 1:
                         produced_code[produced_code_index] = ReturnCode.DATA_NOT_RECEIVED
                     elif index == 0:
-                        # this is used to check how the samples are arriving to the Subscriber.
-                        # By default it does not check anything and it saves the ReturnCode OK.
-                        produced_code[produced_code_index] = check_function(child_sub, samples_sent, timeout, verbosity)
+                        # this is used to check how the samples are arriving
+                        # to the Subscriber. By default it does not check
+                        # anything and it saves the ReturnCode OK.
+                        produced_code[produced_code_index] = check_function(
+                                                                    child_sub, samples_sent,
+                                                                    timeout, verbosity)
 
     subscriber_finished.set()   # set subscriber as finished
-    log_message('S: Waiting for Publisher to finish', verbosity)
-    for i in range (0, len(publishers_finished)):
-        publishers_finished[i].wait()   # wait for all publishers to finish
+    log_message('S: Waiting for PublisherS to finish', verbosity)
+    for element in publishers_finished:
+        element.wait()   # wait for all publishers to finish
     return
 
 
@@ -305,8 +308,8 @@ def run_publisher_shape_main(
                     produced_code[produced_code_index] = ReturnCode.OK
 
     log_message('P: Waiting for Subscriber to finish', verbosity)
-    for i in range(0, len(subscribers_finished)):
-        subscribers_finished[i].wait() # wait for all subscribers to finish
+    for element in subscribers_finished:
+        element.wait() # wait for all subscribers to finish
     publisher_finished.set()   # set publisher as finished
     return
 
@@ -368,30 +371,31 @@ def run_test(
     # in order to use it later.
     # Example: (1 Publisher and 1 Subscriber)
     #   Processes:
-    #     - Publisher Process (index = 1)
-    #     - Subscriber Process (index = 0)
+    #     - Publisher Process (index = 0)
+    #     - Subscriber Process (index = 1)
     #   Code contains:
-    #     - return_code[1] contains Publisher shape_main application ReturnCode
-    #     - return_code[0] contains Subscriber shape_main application ReturnCode
+    #     - return_code[0] contains Publisher shape_main application ReturnCode
+    #     - return_code[1] contains Subscriber shape_main application ReturnCode
     manager = multiprocessing.Manager()
     code = manager.list(range(num_entities))
     samples_sent = [] # used for storing the samples the Publishers send.
                       # It is a list with one Queue for each Publisher.
 
-    # multiprocessing Events used as semaphores to control the end of
-    # the processes.
+    # list of multiprocessing Events used as semaphores to control the end of
+    # the processes, one for each entity.
     subscribers_finished = []
     publishers_finished = []
     num_publishers = 0
     num_subscribers = 0
     # entity_type defines the name of the entity: Publisher/Subscriber_{number}.
     entity_type = []
-    # list of files to save the shape_main output. Each element of the list
-    # will belong to each entity.
+    # list of files to save the shape_main output, one for each entity.
     temporary_file = []
-    # list of shape_main application outputs.
+    # list of shape_main application outputs, one for each entity.
     shape_main_application_output = []
+    # list of processes, one for each entity
     entity_process = []
+    # list of shape_main application outputs, edited to use in the html code.
     shape_main_application_output_edited = []
     # We will create these elements earlier because we need
     # them to define the processes.
@@ -445,13 +449,14 @@ def run_test(
 
         entity_process[i].start()
 
-    for i in range(0,num_entities):
-        entity_process[i].join()     # Wait until the processes finish
+    for element in entity_process:
+        element.join()     # Wait until the processes finish
 
-    log_message('Reading shape_main application console output from temporary files', verbosity)
-    for i in range(0,num_entities):
-        temporary_file[i].seek(0)
-        shape_main_application_output.append(temporary_file[i].read())
+    log_message('Reading shape_main application console output from temporary files',
+                verbosity)
+    for element in temporary_file:
+        element.seek(0)
+        shape_main_application_output.append(element.read())
 
     # create an attribute for each entity that will contain their parameters
     for i in range(0,num_entities):
@@ -459,14 +464,15 @@ def run_test(
         test_case.i = parameters[i]
 
     # code[i] contains publisher/subscriber i shape_main application ReturnCode,
-    # If we have 1 Publisher and 1 Subscriber:
+    # If we have 1 Publisher (index 0) and 1 Subscriber (index 1):
     # code[0] will contain entity 0 ReturnCode -> Publisher Return Code
     # code[1] will contain entity 1 ReturnCode -> Subscriber Return Code
     # The order of the entities will depend on the definition of the parameters.
     test_result_correct = True
     for i in range(0,num_entities):
-        if expected_codes[i] != code[i]: # if any of the ReturnCode does not match
-                                        # with the expected code there is an error.
+        if expected_codes[i] != code[i]: # if any of the ReturnCode does
+                                         # not match with the expected
+                                         # code there is an error.
             test_result_correct = False
 
     if test_result_correct:
@@ -481,9 +487,10 @@ def run_test(
             log_message(f'\nInformation about {entity_type[i]}:\n \
                       {shape_main_application_output[i]} ', verbosity)
 
-            shape_main_application_output_edited.append(shape_main_application_output[i].replace('\n', '<br>'))
+            shape_main_application_output_edited.append(
+                        shape_main_application_output[i].replace('\n', '<br>'))
 
-
+        # generate the table for the html code.
         message = '<table> \
                         <tr> \
                             <th/> \
@@ -502,8 +509,8 @@ def run_test(
                         <br> ' + shape_main_application_output_edited[i] + '<br>'
         test_case.result = [junitparser.Failure(message)]
 
-    for i in range(num_entities):
-        temporary_file[i].close()
+    for element in temporary_file:
+        element.close()
 
 class Arguments:
     def parser():
@@ -602,7 +609,6 @@ def check_test_case_in_test_suite(test_suite, suite_name, test_cases):
                 print('Test Case <'+ i + '> not contained in Test Suite <'+suite_name+'>.')
 
 def main():
-
     parser = Arguments.parser()
     args = parser.parse_args()
 
@@ -617,7 +623,7 @@ def main():
 
     # The executables's names are supposed to follow the pattern: name_shape_main
     # We will keep only the part of the name that is useful, deleting the path and
-    # the substring _shape_main.
+    # the substring '_shape_main'.
     # Example: if the shape_main application's name (including the path) is:
     #  ./srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux
     # we will take the substring rti_connext_dds-6.1.1.
@@ -658,13 +664,13 @@ def main():
                 check_test_case_in_test_suite(t_suite, name, options['test_cases_disabled'])
 
                 for k, v in t_suite.items():
-                    # TestCase is an class from junitparser whose attributes
-                    # are: name and result (OK, Failure, Error and Skipped).
+                    # TestCase is a class from junitparser whose attributes
+                    # are: name and result (OK, Failure, Error or Skipped).
                     parameters = v[0]
                     expected_codes = v[1]
                     if len(v) == 3:
                         check_function = v[2]
-                    elif len(v) ==2:
+                    elif len(v) == 2:
                         check_function = no_check
                     else:
                         print('Error in the definition of the Test Suite. Number of arguments incorrect.')
