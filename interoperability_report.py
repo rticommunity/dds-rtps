@@ -154,7 +154,7 @@ def run_subscriber_shape_main(
                     elif index == 0:
                         # this is used to check how the samples are arriving
                         # to the Subscriber. By default it does not check
-                        # anything and it saves the ReturnCode OK.
+                        # anything and returns ReturnCode.OK.
                         produced_code[produced_code_index] = check_function(
                                                                     child_sub, samples_sent,
                                                                     timeout, verbosity)
@@ -268,10 +268,11 @@ def run_publisher_shape_main(
             elif index == 2:
                 produced_code[produced_code_index] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
-                # In the case that the option -w is selected in the Publisher
-                # we can save the samples sent in order to check them in the
-                # Subscriber. In this way we can check reliability, etc.
-                # In the case that the option -w is not selected the Publisher
+                # In the case that the option -w is selected, the Publisher
+                # saves the samples sent in order, so the Subscriber can check
+                # them. In this way, the script can check the functionality of
+                # reliability (all the samples are received and in the same order).
+                # In the case that the option -w is not selected, the Publisher
                 # will only save the ReturnCode OK.
                 if '-w' in parameters:
                     #Step  5: Check if the writer sends the samples
@@ -287,11 +288,11 @@ def run_publisher_shape_main(
                         produced_code[produced_code_index] = ReturnCode.OK
                         max_samples_saved = 100 # used to save a max number of
                                                 # samples in samples_sent.
-                        for x in range(0, max_samples_saved ,1):
+                        for x in range(0, max_samples_saved, 1):
                             # We select the numbers that identify the samples
                             # and we add them to samples_sent.
                             pub_string = re.search('[0-9]{3} [0-9]{3}',
-                                                            child_pub.before )
+                                    child_pub.before)
                             samples_sent.put(pub_string.group(0))
                             log_message('P: Waiting for sending samples',
                                             verbosity)
@@ -324,7 +325,8 @@ def run_test(
     timeout: int,
     check_function: "function"):
 
-    """ Run the Publisher and the Subscriber and check the ReturnCode.
+    """ Run the Publisher and the Subscriber applications and check
+        the actual and the expected ReturnCode.
 
         name_executable_pub <<in>>: name of the shape_main application to run
                 as a Publisher.
@@ -365,10 +367,10 @@ def run_test(
     # (publishers and subscribers shape_main applications) copy their ReturnCode.
     # These ReturnCodes are identified by the index within the list,
     # every index identifies one shape_main application. Therefore, only one
-    # shape_main application must modifies one element of the list.
-    # Once all processes are finished, the list contains the ReturnCode
-    # in the corresponding index. This index is set manually and we need it
-    # in order to use it later.
+    # shape_main application must modify one element of the list.
+    # Once all processes are finished, the list <return_code> contains
+    # the ReturnCode in the corresponding index. This index is set manually
+    # and we need it in order to use it later.
     # Example: (1 Publisher and 1 Subscriber)
     #   Processes:
     #     - Publisher Process (index = 0)
@@ -377,7 +379,7 @@ def run_test(
     #     - return_code[0] contains Publisher shape_main application ReturnCode
     #     - return_code[1] contains Subscriber shape_main application ReturnCode
     manager = multiprocessing.Manager()
-    code = manager.list(range(num_entities))
+    return_code = manager.list(range(num_entities))
     samples_sent = [] # used for storing the samples the Publishers send.
                       # It is a list with one Queue for each Publisher.
 
@@ -411,13 +413,13 @@ def run_test(
                 Neither Publisher or Subscriber defined.')
             return
 
-    for i in range(0,num_entities):
-        if 'P' in parameters[i]:
+    for i in range(0, num_entities):
+        if '-P ' in parameters[i]:
             entity_process.append(multiprocessing.Process(target=run_publisher_shape_main,
                             kwargs={
                                 'name_executable':name_executable_pub,
                                 'parameters':parameters[i],
-                                'produced_code':code,
+                                'produced_code':return_code,
                                 'produced_code_index':i,
                                 'samples_sent':samples_sent[num_publishers],
                                 'verbosity':verbosity,
@@ -426,15 +428,17 @@ def run_test(
                                 'subscribers_finished':subscribers_finished,
                                 'publisher_finished':publishers_finished[num_publishers]
             }))
-            num_publishers+=1
+            num_publishers += 1
             entity_type.append(f'Publisher_{num_publishers}')
-            time.sleep(1) # used to generate different seeds for each publisher's samples.
-        else:
+            if num_publishers > 1:
+                time.sleep(1) # used to generate different seeds for each publisher's samples.
+                              # used only if there is more than one publisher
+        else: # if '-S ' in parameters[i]
             entity_process.append(multiprocessing.Process(target=run_subscriber_shape_main,
                             kwargs={
                                 'name_executable':name_executable_sub,
                                 'parameters':parameters[i],
-                                'produced_code':code,
+                                'produced_code':return_code,
                                 'produced_code_index':i,
                                 'samples_sent':samples_sent,
                                 'verbosity':verbosity,
@@ -444,7 +448,7 @@ def run_test(
                                 'publishers_finished':publishers_finished,
                                 'check_function':check_function
             }))
-            num_subscribers+=1
+            num_subscribers += 1
             entity_type.append(f'Subscriber_{num_subscribers}')
 
         entity_process[i].start()
@@ -470,7 +474,7 @@ def run_test(
     # The order of the entities will depend on the definition of the parameters.
     test_result_correct = True
     for i in range(0,num_entities):
-        if expected_codes[i] != code[i]: # if any of the ReturnCode does
+        if expected_codes[i] != return_code[i]: # if any of the ReturnCode does
                                          # not match with the expected
                                          # code there is an error.
             test_result_correct = False
@@ -482,7 +486,7 @@ def run_test(
         print(f'Error in : {test_case.name}')
         for i in range(num_entities):
             print(f'{entity_type[i]} expected code: {expected_codes[i]}; \
-                Code found: {code[i].name}')
+                Code found: {return_code[i].name}')
 
             log_message(f'\nInformation about {entity_type[i]}:\n \
                       {shape_main_application_output[i]} ', verbosity)
@@ -501,7 +505,7 @@ def run_test(
             message += '<tr> \
                             <th> ' + entity_type[i] + ' </th> \
                             <th> ' + expected_codes[i].name + '</th>  \
-                            <th> ' + code[i].name + '</th> \
+                            <th> ' + return_code[i].name + '</th> \
                         </tr>'
         message += '</table>'
         for i in range(num_entities):
@@ -517,8 +521,8 @@ class Arguments:
         parser = argparse.ArgumentParser(
             description='Validation of interoperability of products compliant \
                 with OMG DDS-RTPS standard. This script generates automatically \
-                the verification between two executables compiled with the \
-                shape_main application. It will generate a xml report in a \
+                the verification between two shape_main executables. \
+                It will generate a xml report in a \
                 junit format.',
             add_help=True)
 
@@ -529,27 +533,28 @@ class Arguments:
             type=str,
             metavar='publisher_name',
             help='Path to the Publisher shape_main application. \
-                If the executable is in the same folder as the script it should \
-                contain the "./". Example: ./rti_connext_dds-6.1.1_shape_main_linux')
+                It may be absolute or relative path. Example: if the executable is in \
+                the same folder as the script: \
+                "-P ./rti_connext_dds-6.1.1_shape_main_linux"')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
             metavar='subscriber_name',
             help='Path to the Subscriber shape_main application. \
-                If the executable is in the same folder as the script it should \
-                contain the "./". Example: ./rti_connext_dds-6.1.1_shape_main_linux')
+                It may be absolute or relative path. Example: if the executable is in \
+                the same folder as the script: \
+                "-P ./rti_connext_dds-6.1.1_shape_main_linux"')
 
         optional = parser.add_argument_group(title='optional parameters')
         optional.add_argument('-v','--verbose',
             default=False,
             required=False,
             action='store_true',
-            help='Print debug information to stdout. It will track the \
-                interoperability_report execution and it will show the \
+            help='Print debug information to stdout. This option also shows the \
                 shape_main application output in case of error. \
-                By default is non selected and the console output \
-                will be the results of the tests.')
+                If this option is not used, only the test results is printed in the \
+                stdout.')
 
         tests = parser.add_argument_group(title='Test Case and Test Suite')
         tests.add_argument('-s', '--suite',
@@ -559,11 +564,15 @@ class Arguments:
             metavar='test_suite_dictionary_file',
             type=str,
             help='Test Suite that is going to be tested. \
-                Test Suite is a file with a dictionary defined, it should \
+                Test Suite is a file with a Python dictionary defined. It should \
                 be located on the same directory as interoperability_report. \
-                By default is test_suite. \
-                To call it do not write ".py", only the name of the \
-                file. \
+                By default, it is test_suite. \
+                The structure of this file is: \
+                name_test_suite { \
+                    name_test_case:  [[<shape_main_parameter_list], [<return_code_list>], check_return_code_function] \
+                } \
+                This value should not contain the extension ".py", \
+                only the name of the file. \
                 It will run all the dictionaries defined in the file. \
                 Multiple files can be passed.')
 
@@ -663,7 +672,8 @@ def main():
                 check_test_case_in_test_suite(t_suite, name, options['test_cases'])
                 check_test_case_in_test_suite(t_suite, name, options['test_cases_disabled'])
 
-                for k, v in t_suite.items():
+                for k, v in t_suite.items(): # In a dictionary (t_suite) k is the key
+                                             # and v is the value
                     # TestCase is a class from junitparser whose attributes
                     # are: name and result (OK, Failure, Error or Skipped).
                     parameters = v[0]
