@@ -17,44 +17,61 @@ and can interoperate with each other.
 
 * 1\. [Introduction](#introduction)
 
-* 2\. [Run Interoperability Test Manually](#run-interoperability-test-manually)
-    * 2.1. [Requirements](#requirements)
+* 2\. [Test Suite](#test-suite)
 
-      * 2.1.1. [Using virtual environments](#using-virtual-environments)
+* 3\. [Run Interoperability Test Manually](#run-interoperability-test-manually)
+    * 3.1. [Requirements](#requirements)
 
-        * 2.1.1.1. [Create virtual environment](#create-virtual-environment)
+      * 3.1.1. [Using virtual environments](#using-virtual-environments)
 
-        * 2.1.1.2. [Activate virtual environment](#activate-virtual-environment)
+        * 3.1.1.1. [Create virtual environment](#create-virtual-environment)
 
-        * 2.1.1.3. [Install requirements](#install-requirements)
+        * 3.1.1.2. [Activate virtual environment](#activate-virtual-environment)
 
-    * 2.2. [Options of interoperability_report](#options-of-interoperability_report)
+        * 3.1.1.3. [Install requirements](#install-requirements)
 
-    * 2.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
+    * 3.2. [Options of interoperability_report](#options-of-interoperability_report)
 
-    * 2.4. [Report](#report)
+    * 3.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
 
-* 3\. [Automation with GitHub Actions](#automation-with-github-actions)
+    * 3.4. [Report](#report)
 
-* 4\. [Workflow](#workflow)
+* 4\. [Automation with GitHub Actions](#automation-with-github-actions)
 
-    * 4.1. [Create executable](#create-executable)
+* 5\. [Workflow](#workflow)
 
-    * 4.2. [Upload executable](#upload-executable)
+    * 5.1. [Create executable](#create-executable)
 
-    * 4.3. [Create a new release](#create-a-new-release)
+    * 5.2. [Upload executable](#upload-executable)
 
-      * 4.1.1. [When to create a release](#when-to-create-a-release)
+    * 5.3. [Create a new release](#create-a-new-release)
 
-      * 4.1.2. [Release and tag name](#release-and-tag-name)
+      * 5.1.1. [When to create a release](#when-to-create-a-release)
 
-      * 4.1.3. [Process of creating the release](#process-of-creating-the-release)
+      * 5.1.2. [Release and tag name](#release-and-tag-name)
 
-    * 4.4. [Report Bugs](#report-bugs)
+      * 5.1.3. [Process of creating the release](#process-of-creating-the-release)
+
+    * 5.4. [Report Bugs](#report-bugs)
 
 # Introduction
 
-The script `interoperability_report.py` tests automatically the interoperability between two executables, generated with the `shape_main application`. The tests that the script runs must be defined previously in a python file following the next pattern:
+The script `interoperability_report.py` tests automatically the
+interoperability between two executables, generated with the
+`shape_main application`. The tests that the script runs must be
+defined in a Test Suite, which by default would be `test_suite.py`.
+
+Once the script finishes, it generates a report with the result
+of the interoperability tests between both executables.
+
+You can run the script either [automatically](#automation-with-github-actions)
+or [manually](#run-interoperability-test-manually).
+
+# Test Suite
+
+In order to create a Test Suite we must define it in a python file,
+following the next pattern:
+
 ~~~python
 # test_suite_name = {
 #   'test_name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
@@ -62,7 +79,8 @@ The script `interoperability_report.py` tests automatically the interoperability
 # where:
 #   * name: TestCase name (defined by us)
 #   * parameters: list with shape_main application parameters
-#   * expected_return_codes: list with expected ReturnCodes for a succeed test execution.
+#   * expected_return_codes: list with expected ReturnCodes for
+#     a succeed test execution.
 #   * function [OPTIONAL]: function to check how the Subscribers receives
 #     the samples from the Publishers. By default it does not check
 #     anything. The function has to be implemented by us.
@@ -79,12 +97,7 @@ rtps_test_suite_1 = {
                                 [ReturnCode.OK, ReturnCode.OK, ReturnCode.OK]],
 }
 ~~~
-By default it will run the tests from `test_suite.py`.
 
-Once the script finishes, it generates a report with the result
-of the interoperability tests between both executables.
-
-You can run the script either [automatically](#automation-with-github-actions) or [manually](#run-interoperability-test-manually).
 
 # Run Interoperability Test Manually
 
@@ -212,8 +225,8 @@ $ python3 interoperability_report.py -P <path_to_publisher_executable>
 
 The script will generate a report file in JUnit (xml).
 
-> **Note**: to visualize the report in a more friendly-human way you can use
-`junit-viewer`: \
+> **Note**: to visualize the report in a more friendly-human way
+you can use `junit-viewer`: \
 > `junit-viewer --results=<xml_name> --save=<html_name>`
 
 The report file will contain some items:
@@ -225,8 +238,8 @@ The report file will contain some items:
           inside the Test Suite.
         * Total error tests :x: : number of Test Cases with
           errors in the Test Suite.
-        * Total success tests :heavy_check_mark: : number of successful Test Cases
-          in the Test Suite.
+        * Total success tests :heavy_check_mark: : number of
+          successful Test Cases in the Test Suite.
         * A set of Test Cases.
 * **Test Cases**
     * Test that we are testing.
@@ -242,8 +255,8 @@ The report file will contain some items:
 
 # Automation with GitHub Actions
 
-With GitHub Actions we can automate the task of calling the script `interoperability_report.py`
-and generating the report.
+With GitHub Actions we can automate the task of calling the script
+`interoperability_report.py` and generating the report.
 
 We will trigger the process in the following cases:
   * With the upload of a new executable
@@ -283,26 +296,27 @@ you will have the report generated. It will look something like this
 ![report-1](./doc/img8.png)
 ![report-2](./doc/img9.png)
 
-> **Note**: The status of the GitHub Action will be **Failure** :x:, if any of the
-Test Cases that we are testing has an error, or **Success** :heavy_check_mark:
-if none of them reported any error.
+> **Note**: The status of the GitHub Action will be **Failure** :x:,
+if any of the Test Cases that we are testing has an error,
+or **Success** :heavy_check_mark: if none of them reported any error.
 # Workflow
 
-This section explains which are the events you may find in the process of maintaining
-the repository.
+This section explains which are the events you may find in the process
+of maintaining the repository.
 ## Create executable
 
 The cases when we should create an executable are:
 
 * With the release of a new version of the dds implementation
-* When  `shape_main.cxx` changes. In this case there will be a new release version
-  and, depending on the importance of the change, maybe the old executables are not
-  compatible.
+* When  `shape_main.cxx` changes. In this case there will be a new
+  release version and, depending on the importance of the change,
+  maybe the old executables are not compatible.
 
 The steps to compile with `shape_main.cxx` are not defined but
 there are some `makefiles` to help you with the task in the `srcCxx` folder.
 
-> **Note**: to compile with `connext` you may want to use `makefile_rti_connext_dds_linux`.
+> **Note**: to compile with `connext` you may want to use
+  `makefile_rti_connext_dds_linux`.
 ## Upload executable
 
 Each vendor should compile their own version of their product with
@@ -331,7 +345,9 @@ Keep marked *Set as the latest release*, and press *Update release*.
 
 ![Attach](./doc/img13.png)
 
-> **Note**: when a new executable is uploaded we should generate a new report. To do it, go to [Automation with GitHub Actions](#automation-with-github-actions)
+> **Note**: when a new executable is uploaded we should generate a new report.
+To do it, go to
+[Automation with GitHub Actions](#automation-with-github-actions)
 ## Create a new release
 
 ### When to create a release
@@ -407,7 +423,7 @@ The name of the release and the tag should be as explained in
     * In *Choose a tag* write the name of the tag and select
     *Create a new tag*.
     * Write the release name on *Release title*.
-    * In *Describe this release* write: 'Creating release         `<name_release>`'.
+    * In *Describe this release* write: 'Creating release `<name_release>`'.
     * Attach the executables in *Attach binaries by dropping them here or
       selecting them* (you can perform this step later: see
       [Upload executable](#upload-executable)).
