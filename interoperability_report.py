@@ -370,12 +370,12 @@ def run_test(
     num_entities = len(parameters)
 
     # Manager is a shared memory section where all processes can access.
-    # return_code is a list of elements where the different processes
+    # 'return_code' is a list of elements where the different processes
     # (publishers and subscribers shape_main applications) copy their ReturnCode.
     # These ReturnCodes are identified by the index within the list,
     # every index identifies one shape_main application. Therefore, only one
     # shape_main application must modify one element of the list.
-    # Once all processes are finished, the list <return_code> contains
+    # Once all processes are finished, the list 'return_code' contains
     # the ReturnCode in the corresponding index. This index is set manually
     # and we need it in order to use it later.
     # Example: (1 Publisher and 1 Subscriber)
@@ -396,7 +396,7 @@ def run_test(
     publishers_finished = []
     num_publishers = 0
     num_subscribers = 0
-    # entity_type defines the name of the entity: Publisher/Subscriber_{number}.
+    # entity_type defines the name of the entity: Publisher/Subscriber_<number>.
     entity_type = []
     # list of files to save the shape_main output, one for each entity.
     temporary_file = []
