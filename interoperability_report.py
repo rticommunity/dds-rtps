@@ -691,13 +691,13 @@ def main():
                         case = junitparser.TestCase(f'{name}_{k}')
                         now_test_case = datetime.now()
                         run_test(name_executable_pub=options['publisher'],
-                                                name_executable_sub=options['subscriber'],
-                                                test_case=case,
-                                                parameters=parameters,
-                                                expected_codes=expected_codes,
-                                                verbosity=options['verbosity'],
-                                                timeout=timeout,
-                                                check_function=check_function)
+                                name_executable_sub=options['subscriber'],
+                                test_case=case,
+                                parameters=parameters,
+                                expected_codes=expected_codes,
+                                verbosity=options['verbosity'],
+                                timeout=timeout,
+                                check_function=check_function)
                         case.time = (datetime.now() - now_test_case).total_seconds()
                         suite.add_testcase(case)
 

@@ -209,7 +209,9 @@ public:
                             }
                         default:
                             {
-                                log_message("unrecognized value for verbosity "+std::string(1,optarg[0]), Verbosity::ERROR);
+                                log_message("unrecognized value for verbosity "
+                                                +std::string(1,optarg[0]),
+                                        Verbosity::ERROR);
                                 parse_ok = false;
                             }
                         }
@@ -264,7 +266,9 @@ public:
                         }
                     default:
                         {
-                            log_message("unrecognized value for durability " + std::string(1,optarg[0]), Verbosity::ERROR);
+                            log_message("unrecognized value for durability "
+                                            + std::string(1,optarg[0]),
+                                    Verbosity::ERROR);
                             parse_ok = false;
                         }
                     }
@@ -285,7 +289,9 @@ public:
                 {
                     history_depth = atoi(optarg);
                     if (history_depth < 0) {
-                        log_message("unrecognized value for history_depth "+std::string(1,optarg[0]), Verbosity::ERROR);
+                        log_message("unrecognized value for history_depth "
+                                        +std::string(1,optarg[0]),
+                                Verbosity::ERROR);
                         parse_ok = false;
                     }
                     break;
@@ -304,7 +310,9 @@ public:
                 {
                     ownership_strength = atoi(optarg);
                     if (ownership_strength < -1) {
-                        log_message("unrecognized value for ownership_strength "+std::string(1,optarg[0]), Verbosity::ERROR);
+                        log_message("unrecognized value for ownership_strength "
+                                        +std::string(1,optarg[0]),
+                                Verbosity::ERROR);
                         parse_ok = false;
                     }
                     break;
@@ -348,7 +356,9 @@ public:
                             }
                         default:
                             {
-                            log_message("unrecognized value for data representation "+std::string(1,optarg[0]), Verbosity::ERROR);
+                            log_message("unrecognized value for data representation "
+                                            +std::string(1,optarg[0]),
+                                    Verbosity::ERROR);
                             parse_ok = false;
                             }
                         }
