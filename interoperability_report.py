@@ -13,6 +13,12 @@ from os.path import exists
 import inspect
 
 from rtps_test_utilities import ReturnCode, log_message, no_check
+MAX_SAMPLES_SAVED = 100 # used to save the samples the Publisher sends.
+                        # MAX_SAMPLES_SAVED is the maximum number of samples
+                        # saved.
+SLEEP_TIME = 1          # used to generate different seeds for the Publisher's
+                        # samples. The Publisher sleeps <SLEEP_TIME> before
+                        # sending the samples.
 
 def run_subscriber_shape_main(
         name_executable: str,
@@ -156,8 +162,10 @@ def run_subscriber_shape_main(
                         # to the Subscriber. By default it does not check
                         # anything and returns ReturnCode.OK.
                         produced_code[produced_code_index] = check_function(
-                                                                    child_sub, samples_sent,
-                                                                    timeout, verbosity)
+                                                                child_sub,
+                                                                samples_sent,
+                                                                timeout,
+                                                                verbosity)
 
     subscriber_finished.set()   # set subscriber as finished
     log_message('S: Waiting for PublisherS to finish', verbosity)
@@ -271,7 +279,8 @@ def run_publisher_shape_main(
                 # In the case that the option -w is selected, the Publisher
                 # saves the samples sent in order, so the Subscriber can check
                 # them. In this way, the script can check the functionality of
-                # reliability (all the samples are received and in the same order).
+                # reliability (all the samples are received and in the same
+                # order).
                 # In the case that the option -w is not selected, the Publisher
                 # will only save the ReturnCode OK.
                 if '-w' in parameters:
@@ -286,9 +295,7 @@ def run_publisher_shape_main(
                         )
                     if index == 0:
                         produced_code[produced_code_index] = ReturnCode.OK
-                        max_samples_saved = 100 # used to save a max number of
-                                                # samples in samples_sent.
-                        for x in range(0, max_samples_saved, 1):
+                        for x in range(0, MAX_SAMPLES_SAVED, 1):
                             # We select the numbers that identify the samples
                             # and we add them to samples_sent.
                             pub_string = re.search('[0-9]{3} [0-9]{3}',
@@ -403,10 +410,10 @@ def run_test(
     # them to define the processes.
     for element in parameters:
         temporary_file.append(tempfile.TemporaryFile(mode='w+t'))
-        if '-P ' in element:
+        if ('-P ' in element or element.endswith('-P')):
             publishers_finished.append(multiprocessing.Event())
             samples_sent.append(multiprocessing.Queue())
-        elif '-S ' in element:
+        elif ('-S ' in element or element.endswith('-S')):
             subscribers_finished.append(multiprocessing.Event())
         else:
             print('Error in the definition of shape_main application parameters. \
@@ -414,7 +421,7 @@ def run_test(
             return
 
     for i in range(0, num_entities):
-        if '-P ' in parameters[i]:
+        if ('-P ' in parameters[i] or parameters[i].endswith('-P')):
             entity_process.append(multiprocessing.Process(target=run_publisher_shape_main,
                             kwargs={
                                 'name_executable':name_executable_pub,
@@ -431,9 +438,10 @@ def run_test(
             num_publishers += 1
             entity_type.append(f'Publisher_{num_publishers}')
             if num_publishers > 1:
-                time.sleep(1) # used to generate different seeds for each publisher's samples.
-                              # used only if there is more than one publisher
-        else: # if '-S ' in parameters[i]
+                time.sleep(SLEEP_TIME) # used to generate different seeds for
+                                       # each publisher's samples. Used only if
+                                       # there is more than one publisher
+        elif('-S ' in parameters[i] or parameters[i].endswith('-S')):
             entity_process.append(multiprocessing.Process(target=run_subscriber_shape_main,
                             kwargs={
                                 'name_executable':name_executable_sub,
@@ -450,20 +458,25 @@ def run_test(
             }))
             num_subscribers += 1
             entity_type.append(f'Subscriber_{num_subscribers}')
+        else:
+            print('Error in the definition of shape_main application parameters. \
+                Neither Publisher or Subscriber defined.')
+            return
 
         entity_process[i].start()
 
     for element in entity_process:
         element.join()     # Wait until the processes finish
 
-    log_message('Reading shape_main application console output from temporary files',
+    log_message('Reading shape_main application console output from \
+                temporary files',
                 verbosity)
     for element in temporary_file:
         element.seek(0)
         shape_main_application_output.append(element.read())
 
     # create an attribute for each entity that will contain their parameters
-    for i in range(0,num_entities):
+    for i in range(0, num_entities):
         junitparser.TestCase.i = junitparser.Attr(entity_type[i])
         test_case.i = parameters[i]
 
@@ -473,7 +486,7 @@ def run_test(
     # code[1] will contain entity 1 ReturnCode -> Subscriber Return Code
     # The order of the entities will depend on the definition of the parameters.
     test_result_correct = True
-    for i in range(0,num_entities):
+    for i in range(0, num_entities):
         if expected_codes[i] != return_code[i]: # if any of the ReturnCode does
                                          # not match with the expected
                                          # code there is an error.
@@ -484,7 +497,7 @@ def run_test(
 
     else:
         print(f'Error in : {test_case.name}')
-        for i in range(num_entities):
+        for i in range(0, num_entities):
             print(f'{entity_type[i]} expected code: {expected_codes[i]}; \
                 Code found: {return_code[i].name}')
 
@@ -508,7 +521,7 @@ def run_test(
                             <th> ' + return_code[i].name + '</th> \
                         </tr>'
         message += '</table>'
-        for i in range(num_entities):
+        for i in range(0, num_entities):
             message += '<strong> Information ' + entity_type[i] + ' </strong> \
                         <br> ' + shape_main_application_output_edited[i] + '<br>'
         test_case.result = [junitparser.Failure(message)]
@@ -518,13 +531,15 @@ def run_test(
 
 class Arguments:
     def parser():
+        #TODO delete default
         parser = argparse.ArgumentParser(
             description='Validation of interoperability of products compliant \
                 with OMG DDS-RTPS standard. This script generates automatically \
                 the verification between two shape_main executables. \
                 It will generate a xml report in a \
                 junit format.',
-            add_help=True)
+            add_help=True,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
         gen_opts = parser.add_argument_group(title='general options')
         gen_opts.add_argument('-P', '--publisher',
@@ -533,8 +548,8 @@ class Arguments:
             type=str,
             metavar='publisher_name',
             help='Path to the Publisher shape_main application. \
-                It may be absolute or relative path. Example: if the executable is in \
-                the same folder as the script: \
+                It may be absolute or relative path. Example: if the executable \
+                is in the same folder as the script: \
                 "-P ./rti_connext_dds-6.1.1_shape_main_linux"')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
@@ -542,8 +557,8 @@ class Arguments:
             type=str,
             metavar='subscriber_name',
             help='Path to the Subscriber shape_main application. \
-                It may be absolute or relative path. Example: if the executable is in \
-                the same folder as the script: \
+                It may be absolute or relative path. Example: if the executable \
+                is in the same folder as the script: \
                 "-P ./rti_connext_dds-6.1.1_shape_main_linux"')
 
         optional = parser.add_argument_group(title='optional parameters')
@@ -553,8 +568,8 @@ class Arguments:
             action='store_true',
             help='Print debug information to stdout. This option also shows the \
                 shape_main application output in case of error. \
-                If this option is not used, only the test results is printed in the \
-                stdout.')
+                If this option is not used, only the test results is printed \
+                in the stdout.')
 
         tests = parser.add_argument_group(title='Test Case and Test Suite')
         tests.add_argument('-s', '--suite',
@@ -566,11 +581,6 @@ class Arguments:
             help='Test Suite that is going to be tested. \
                 Test Suite is a file with a Python dictionary defined. It should \
                 be located on the same directory as interoperability_report. \
-                By default, it is test_suite. \
-                The structure of this file is: \
-                name_test_suite { \
-                    name_test_case:  [[<shape_main_parameter_list], [<return_code_list>], check_return_code_function] \
-                } \
                 This value should not contain the extension ".py", \
                 only the name of the file. \
                 It will run all the dictionaries defined in the file. \
@@ -610,13 +620,24 @@ class Arguments:
 
         return parser
 
-# ask Angel
+# this function checks if the test cases exist in the test suite
 def check_test_case_in_test_suite(test_suite, suite_name, test_cases):
     if test_cases != None:
         for i in test_cases:
             if i not in test_suite:
-                print('Test Case <'+ i + '> not contained in Test Suite <'+suite_name+'>.')
+                print('Test Case <'+ i + '> not contained in Test Suite <'
+                        +suite_name+'>.')
 
+# this function checks if the test cases disabled exist in the test suite
+# and prints a message to show that they are disabled.
+def check_disable_test(test_suite, suite_name, test_cases):
+    if test_cases != None:
+        for i in test_cases:
+            if i not in test_suite:
+                print('Test Case <'+ i + '> not contained in Test Suite <'
+                        +suite_name+'>.')
+            else:
+                print('Test Case <'+ suite_name + '_'+i + '> disabled.')
 def main():
     parser = Arguments.parser()
     args = parser.parse_args()
@@ -631,8 +652,8 @@ def main():
     }
 
     # The executables's names are supposed to follow the pattern: name_shape_main
-    # We will keep only the part of the name that is useful, deleting the path and
-    # the substring '_shape_main'.
+    # We will keep only the part of the name that is useful, deleting the path
+    # and the substring '_shape_main'.
     # Example: if the shape_main application's name (including the path) is:
     #  ./srcCxx/objs/x64Linux4gcc7.3.0/rti_connext_dds-6.1.1_shape_main_linux
     # we will take the substring rti_connext_dds-6.1.1.
@@ -664,16 +685,20 @@ def main():
     now = datetime.now()
 
     for element in options['test_suite']:
-        t_suite_module = importlib.import_module(element,'./')
+        t_suite_module = importlib.import_module(element)
         for name, t_suite in inspect.getmembers(t_suite_module):
-            # we take all the dictionaries defined in the test_suite file except __builtins__.
+            # getmembers returns all the members in the t_suite_module.
+            # Then, 'type(t_suite) is a dict' takes all the members that
+            # are a dictionary. The only one that is not needed (it is not
+            # a test_suite) is __builtins__, and it is skipped.
             if type(t_suite) is dict and name != '__builtins__':
-                # check that the test_cases selected are in the test_suite
+                # check that the test_cases selected are in the test_suite and
+                # print a message if there are disabled.
                 check_test_case_in_test_suite(t_suite, name, options['test_cases'])
-                check_test_case_in_test_suite(t_suite, name, options['test_cases_disabled'])
+                check_disable_test(t_suite, name, options['test_cases_disabled'])
 
-                for k, v in t_suite.items(): # In a dictionary (t_suite) k is the key
-                                             # and v is the value
+                for k, v in t_suite.items(): # In a dictionary (t_suite) k is
+                                             # the key and v is the value
                     # TestCase is a class from junitparser whose attributes
                     # are: name and result (OK, Failure, Error or Skipped).
                     parameters = v[0]
@@ -683,11 +708,14 @@ def main():
                     elif len(v) == 2:
                         check_function = no_check
                     else:
-                        print('Error in the definition of the Test Suite. Number of arguments incorrect.')
+                        print('Error in the definition of the Test Suite. \
+                                Number of arguments incorrect.')
                         break
                     assert(len(parameters) == len(expected_codes))
                     if (options['test_cases'] == None or k in options['test_cases']) \
-                        and (options['test_cases_disabled'] == None or k not in options['test_cases_disabled']):
+                        and \
+                       (options['test_cases_disabled'] == None
+                            or k not in options['test_cases_disabled']):
                         case = junitparser.TestCase(f'{name}_{k}')
                         now_test_case = datetime.now()
                         run_test(name_executable_pub=options['publisher'],
