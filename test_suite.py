@@ -1,39 +1,43 @@
 from rtps_test_utilities import ReturnCode, log_message
 import re
 import pexpect
-# rtps_test_suite_1 is a dictionary where we define the TestSuite
-# (with its TestCases that we will test in interoperability_report.py).
+# rtps_test_suite_1 is a dictionary that defines the TestSuite. Each element of
+# the dictionary is a Test Case that the interoperability_report.py
+# executes.
 # The dictionary has the following structure:
-#       'name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
+#       'name' : [[parameter_list], [expected_return_code_list], function]
 # where:
-#       * name: TestCase's name (defined by us)
-#       * parameters: list with parameters for the shape_main application.
-#       * expected_return_codes: list with expected ReturnCodes
+#       * name: TestCase's name
+#       * parameter_list: list in which each element is the parameters that
+#         the shape_main application will use.
+#       * expected_return_code_list: list with expected ReturnCodes
 #         for a succeed test execution.
-#       * function[OPTIONAL]: function to check how the Subscribers receive
-#         the samples from the Publishers. By default it does not check
-#         anything. It has to be implemented by us.
-# The number of elements in parameters will define how many shape_main
-# application we will run. It should be the same as the number of
-# elements in expected_return_codes.
-#
-# test_ownership3_4 and test_reliability_4 are two functions defined
-# to check how the Subscriber receives the samples.
+#       * function [OPTIONAL]: function to check how the Subscribers receive
+#         the samples from the Publishers. By default, it just checks that
+#         the data is received. In case that it has a different behavior, that
+#         function must be implemented in the test_suite file and the test case
+#         should reference it in this parameter.
+# The number of elements in parameter_list defines how many shape_main
+# applications the interoperability_report will run. It should be the same as
+# the number of elements in expected_return_code_list.
 
-# The function checks the origin (Publisher) of the data received by
-# the Subscriber.
-# It does <max_samples_received> iterations and at each of them it will
-# process one sample (taken with pexpect). For each sample, the function checks
-# whether the sample belongs to the second publisher (we save the samples from
-# the second publisher in a list and we take them from 'samples_sent').
+# This function is used by test cases that have two publishers and one subscriber
+# This tests that the Ownership QoS works correctly. In order to do that the
+# function checks.....
+# It does <max_samples_received> iterations and at each of them it
+# processes one sample (taken with pexpect). For each sample, the function checks
+# whether the sample belongs to the second publisher, whose samples are in
+# samples_sent[1].
 # There are two scenarios:
 # 1. If the subscriber application has received samples from one DataWriter,
 # the publisher application is "sending samples".
 # 2. If the subscriber application has only received samples from one publisher
 # application, it may be because the other publisher app has not sent
-# samples yet. This publisher is not 'sending samples' yet.
+# samples yet. So this publisher is not "sending samples".
 # This function returns "RECEIVING FROM BOTH" if there is a sample
 # from one publisher between samples from the other publisher.
+# Ejemplo de receiving from one
+# documentar como las otras funciones
 def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
     first_received_first_time = False
     second_received_first_time = False
