@@ -397,8 +397,8 @@ def run_test(
     # the processes, one for each entity.
     subscribers_finished = []
     publishers_finished = []
-    num_publishers = 0
-    num_subscribers = 0
+    publisher_number = 0
+    subscriber_number = 0
     # entity_type defines the name of the entity: Publisher/Subscriber_<number>.
     entity_type = []
     # list of files to save the shape_main output, one for each entity.
@@ -431,16 +431,16 @@ def run_test(
                                 'parameters':parameters[i],
                                 'produced_code':return_codes,
                                 'produced_code_index':i,
-                                'samples_sent':samples_sent[num_publishers],
+                                'samples_sent':samples_sent[publisher_number],
                                 'verbosity':verbosity,
                                 'timeout':timeout,
                                 'file':temporary_file[i],
                                 'subscribers_finished':subscribers_finished,
-                                'publisher_finished':publishers_finished[num_publishers]
+                                'publisher_finished':publishers_finished[publisher_number]
             }))
-            num_publishers += 1
-            entity_type.append(f'Publisher_{num_publishers}')
-            if num_publishers > 1:
+            publisher_number += 1
+            entity_type.append(f'Publisher_{publisher_number}')
+            if publisher_number > 1:
             # used to generate different seeds for each publisher's samples.
             # Used only if there is more than one publisher
                 time.sleep(SLEEP_TIME)
@@ -456,12 +456,12 @@ def run_test(
                                 'verbosity':verbosity,
                                 'timeout':timeout,
                                 'file':temporary_file[i],
-                                'subscriber_finished':subscribers_finished[num_subscribers],
+                                'subscriber_finished':subscribers_finished[subscriber_number],
                                 'publishers_finished':publishers_finished,
                                 'check_function':check_function
             }))
-            num_subscribers += 1
-            entity_type.append(f'Subscriber_{num_subscribers}')
+            subscriber_number += 1
+            entity_type.append(f'Subscriber_{subscriber_number}')
         else:
             print('Error in the definition of shape_main application parameters. \
                 Neither Publisher or Subscriber defined.')
@@ -571,7 +571,7 @@ class Arguments:
             help='Print debug information to stdout. This option also shows the \
                 shape_main application output in case of error. \
                 If this option is not used, only the test results are printed \
-                in the stdout. By default it is disabled.')
+                in the stdout. (Default: False).')
 
         tests = parser.add_argument_group(title='Test Case and Test Suite')
         tests.add_argument('-s', '--suite',
@@ -587,7 +587,7 @@ class Arguments:
                 only the name of the file. \
                 It will run all the dictionaries defined in the file. \
                 Multiple files can be passed. \
-                By default it is "test_suite".')
+                (Default: test_suite).')
 
         enable_disable = tests.add_mutually_exclusive_group(required=False)
         enable_disable.add_argument('-t', '--test',
@@ -596,18 +596,19 @@ class Arguments:
             required=False,
             type=str,
             metavar='test_cases',
-            help='Test Case that the script will run. By default it will \
-                run all the Test Cases contained in the Test Suite. \
-                This options is not supported with --disable_test.')
+            help='Test Case that the script will run. \
+                This options is not supported with --disable_test. \
+                (Default: \
+                run all the Test Cases contained in the Test Suite.)')
         enable_disable.add_argument('-d', '--disable_test',
             nargs='+',
             default=None,
             required=False,
             type=str,
             metavar='test_cases_disabled',
-            help='Test Case that the script will skip. By default it will \
-                run all the Test Cases contained in the Test Suite. \
-                This option is not supported with --test.')
+            help='Test Case that the script will skip. \
+                This option is not supported with --test. \
+                (Default: None)')
 
         out_opts = parser.add_argument_group(title='output options')
         out_opts.add_argument('-o', '--output-name',
@@ -615,34 +616,25 @@ class Arguments:
             metavar='filename',
             type=str,
             help='Name of the xml report that will be generated. \
-                By default the report name will be: \
-                    <publisher_name>-<subscriber_name>-date.xml \
                 If the file passed already exists, it will add \
                 the new results to it. In other case it will create \
-                a new file.')
+                a new file. \
+                (Default: \
+                    <publisher_name>-<subscriber_name>-date.xml)')
 
         return parser
 
-# this function checks if the test cases exist in the test suite
-def check_test_case_in_test_suite(test_suite, suite_name, test_cases):
-    #boolean true
+# this function checks if the test case exist in the test suite
+def are_tests_in_test_suite(test_suite, suite_name, test_cases):
+    all_test_cases_exist = True
     if test_cases != None:
         for i in test_cases:
             if i not in test_suite:
-                #return boolean false
                 print('Test Case <' + i + '> not contained in Test Suite <'
                         + suite_name + '>.')
+                all_test_cases_exist = False
+    return all_test_cases_exist
 
-# this function checks if the test cases disabled exist in the test suite
-# and prints a message to show that they are disabled.
-def check_disable_test(test_suite, suite_name, test_cases):
-    if test_cases != None:
-        for i in test_cases:
-            if i not in test_suite:
-                print('Test Case <'+ i + '> not contained in Test Suite <'
-                        +suite_name+'>.')
-            else:
-                print('Test Case <'+ suite_name + '_'+i + '> disabled.')
 def main():
     parser = Arguments.parser()
     args = parser.parse_args()
@@ -698,35 +690,35 @@ def main():
             # a test_suite) is __builtins__, and it is skipped.
             if type(t_suite) is dict and name != '__builtins__':
                 # check that the test_cases selected are in the test_suite and
-                # print a message if there are disabled.
-                # if (are_tests_in_test_suite())
-                   # print()
-                   # return
-                # if (are....)
-                check_test_case_in_test_suite(t_suite, name, options['test_cases'])
-                check_disable_test(t_suite, name, options['test_cases_disabled'])
+                # exit the application if they are not.
+                if (not are_tests_in_test_suite(t_suite, name, options['test_cases'])):
+                    return
+                if (not are_tests_in_test_suite(t_suite, name, options['test_cases_disabled'])):
+                    return
 
                 # k is the dictionary key and v the dictionary value
                 for k, v in t_suite.items():
                     # TestCase is a class from junitparser whose attributes
                     # are: name and result (OK, Failure, Error or Skipped).
-                    parameters = v[0]
-                    expected_codes = v[1]
-                    if len(v) == 3:
-                        check_function = v[2]
-                    elif len(v) == 2:
-                        check_function = no_check
+                    if (options['test_cases_disabled'] is not None and k in options['test_cases_disabled']):
+                        print('Test Case <'+ name + '_'+ k + '> disabled.')
+                        continue
+                    elif (options['test_cases'] is not None and k not in options['test_cases']):
+                        continue
                     else:
-                        print('Error in the definition of the Test Suite. \
-                                Number of arguments incorrect.')
-                        break
+                        parameters = v[0]
+                        expected_codes = v[1]
+                        if len(v) == 3:
+                            check_function = v[2]
+                        elif len(v) == 2:
+                            check_function = no_check
+                        else:
+                            print('Error in the definition of the Test Suite. \
+                                    Number of arguments incorrect.')
+                            break
 
-                    assert(len(parameters) == len(expected_codes))
+                        assert(len(parameters) == len(expected_codes))
 
-                    if (options['test_cases'] is None or k in options['test_cases']) \
-                        and \
-                       (options['test_cases_disabled'] is None
-                            or k not in options['test_cases_disabled']):
                         case = junitparser.TestCase(f'{name}_{k}')
                         now_test_case = datetime.now()
                         run_test(name_executable_pub=options['publisher'],

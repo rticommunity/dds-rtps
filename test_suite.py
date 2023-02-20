@@ -21,24 +21,25 @@ import pexpect
 # applications the interoperability_report will run. It should be the same as
 # the number of elements in expected_return_code_list.
 
-# This function is used by test cases that have two publishers and one subscriber
-# This tests that the Ownership QoS works correctly. In order to do that the
-# function checks.....
-# It does <max_samples_received> iterations and at each of them it
-# processes one sample (taken with pexpect). For each sample, the function checks
-# whether the sample belongs to the second publisher, whose samples are in
-# samples_sent[1].
-# There are two scenarios:
-# 1. If the subscriber application has received samples from one DataWriter,
-# the publisher application is "sending samples".
-# 2. If the subscriber application has only received samples from one publisher
-# application, it may be because the other publisher app has not sent
-# samples yet. So this publisher is not "sending samples".
-# This function returns "RECEIVING FROM BOTH" if there is a sample
-# from one publisher between samples from the other publisher.
-# Ejemplo de receiving from one
-# documentar como las otras funciones
+
 def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
+
+    """"
+    This function is used by test cases that have two publishers and one subscriber.
+    This tests that the Ownership QoS works correctly. In order to do that the
+    function checks if the subscriber has received samples from one publisher or
+    from both. A subscriber has received from both publishers if there is a sample
+    from each publisher interleaved. This is done to make sure the subscriber did
+    not started receiving samples from the publisher that was run before, and then
+    change to the publisher with the greatest ownership.
+
+    child_sub: child program generated with pexpect
+    samples_sent: list of multiprocessing Queues with the samples
+                the Publishers send. Element 1 of the list is for
+                Publisher 1, etc.
+    timeout: time pexpect waits until it matches a pattern.
+    verbosity: print debug information.
+    """
     first_received_first_time = False
     second_received_first_time = False
     first_received = False
@@ -85,17 +86,20 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
 
     return ReturnCode.RECEIVING_FROM_ONE
 
-# The functions checks if the Subscriber is receiving the samples in order.
-# The function does <max_samples_received> iterations and at each of them
-# processes one sample (taken from pexpect). For each sample the function
-# checks if the sample received matches with the sample sent (taken
-# from 'samples_sent[0]'). In case the sample received does not match with
-# the sample sent it is because the subscriber is not receiving the samples
-# in order and the functions saves the code "DATA_NOT_CORRECT",
-# stopping the function.
-# In case it matches the function receives another sample and it
-# continues with another iteration.
+
 def test_reliability_4(child_sub, samples_sent, timeout, verbosity):
+
+    """
+    The functions testS reliability, checking if the Subscriber receives the
+    samples in order.
+
+    child_sub: child program generated with pexpect
+    samples_sent: list of multiprocessing Queues with the samples
+                the Publishers send. Element 1 of the list is for
+                Publisher 1, etc.
+    timeout: time pexpect waits until it matches a pattern.
+    verbosity: print debug information.
+    """
     max_samples_received = 3
     max_wait_time = 5
     for x in range(0, max_samples_received, 1):
