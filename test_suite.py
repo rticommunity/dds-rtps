@@ -102,7 +102,8 @@ def test_reliability_4(child_sub, samples_sent, timeout):
     max_wait_time = 5
     for x in range(0, max_samples_received, 1):
         # take the position of the samples
-        sub_string = re.search('[0-9]{3} [0-9]{3}', child_sub.before)
+        sub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9][0-9]\]',
+            child_sub.before + child_sub.after)
         # the function takes the samples the first publisher is sending
         # ('samples_sent[0]') and checks whether they match the
         # samples that the subscriber has received.
