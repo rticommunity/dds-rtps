@@ -380,29 +380,29 @@ public:
         if ( !parse_ok ) {
             print_usage(argv[0]);
         }
-        log_message("Shape Options: \
-                     \n     DomainId = " + std::to_string(domain_id)+
-                    "\n     ReliabilityKind = " + std::to_string(reliability_kind)+
-                    "\n     DurabilityKind = " + std::to_string(durability_kind)+
-                    "\n     DataRepresentation = " + std::to_string(data_representation)+
-                    "\n     HistoryDepth = " + std::to_string(history_depth)+
-                    "\n     OwnershipStrength = " + std::to_string(ownership_strength)+
-                    "\n     Publish = " + std::to_string(publish)+
-                    "\n     Subscribe = " + std::to_string(subscribe)+
-                    "\n     TimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval)+
-                    "\n     DeadlineInterval = " + std::to_string(deadline_interval)+
-                    "\n     Verbosity = " + std::to_string(verbosity),
-                    Verbosity::DEBUG);
+        log_message("Shape Options: "
+                "\n\tDomainId = " + std::to_string(domain_id) +
+                "\n\tReliabilityKind = " + std::to_string(reliability_kind) +
+                "\n\tDurabilityKind = " + std::to_string(durability_kind) +
+                "\n\tDataRepresentation = " + std::to_string(data_representation) +
+                "\n\tHistoryDepth = " + std::to_string(history_depth) +
+                "\n\tOwnershipStrength = " + std::to_string(ownership_strength) +
+                "\n\tPublish = " + std::to_string(publish) +
+                "\n\tSubscribe = " + std::to_string(subscribe) +
+                "\n\tTimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval) +
+                "\n\tDeadlineInterval = " + std::to_string(deadline_interval) +
+                "\n\tVerbosity = " + std::to_string(verbosity),
+                Verbosity::DEBUG);
         if (topic_name != NULL){
-            log_message("     Topic = " + std::string(topic_name),
+            log_message("\tTopic = " + std::string(topic_name),
                     Verbosity::DEBUG);
         }
         if (color != NULL) {
-            log_message("     Color = " + std::string(color),
+            log_message("\tColor = " + std::string(color),
                     Verbosity::DEBUG);
         }
         if (partition != NULL) {
-            log_message("     Partition = " + std::string(partition), Verbosity::DEBUG);
+            log_message("\tPartition = " + std::string(partition), Verbosity::DEBUG);
         }
         return parse_ok;
     }

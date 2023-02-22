@@ -39,5 +39,5 @@ def log_message(message, verbosity):
     if verbosity:
         print(message)
 
-def no_check(child_sub, samples_sent, timeout, verbosity):
+def no_check(child_sub, samples_sent, timeout):
     return ReturnCode.OK

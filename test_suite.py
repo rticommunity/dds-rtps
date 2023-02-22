@@ -22,7 +22,7 @@ import pexpect
 # the number of elements in expected_return_code_list.
 
 
-def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
+def test_ownership3_4(child_sub, samples_sent, timeout):
 
     """"
     This function is used by test cases that have two publishers and one subscriber.
@@ -38,7 +38,6 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
                 the Publishers send. Element 1 of the list is for
                 Publisher 1, etc.
     timeout: time pexpect waits until it matches a pattern.
-    verbosity: print debug information.
     """
     first_received_first_time = False
     second_received_first_time = False
@@ -72,7 +71,7 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
             first_received_first_time = True
         elif sub_string.group(0) in list_data_received_second:
             second_received_first_time = True
-        log_message('S: Waiting for receiving samples', verbosity)
+
         # we get the next samples the subscriber is receiving
         child_sub.expect(
             [
@@ -87,29 +86,28 @@ def test_ownership3_4(child_sub, samples_sent, timeout, verbosity):
     return ReturnCode.RECEIVING_FROM_ONE
 
 
-def test_reliability_4(child_sub, samples_sent, timeout, verbosity):
+def test_reliability_4(child_sub, samples_sent, timeout):
 
     """
-    The functions testS reliability, checking if the Subscriber receives the
-    samples in order.
+    This function tests reliability, it checks whether the Subscriber receives
+    the samples in order.
 
     child_sub: child program generated with pexpect
     samples_sent: list of multiprocessing Queues with the samples
                 the Publishers send. Element 1 of the list is for
                 Publisher 1, etc.
     timeout: time pexpect waits until it matches a pattern.
-    verbosity: print debug information.
     """
     max_samples_received = 3
     max_wait_time = 5
     for x in range(0, max_samples_received, 1):
-        # we take the numbers that identify the sample
+        # take the position of the samples
         sub_string = re.search('[0-9]{3} [0-9]{3}', child_sub.before)
         # the function takes the samples the first publisher is sending
-        # ('samples_sent[0]') and checks if they matches with the
-        # samples the subscriber has received.
-        # In the case that 'samples_sent[0]' is empty, the method get
-        # waits until <max_wait_time> to stop the execution of the loop.
+        # ('samples_sent[0]') and checks whether they match the
+        # samples that the subscriber has received.
+        # In the case that 'samples_sent[0]' is empty, the method get()
+        # waits <max_wait_time> to stop the execution of the loop.
         try:
             if samples_sent[0].get(block=True,timeout=max_wait_time) == sub_string.group(0):
                 produced_code = ReturnCode.OK
@@ -120,7 +118,6 @@ def test_reliability_4(child_sub, samples_sent, timeout, verbosity):
             print("No samples to take from Queue")
             break
 
-        log_message('S: Waiting for receiving samples', verbosity)
         # we get the next samples the subscriber is receiving
         child_sub.expect(
             [

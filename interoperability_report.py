@@ -28,6 +28,7 @@ def run_subscriber_shape_main(
         parameters: str,
         produced_code: "list[int]",
         produced_code_index: int,
+        subscriber_index: int,
         samples_sent: "list[multiprocessing.Queue]",
         verbosity: bool,
         timeout: int,
@@ -47,6 +48,8 @@ def run_subscriber_shape_main(
                 the obtained ReturnCode.
         produced_code_index <<in>>: index of the produced_code list
                 where the ReturnCode is saved.
+        subscriber_index <<in>>: index of the subscriber. For the first
+                subscriber it is 1, for the second 2, etc.
         samples_sent <<in>>: list of multiprocessing Queues with the samples
                 the Publishers send. Element 1 of the list is for
                 Publisher 1, etc.
@@ -81,12 +84,14 @@ def run_subscriber_shape_main(
 
     """
     # Step 1 : run the executable
-    log_message('Running shape_main application Subscriber', verbosity)
+    log_message(f'Running shape_main application Subscriber {subscriber_index}',
+            verbosity)
     child_sub = pexpect.spawnu(f'{name_executable} {parameters}')
     child_sub.logfile = file
 
     # Step 2 : Check if the topic is created
-    log_message('S: Waiting for topic creation', verbosity)
+    log_message(f'Subscriber {subscriber_index}: Waiting for topic creation',
+            verbosity)
     index = child_sub.expect(
         [
             'Create topic:', # index = 0
@@ -104,7 +109,8 @@ def run_subscriber_shape_main(
         produced_code[produced_code_index] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the reader is created
-        log_message('S: Waiting for DR creation', verbosity)
+        log_message(f'Subscriber {subscriber_index}: Waiting for DataReader '
+                'creation', verbosity)
         index = child_sub.expect(
             [
                 'Create reader for topic:', # index = 0
@@ -120,7 +126,8 @@ def run_subscriber_shape_main(
             produced_code[produced_code_index] = ReturnCode.FILTER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the reader matches the writer
-            log_message('S: Waiting for DW matching', verbosity)
+            log_message(f'Subscriber {subscriber_index}: Waiting for matching '
+                    'DataWriter', verbosity)
             index = child_sub.expect(
                 [
                     'on_subscription_matched()', # index = 0
@@ -136,7 +143,8 @@ def run_subscriber_shape_main(
                 produced_code[produced_code_index] = ReturnCode.INCOMPATIBLE_QOS
             elif index == 0:
                 # Step 5: Check if the reader detects the writer as alive
-                log_message('S: Waiting for detecting DW alive', verbosity)
+                log_message(f'Subscriber {subscriber_index}: Waiting for '
+                        'detecting DataWriter alive', verbosity)
                 index = child_sub.expect(
                     [
                         'on_liveliness_changed()', # index = 0
@@ -148,8 +156,9 @@ def run_subscriber_shape_main(
                 if index == 1:
                     produced_code[produced_code_index] = ReturnCode.WRITER_NOT_ALIVE
                 elif index == 0:
-                    #Step 6 : Check if the reader receives the samples
-                    log_message('S: Waiting for receiving samples', verbosity)
+                    # Step 6 : Check if the reader receives the samples
+                    log_message(f'Subscriber {subscriber_index}: Receiving '
+                            'samples', verbosity)
                     index = child_sub.expect(
                             [
                                 '\[[0-9][0-9]\]', # index = 0
@@ -167,11 +176,11 @@ def run_subscriber_shape_main(
                         produced_code[produced_code_index] = check_function(
                                                                 child_sub,
                                                                 samples_sent,
-                                                                timeout,
-                                                                verbosity)
+                                                                timeout)
 
     subscriber_finished.set()   # set subscriber as finished
-    log_message('S: Waiting for PublisherS to finish', verbosity)
+    log_message(f'Subscriber {subscriber_index}: Waiting for Publishers to '
+            'finish', verbosity)
     for element in publishers_finished:
         element.wait()   # wait for all publishers to finish
     return
@@ -182,6 +191,7 @@ def run_publisher_shape_main(
         parameters: str,
         produced_code: "list[int]",
         produced_code_index: int,
+        publisher_index: int,
         samples_sent: multiprocessing.Queue,
         verbosity: bool,
         timeout: int,
@@ -200,6 +210,8 @@ def run_publisher_shape_main(
                 the obtained ReturnCode.
         produced_code_index <<in>>: index of the produced_code list
                 where the ReturnCode is saved.
+        publisher_index <<in>>: index of the publisher. For the first
+                publisher it is 1, for the second 2, etc.
         samples_sent <<out>>: this variable contains the samples
                 the Publisher sends.
         verbosity <<in>>: print debug information.
@@ -230,12 +242,14 @@ def run_publisher_shape_main(
     """
 
     # Step 1 : run the executable
-    log_message('Running shape_main application Publisher', verbosity)
+    log_message(f'Running shape_main application Publisher {publisher_index}',
+            verbosity)
     child_pub = pexpect.spawnu(f'{name_executable} {parameters}')
     child_pub.logfile = file
 
     # Step 2 : Check if the topic is created
-    log_message('P: Waiting for topic creation', verbosity)
+    log_message(f'Publisher {publisher_index}: Waiting for topic creation',
+            verbosity)
     index = child_pub.expect(
         [
             'Create topic:', # index == 0
@@ -253,7 +267,8 @@ def run_publisher_shape_main(
         produced_code[produced_code_index] = ReturnCode.UNRECOGNIZED_VALUE
     elif index == 0:
         # Step 3 : Check if the writer is created
-        log_message('P: Waiting for DW creation', verbosity)
+        log_message(f'Publisher {publisher_index}: Waiting for DataWriter '
+                'creation', verbosity)
         index = child_pub.expect(
             [
                 'Create writer for topic', # index = 0
@@ -265,7 +280,8 @@ def run_publisher_shape_main(
             produced_code[produced_code_index] = ReturnCode.WRITER_NOT_CREATED
         elif index == 0:
             # Step 4 : Check if the writer matches the reader
-            log_message('P: Waiting for DR matching', verbosity)
+            log_message(f'Publisher {publisher_index}: Waiting for matching '
+                    'DataReader', verbosity)
             index = child_pub.expect(
                 [
                     'on_publication_matched()', # index = 0
@@ -288,7 +304,6 @@ def run_publisher_shape_main(
                 # will only save the ReturnCode OK.
                 if '-w' in parameters:
                     #Step  5: Check if the writer sends the samples
-                    log_message('P: Waiting for sending samples', verbosity)
                     index = child_pub.expect(
                             [
                                 '\[[0-9][0-9]\]', # index = 0
@@ -298,14 +313,14 @@ def run_publisher_shape_main(
                         )
                     if index == 0:
                         produced_code[produced_code_index] = ReturnCode.OK
+                        log_message(f'Publisher {publisher_index}: Sending '
+                                'samples', verbosity)
                         for x in range(0, MAX_SAMPLES_SAVED, 1):
                             # We select the numbers that identify the samples
                             # and we add them to samples_sent.
                             pub_string = re.search('[0-9]{3} [0-9]{3}',
                                     child_pub.before)
                             samples_sent.put(pub_string.group(0))
-                            log_message('P: Waiting for sending samples',
-                                            verbosity)
                             child_pub.expect([
                                             '\[[0-9][0-9]\]', # index = 0
                                             pexpect.TIMEOUT # index = 1
@@ -318,7 +333,8 @@ def run_publisher_shape_main(
                 else:
                     produced_code[produced_code_index] = ReturnCode.OK
 
-    log_message('P: Waiting for Subscriber to finish', verbosity)
+    log_message(f'Publisher {publisher_index}: Waiting for Subscribers to finish',
+            verbosity)
     for element in subscribers_finished:
         element.wait() # wait for all subscribers to finish
     publisher_finished.set()   # set publisher as finished
@@ -357,16 +373,16 @@ def run_test(
         the list of parameters.
         Then it checks that the codes obtained are the expected ones.
     """
-    log_message(f'run_test parameters: \
-                    name_executable_pub: {name_executable_pub} \
-                    name_executable_sub: {name_executable_sub} \
-                    test_case: {test_case.name} \
-                    parameters: {parameters} \
-                    expected_codes: {expected_codes} \
-                    verbosity: {verbosity} \
-                    timeout: {timeout} \
-                    check_function: {check_function.__name__}',
-                    verbosity)
+    log_message(f'run_test parameters:\n'
+            f'    name_executable_pub: {name_executable_pub}\n'
+            f'    name_executable_sub: {name_executable_sub}\n'
+            f'    test_case: {test_case.name}\n'
+            f'    parameters: {parameters}\n'
+            f'    expected_codes: {expected_codes}\n'
+            f'    verbosity: {verbosity}\n'
+            f'    timeout: {timeout}\n'
+            f'    check_function: {check_function.__name__}',
+            verbosity)
 
     # numbers of publishers/subscriber we will have. It depends on how
     # many strings of parameters we have.
@@ -409,8 +425,8 @@ def run_test(
     entity_process = []
     # list of shape_main application outputs, edited to use in the html code.
     shape_main_application_output_edited = []
-    # We will create these elements earlier because we need
-    # them to define the processes.
+    # Create these elements earlier because they are needed
+    # to define the processes.
     for element in parameters:
         temporary_file.append(tempfile.TemporaryFile(mode='w+t'))
         if ('-P ' in element or element.endswith('-P')):
@@ -419,61 +435,64 @@ def run_test(
         elif ('-S ' in element or element.endswith('-S')):
             subscribers_finished.append(multiprocessing.Event())
         else:
-            print('Error in the definition of shape_main application parameters. \
-                Neither Publisher or Subscriber defined.')
-            return
+            raise RuntimeError('Error in the definition of shape_main '
+                'application parameters. Neither Publisher or Subscriber '
+                'defined.')
 
+    # Create and run the processes for the different shape_main applications
     for i in range(0, num_entities):
         if ('-P ' in parameters[i] or parameters[i].endswith('-P')):
-            entity_process.append(multiprocessing.Process(target=run_publisher_shape_main,
-                            kwargs={
-                                'name_executable':name_executable_pub,
-                                'parameters':parameters[i],
-                                'produced_code':return_codes,
-                                'produced_code_index':i,
-                                'samples_sent':samples_sent[publisher_number],
-                                'verbosity':verbosity,
-                                'timeout':timeout,
-                                'file':temporary_file[i],
-                                'subscribers_finished':subscribers_finished,
-                                'publisher_finished':publishers_finished[publisher_number]
-            }))
+            entity_process.append(multiprocessing.Process(
+                    target=run_publisher_shape_main,
+                    kwargs={
+                        'name_executable':name_executable_pub,
+                        'parameters':parameters[i],
+                        'produced_code':return_codes,
+                        'produced_code_index':i,
+                        'publisher_index':publisher_number+1,
+                        'samples_sent':samples_sent[publisher_number],
+                        'verbosity':verbosity,
+                        'timeout':timeout,
+                        'file':temporary_file[i],
+                        'subscribers_finished':subscribers_finished,
+                        'publisher_finished':publishers_finished[publisher_number]}))
             publisher_number += 1
             entity_type.append(f'Publisher_{publisher_number}')
             if publisher_number > 1:
-            # used to generate different seeds for each publisher's samples.
-            # Used only if there is more than one publisher
+                # used to generate different seeds for each publisher's samples.
+                # Used only if there is more than one publisher
                 time.sleep(SLEEP_TIME)
 
         elif('-S ' in parameters[i] or parameters[i].endswith('-S')):
-            entity_process.append(multiprocessing.Process(target=run_subscriber_shape_main,
-                            kwargs={
-                                'name_executable':name_executable_sub,
-                                'parameters':parameters[i],
-                                'produced_code':return_codes,
-                                'produced_code_index':i,
-                                'samples_sent':samples_sent,
-                                'verbosity':verbosity,
-                                'timeout':timeout,
-                                'file':temporary_file[i],
-                                'subscriber_finished':subscribers_finished[subscriber_number],
-                                'publishers_finished':publishers_finished,
-                                'check_function':check_function
-            }))
+            entity_process.append(multiprocessing.Process(
+                    target=run_subscriber_shape_main,
+                    kwargs={
+                        'name_executable':name_executable_sub,
+                        'parameters':parameters[i],
+                        'produced_code':return_codes,
+                        'produced_code_index':i,
+                        'subscriber_index':subscriber_number+1,
+                        'samples_sent':samples_sent,
+                        'verbosity':verbosity,
+                        'timeout':timeout,
+                        'file':temporary_file[i],
+                        'subscriber_finished':subscribers_finished[subscriber_number],
+                        'publishers_finished':publishers_finished,
+                        'check_function':check_function}))
             subscriber_number += 1
             entity_type.append(f'Subscriber_{subscriber_number}')
         else:
-            print('Error in the definition of shape_main application parameters. \
-                Neither Publisher or Subscriber defined.')
-            return
+            raise RuntimeError('Error in the definition of shape_main '
+                'application parameters. Neither Publisher or Subscriber '
+                'defined.')
 
         entity_process[i].start()
 
     for element in entity_process:
         element.join()     # Wait until the processes finish
 
-    log_message('Reading shape_main application console output from \
-                temporary files',
+    log_message('Reading shape_main application console output from '
+                'temporary files',
                 verbosity)
     for element in temporary_file:
         element.seek(0)
@@ -502,32 +521,34 @@ def run_test(
     else:
         print(f'Error in : {test_case.name}')
         for i in range(0, num_entities):
-            print(f'{entity_type[i]} expected code: {expected_codes[i]}; \
-                Code found: {return_codes[i].name}')
+            print(f'{entity_type[i]} expected code: {expected_codes[i]}; '
+                f'Code found: {return_codes[i].name}')
 
-            log_message(f'\nInformation about {entity_type[i]}:\n \
-                      {shape_main_application_output[i]} ', verbosity)
+            log_message(f'\nInformation about {entity_type[i]}:\n '
+                      f'{shape_main_application_output[i]} ', verbosity)
 
             shape_main_application_output_edited.append(
                         shape_main_application_output[i].replace('\n', '<br>'))
 
         # generate the table for the html code.
-        message = '<table> \
-                        <tr> \
-                            <th/> \
-                            <th> Expected Code </th> \
-                            <th> Code Produced </th> \
-                        </tr> '
+        message = \
+            '<table> ' \
+                '<tr> ' \
+                    '<th/> ' \
+                    '<th> Expected Code </th> ' \
+                    '<th> Code Produced </th> ' \
+                '</tr> '
         for i in range(num_entities):
-            message += '<tr> \
-                            <th> ' + entity_type[i] + ' </th> \
-                            <th> ' + expected_codes[i].name + '</th>  \
-                            <th> ' + return_codes[i].name + '</th> \
-                        </tr>'
+            message += \
+                '<tr> ' \
+                    f'<th> {entity_type[i]} </th> ' \
+                    f'<th> {expected_codes[i].name} </th> ' \
+                    f'<th> {return_codes[i].name} </th> ' \
+                '</tr>'
         message += '</table>'
         for i in range(0, num_entities):
-            message += '<strong> Information ' + entity_type[i] + ' </strong> \
-                        <br> ' + shape_main_application_output_edited[i] + '<br>'
+            message += f'<strong> Information {entity_type[i]} </strong>' \
+                    f'<br> {shape_main_application_output_edited[i]} <br>'
         test_case.result = [junitparser.Failure(message)]
 
     for element in temporary_file:
@@ -536,11 +557,10 @@ def run_test(
 class Arguments:
     def parser():
         parser = argparse.ArgumentParser(
-            description='Validation of interoperability of products compliant \
-                with OMG DDS-RTPS standard. This script generates automatically \
-                the verification between two shape_main executables. \
-                It will generate a xml report in a \
-                junit format.',
+            description='Validation of interoperability of products compliant '
+                'with OMG DDS-RTPS standard. This script generates automatically '
+                'the verification between two shape_main executables. '
+                'It also generates an XML report in JUnit format.',
             add_help=True)
 
         gen_opts = parser.add_argument_group(title='general options')
@@ -549,45 +569,43 @@ class Arguments:
             required=True,
             type=str,
             metavar='publisher_name',
-            help='Path to the Publisher shape_main application. \
-                It may be absolute or relative path. Example: if the executable \
-                is in the same folder as the script: \
-                "-P ./rti_connext_dds-6.1.1_shape_main_linux".')
+            help='Path to the Publisher shape_main application. '
+                'It may be absolute or relative path. Example: if the executable '
+                'is in the same folder as the script: '
+                '"-P ./rti_connext_dds-6.1.1_shape_main_linux".')
         gen_opts.add_argument('-S', '--subscriber',
             default=None,
             required=True,
             type=str,
             metavar='subscriber_name',
-            help='Path to the Subscriber shape_main application. \
-                It may be absolute or relative path. Example: if the executable \
-                is in the same folder as the script: \
-                "-P ./rti_connext_dds-6.1.1_shape_main_linux".')
+            help='Path to the Subscriber shape_main application. '
+                'It may be absolute or relative path. Example: if the executable '
+                'is in the same folder as the script: '
+                '"-S ./rti_connext_dds-6.1.1_shape_main_linux".')
 
         optional = parser.add_argument_group(title='optional parameters')
         optional.add_argument('-v','--verbose',
             default=False,
             required=False,
             action='store_true',
-            help='Print debug information to stdout. This option also shows the \
-                shape_main application output in case of error. \
-                If this option is not used, only the test results are printed \
-                in the stdout. (Default: False).')
+            help='Print debug information to stdout. This option also shows the '
+                'shape_main application output in case of error. '
+                'If this option is not used, only the test results are printed '
+                'in the stdout. (Default: False).')
 
         tests = parser.add_argument_group(title='Test Case and Test Suite')
         tests.add_argument('-s', '--suite',
-            nargs='+',
-            default=['test_suite'],
+            default='test_suite',
             required=False,
             metavar='test_suite_dictionary_file',
             type=str,
-            help='Test Suite that is going to be tested. \
-                Test Suite is a file with a Python dictionary defined. It should \
-                be located on the same directory as interoperability_report. \
-                This value should not contain the extension ".py", \
-                only the name of the file. \
-                It will run all the dictionaries defined in the file. \
-                Multiple files can be passed. \
-                (Default: test_suite).')
+            help='Test Suite that is going to be tested. '
+                'Test Suite is a file with a Python dictionary defined. It must '
+                'be located on the same directory as interoperability_report. '
+                'This value should not contain the extension ".py", '
+                'only the name of the file. '
+                'It will run all the dictionaries defined in the file. '
+                '(Default: test_suite).')
 
         enable_disable = tests.add_mutually_exclusive_group(required=False)
         enable_disable.add_argument('-t', '--test',
@@ -596,31 +614,30 @@ class Arguments:
             required=False,
             type=str,
             metavar='test_cases',
-            help='Test Case that the script will run. \
-                This options is not supported with --disable_test. \
-                (Default: \
-                run all the Test Cases contained in the Test Suite.)')
+            help='Test Case that the script will run. '
+                'This option is not supported with --disable_test. '
+                'This allows to set multiple values separated by a space. '
+                '(Default: run all Test Cases from the Test Suite.)')
         enable_disable.add_argument('-d', '--disable_test',
             nargs='+',
             default=None,
             required=False,
             type=str,
             metavar='test_cases_disabled',
-            help='Test Case that the script will skip. \
-                This option is not supported with --test. \
-                (Default: None)')
+            help='Test Case that the script will skip. '
+                'This allows to set multiple values separated by a space. '
+                'This option is not supported with --test. (Default: None)')
 
         out_opts = parser.add_argument_group(title='output options')
         out_opts.add_argument('-o', '--output-name',
             required=False,
             metavar='filename',
             type=str,
-            help='Name of the xml report that will be generated. \
-                If the file passed already exists, it will add \
-                the new results to it. In other case it will create \
-                a new file. \
-                (Default: \
-                    <publisher_name>-<subscriber_name>-date.xml)')
+            help='Name of the xml report that will be generated. '
+                'If the file passed already exists, it will add '
+                'the new results to it. In other case it will create '
+                'a new file. '
+                '(Default: <publisher_name>-<subscriber_name>-date.xml)')
 
         return parser
 
@@ -630,8 +647,8 @@ def are_tests_in_test_suite(test_suite, suite_name, test_cases):
     if test_cases != None:
         for i in test_cases:
             if i not in test_suite:
-                print('Test Case <' + i + '> not contained in Test Suite <'
-                        + suite_name + '>.')
+                print(f'Test Case <{i}> not contained in Test Suite '
+                        f'<{suite_name}>.')
                 all_test_cases_exist = False
     return all_test_cases_exist
 
@@ -661,8 +678,8 @@ def main():
     if args.output_name is None:
         now = datetime.now()
         date_time = now.strftime('%Y%m%d-%H_%M_%S')
-        options['filename_report'] = name_publisher+'-'+name_subscriber \
-                                    +'-'+date_time+'.xml'
+        options['filename_report'] = f'{name_publisher}-{name_subscriber}-\
+            {date_time}.xml'
         xml = junitparser.JUnitXml()
 
     else:
@@ -681,56 +698,73 @@ def main():
     timeout = 10
     now = datetime.now()
 
-    for element in options['test_suite']:
-        t_suite_module = importlib.import_module(element)
-        for name, t_suite in inspect.getmembers(t_suite_module):
-            # getmembers returns all the members in the t_suite_module.
-            # Then, 'type(t_suite) is a dict' takes all the members that
-            # are a dictionary. The only one that is not needed (it is not
-            # a test_suite) is __builtins__, and it is skipped.
-            if type(t_suite) is dict and name != '__builtins__':
-                # check that the test_cases selected are in the test_suite and
-                # exit the application if they are not.
-                if (not are_tests_in_test_suite(t_suite, name, options['test_cases'])):
-                    return
-                if (not are_tests_in_test_suite(t_suite, name, options['test_cases_disabled'])):
-                    return
+    t_suite_module = importlib.import_module(options['test_suite'])
+    for test_suite_name, t_suite_dict in inspect.getmembers(t_suite_module):
+        # getmembers returns all the members in the t_suite_module.
+        # Then, 'type(t_suite) is dict' takes all the members that
+        # are a dictionary. The only one that is not needed (it is not
+        # a test_suite) is __builtins__, and it is skipped.
+        if type(t_suite_dict) is dict and test_suite_name != '__builtins__':
+            # check that the test_cases selected are in the test_suite and
+            # exit the application if they are not.
+            if not are_tests_in_test_suite(
+                    t_suite_dict,
+                    test_suite_name,
+                    options['test_cases']):
+                raise RuntimeError('Cannot process test cases.')
+            if not are_tests_in_test_suite(
+                    t_suite_dict,
+                    test_suite_name,
+                    options['test_cases_disabled']):
+                raise RuntimeError('Disabled test cases not found.')
 
-                # k is the dictionary key and v the dictionary value
-                for k, v in t_suite.items():
-                    # TestCase is a class from junitparser whose attributes
-                    # are: name and result (OK, Failure, Error or Skipped).
-                    if (options['test_cases_disabled'] is not None and k in options['test_cases_disabled']):
-                        print('Test Case <'+ name + '_'+ k + '> disabled.')
-                        continue
-                    elif (options['test_cases'] is not None and k not in options['test_cases']):
-                        continue
-                    else:
-                        parameters = v[0]
-                        expected_codes = v[1]
-                        if len(v) == 3:
-                            check_function = v[2]
-                        elif len(v) == 2:
-                            check_function = no_check
+            for test_case_name, test_case_parameters in t_suite_dict.items():
+                # TestCase is a class from junitparser whose attributes
+                # are: name and result (OK, Failure, Error or Skipped).
+
+                if options['test_cases_disabled'] is not None \
+                        and test_case_name in options['test_cases_disabled']:
+                    # if there are test cases disabled and the script is
+                    # processing one of them, continue
+                    print(f'Test Case {test_case_name} disabled.')
+                    continue
+
+                elif options['test_cases'] is not None \
+                        and test_case_name not in options['test_cases']:
+                    # if only specific test cases are enabled and the script
+                    # is not processing one of them, continue
+                    continue
+                else:
+                    # if the test case is processed
+                    parameters = test_case_parameters[0]
+                    expected_codes = test_case_parameters[1]
+                    if len(test_case_parameters) == 3:
+                        if callable(test_case_parameters[2]):
+                            check_function = test_case_parameters[2]
                         else:
-                            print('Error in the definition of the Test Suite. \
-                                    Number of arguments incorrect.')
-                            break
+                            raise RuntimeError('Cannot process function of '
+                                f'test case: {test_case_name}')
+                    elif len(test_case_parameters) == 2:
+                        check_function = no_check
+                    else:
+                        print('Error in the definition of the Test Suite. '
+                                'Number of arguments incorrect.')
+                        break
 
-                        assert(len(parameters) == len(expected_codes))
+                    assert(len(parameters) == len(expected_codes))
 
-                        case = junitparser.TestCase(f'{name}_{k}')
-                        now_test_case = datetime.now()
-                        run_test(name_executable_pub=options['publisher'],
-                                name_executable_sub=options['subscriber'],
-                                test_case=case,
-                                parameters=parameters,
-                                expected_codes=expected_codes,
-                                verbosity=options['verbosity'],
-                                timeout=timeout,
-                                check_function=check_function)
-                        case.time = (datetime.now() - now_test_case).total_seconds()
-                        suite.add_testcase(case)
+                    case = junitparser.TestCase(f'{test_suite_name}_{test_case_name}')
+                    now_test_case = datetime.now()
+                    run_test(name_executable_pub=options['publisher'],
+                            name_executable_sub=options['subscriber'],
+                            test_case=case,
+                            parameters=parameters,
+                            expected_codes=expected_codes,
+                            verbosity=options['verbosity'],
+                            timeout=timeout,
+                            check_function=check_function)
+                    case.time = (datetime.now() - now_test_case).total_seconds()
+                    suite.add_testcase(case)
 
     suite.time = (datetime.now() - now).total_seconds()
     xml.add_testsuite(suite)
