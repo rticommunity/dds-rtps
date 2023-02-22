@@ -16,6 +16,7 @@ and can interoperate with each other.
 ## Table of contents
 
 * 1\. [Introduction](#introduction)
+    * 1.1. [Vocabulary](#vocabulary)
 
 * 2\. [Test Suite](#test-suite)
 
@@ -56,16 +57,29 @@ and can interoperate with each other.
 
 # Introduction
 
-The script `interoperability_report.py` tests automatically the
-interoperability between two executables, generated with the
-`shape_main application`. The tests that the script runs must be
-defined in a Test Suite, which by default would be `test_suite.py`.
-
-Once the script finishes, it generates a report with the result
-of the interoperability tests between both executables.
+In order to test the interoperability between different DDS implementations, a DDS
+application is used. This application is `shape_main`. The `shape_main` application
+adds a big variety of options to modify several parameters it uses, such as the topic name,
+the kind of entity (publisher/subscriber), includes DDS QoSes...
+The `shape_main` application is built statically with different DDS implementations
+and those executables are tested between them to check their interoperability with
+different parameter sets defined in a Test Suite. This is done by the
+`interoperability_report.py` script.
+This repository contains a Test Suite `test_suite.py' with all different Test Cases
+that the `interoperability_report.py` performs. The user may create different
+Test Suites for other testing scenarios or add new Test Cases to the mentioned
+Test Suite.
+Additionally, the `interoperability_report.py` generates a JUnit report after its
+execution showing the results of the different tests performed.
 
 You can run the script either [automatically](#automation-with-github-actions)
 or [manually](#run-interoperability-test-manually).
+## Vocabulary
+
+* Test Suite: this is a Python file that contains different Test Cases...
+* Test Case: this is the definition of one testing scenario. This is composed by a set of parameters that the shape_main application will use...
+* shape_main application: this is a static-linked DDS application that has several parameters to configure different QoS and other DDS functionality (such as the Topic Name)...
+* interoperability_report.py: this is the script that run the different Test Cases within a Test Suite...
 
 # Test Suite
 
