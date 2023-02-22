@@ -537,7 +537,6 @@ private:
     int                        yvel;
     int                        da_width;
     int                        da_height;
-    int                        id;
 
 public:
     //-------------------------------------------------------------
