@@ -48,8 +48,8 @@ def test_ownership3_4(child_sub, samples_sent, timeout):
     max_wait_time = 5
     for x in range(0,max_samples_received,1):
         # we take the numbers that identify the sample
-        sub_string = re.search('[0-9]{3} [0-9]{3}',
-            child_sub.before)
+        sub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9][0-9]\]',
+            child_sub.before+child_sub.after)
         try:
             # the function takes the samples the second publisher is sending
             # ('samples_sent[1]') and saves them in a list.
@@ -215,6 +215,6 @@ rtps_test_suite_1 = {
     'Test_Ownership_3': [['-P -t Square -s 3 -c BLUE -w -x 2', '-P -t Square -s 4 -c RED -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2'],
                          [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_BOTH], test_ownership3_4],
     # Two Publishers and One Subscriber to test that the Subscriber only receives samples from the Publisher with the greatest ownership
-    'Test_Ownership_4': [['-P -t Square -s 5 -r -k 0 -w -x 2', '-P -t Square -s 4 -r -k 0 -w -x 2', '-S -t Square -s 2 -r -k 0 -x 2'],
+    'Test_Ownership_4': [['-P -t Square -s 5 -r -k 0 -w -x 2 -z 20', '-P -t Square -s 4 -r -k 0 -w -x 2 -z 22', '-S -t Square -s 2 -r -k 0 -x 2'],
                          [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE], test_ownership3_4],
 }

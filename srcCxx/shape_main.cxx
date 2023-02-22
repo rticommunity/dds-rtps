@@ -94,6 +94,7 @@ public:
 
     int                 xvel;
     int                 yvel;
+    int                 shapesize;
 
     Verbosity           verbosity;
     bool                print_writer_samples;
@@ -124,6 +125,7 @@ public:
 
         xvel = 3;
         yvel = 3;
+        shapesize = 20;
 
         verbosity            = Verbosity::ERROR;
         print_writer_samples = false;
@@ -157,6 +159,7 @@ public:
         printf("   -S              : subscribe samples\n");
         printf("   -x [1|2]        : set data representation [1: XCDR, 2: XCDR2]\n");
         printf("   -w              : print Publisher's samples\n");
+        printf("   -z <int>        : set samples size\n");
         printf("   -v [e|d]        : set log message verbosity [e: ERROR, d: DEBUG]\n");
     }
 
@@ -187,7 +190,7 @@ public:
         int opt;
         bool parse_ok = true;
         // double d;
-        while ((opt = getopt(argc, argv, "hbrc:d:D:f:i:k:p:s:x:t:v:wPS")) != -1)
+        while ((opt = getopt(argc, argv, "hbrc:d:D:f:i:k:p:s:x:t:v:z:wPS")) != -1)
         {
             switch (opt)
             {
@@ -365,6 +368,11 @@ public:
                     }
                     break;
                 }
+            case 'z':
+                {
+                    shapesize = atoi(optarg);
+                    break;
+                }
             case '?':
                 {
                     parse_ok = false;
@@ -391,6 +399,7 @@ public:
                 "\n    Subscribe = " + std::to_string(subscribe) +
                 "\n    TimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval) +
                 "\n    DeadlineInterval = " + std::to_string(deadline_interval) +
+                "\n    Shapesize = " + std::to_string(shapesize) +
                 "\n    Verbosity = " + std::to_string(verbosity),
                 Verbosity::DEBUG);
         if (topic_name != NULL){
@@ -528,6 +537,7 @@ private:
     int                        yvel;
     int                        da_width;
     int                        da_height;
+    int                        id;
 
 public:
     //-------------------------------------------------------------
@@ -907,7 +917,7 @@ public:
         STRING_ALLOC(shape.color, std::strlen(color));
         strcpy(shape.color STRING_INOUT, color);
 
-        shape.shapesize = 20;
+        shape.shapesize = options->shapesize;
         shape.x    =  random() % da_width;
         shape.y    =  random() % da_height;
         xvel       =  ((random() % 5) + 1) * ((random()%2)?-1:1);
@@ -925,7 +935,7 @@ public:
                                         shape.color STRING_IN,
                                         shape.x,
                                         shape.y,
-                                        shape.shapesize );
+                                        shape.shapesize);
             usleep(33000);
         }
 

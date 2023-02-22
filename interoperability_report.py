@@ -25,11 +25,6 @@ from rtps_test_utilities import ReturnCode, log_message, no_check
 # This parameter is used to save the samples the Publisher sends.
 # MAX_SAMPLES_SAVED is the maximum number of samples saved.
 MAX_SAMPLES_SAVED = 100
-# This parameter is used to run the Publishers in different times. This
-# generates a different seeds for the Publisher's samples. If the test case
-# has 2 or more publishers, the script waits SLEEP_TIME seconds before
-# creating the next publisher.
-SLEEP_TIME = 1
 
 def run_subscriber_shape_main(
         name_executable: str,
@@ -326,8 +321,8 @@ def run_publisher_shape_main(
                         for x in range(0, MAX_SAMPLES_SAVED, 1):
                             # We select the numbers that identify the samples
                             # and we add them to samples_sent.
-                            pub_string = re.search('[0-9]{3} [0-9]{3}',
-                                    child_pub.before)
+                            pub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9][0-9]\]',
+                                    child_pub.before+child_pub.after)
                             samples_sent.put(pub_string.group(0))
                             child_pub.expect([
                                             '\[[0-9][0-9]\]', # index = 0
@@ -466,10 +461,6 @@ def run_test(
                         'publisher_finished':publishers_finished[publisher_number]}))
             publisher_number += 1
             entity_type.append(f'Publisher_{publisher_number}')
-            if publisher_number > 1:
-                # used to generate different seeds for each publisher's samples.
-                # Used only if there is more than one publisher
-                time.sleep(SLEEP_TIME)
 
         elif('-S ' in parameters[i] or parameters[i].endswith('-S')):
             entity_process.append(multiprocessing.Process(
