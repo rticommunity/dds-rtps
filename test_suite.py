@@ -49,7 +49,7 @@ def test_ownership3_4(child_sub, samples_sent, timeout):
     for x in range(0,max_samples_received,1):
         # we take the numbers that identify the sample
         sub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9][0-9]\]',
-            child_sub.before+child_sub.after)
+            child_sub.before + child_sub.after)
         try:
             # the function takes the samples the second publisher is sending
             # ('samples_sent[1]') and saves them in a list.

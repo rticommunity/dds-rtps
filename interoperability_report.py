@@ -322,7 +322,7 @@ def run_publisher_shape_main(
                             # We select the numbers that identify the samples
                             # and we add them to samples_sent.
                             pub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9][0-9]\]',
-                                    child_pub.before+child_pub.after)
+                                    child_pub.before + child_pub.after)
                             samples_sent.put(pub_string.group(0))
                             child_pub.expect([
                                             '\[[0-9][0-9]\]', # index = 0
