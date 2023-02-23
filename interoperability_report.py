@@ -173,7 +173,7 @@ def run_subscriber_shape_main(
                             'samples', verbosity)
                     index = child_sub.expect(
                             [
-                                '\[[0-9][0-9]\]', # index = 0
+                                '\[[0-9]{2}\]', # index = 0
                                 pexpect.TIMEOUT # index = 1
                             ],
                             timeout
@@ -318,7 +318,7 @@ def run_publisher_shape_main(
                     #Step  5: Check if the writer sends the samples
                     index = child_pub.expect(
                             [
-                                '\[[0-9][0-9]\]', # index = 0
+                                '\[[0-9]{2}\]', # index = 0
                                 pexpect.TIMEOUT # index = 1
                             ],
                             timeout
@@ -330,11 +330,11 @@ def run_publisher_shape_main(
                         for x in range(0, MAX_SAMPLES_SAVED, 1):
                             # We select the numbers that identify the samples
                             # and we add them to samples_sent.
-                            pub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9][0-9]\]',
+                            pub_string = re.search('[0-9]{3} [0-9]{3} \[[0-9]{2}\]',
                                     child_pub.before + child_pub.after)
                             samples_sent.put(pub_string.group(0))
                             child_pub.expect([
-                                            '\[[0-9][0-9]\]', # index = 0
+                                            '\[[0-9]{2}\]', # index = 0
                                             pexpect.TIMEOUT # index = 1
                                                 ],
                                             timeout

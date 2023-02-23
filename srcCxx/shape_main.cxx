@@ -159,7 +159,7 @@ public:
         printf("   -S              : subscribe samples\n");
         printf("   -x [1|2]        : set data representation [1: XCDR, 2: XCDR2]\n");
         printf("   -w              : print Publisher's samples\n");
-        printf("   -z <int>        : set samples size\n");
+        printf("   -z <int>        : set shapesize (between 10-99)\n");
         printf("   -v [e|d]        : set log message verbosity [e: ERROR, d: DEBUG]\n");
     }
 
@@ -238,7 +238,19 @@ public:
                 }
             case 'd':
                 {
-                    domain_id = atoi(optarg);
+                    int converted_param = sscanf(optarg, "%d", &domain_id);
+                    if (converted_param == 0) {
+                        log_message("unrecognized value for domain_id "
+                                        + std::string(1, optarg[0]),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
+                    else if (domain_id < 0) {
+                        log_message("incorrect value for domain_id "
+                                        + std::to_string(domain_id),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
                     break;
                 }
             case 'D':
@@ -280,20 +292,50 @@ public:
                 }
             case 'i':
                 {
-                    timebasedfilter_interval = atoi(optarg);
+                    int converted_param = sscanf(optarg, "%d", &timebasedfilter_interval);
+                    if (converted_param == 0) {
+                        log_message("unrecognized value for timebasedfilter_interval "
+                                        + std::string(1, optarg[0]),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
+                    else if (timebasedfilter_interval < 0) {
+                        log_message("incorrect value for timebasedfilter_interval "
+                                        + std::to_string(timebasedfilter_interval),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
                     break;
                 }
             case 'f':
                 {
-                    deadline_interval = atoi(optarg);
+                    int converted_param = sscanf(optarg, "%d", &deadline_interval);
+                    if (converted_param == 0) {
+                        log_message("unrecognized value for deadline_interval "
+                                        + std::string(1, optarg[0]),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
+                    else if (deadline_interval < 0) {
+                        log_message("incorrect value for deadline_interval "
+                                        + std::to_string(deadline_interval),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
                     break;
                 }
             case 'k':
                 {
-                    history_depth = atoi(optarg);
-                    if (history_depth < 0) {
+                    int converted_param = sscanf(optarg, "%d", &history_depth);
+                    if (converted_param == 0){
                         log_message("unrecognized value for history_depth "
                                         + std::string(1, optarg[0]),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
+                    else if (history_depth < 0) {
+                        log_message("incorrect value for history_depth "
+                                        + std::to_string(history_depth),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     }
@@ -311,10 +353,16 @@ public:
                 }
             case 's':
                 {
-                    ownership_strength = atoi(optarg);
-                    if (ownership_strength < -1) {
+                    int converted_param = sscanf(optarg, "%d", &ownership_strength);
+                    if (converted_param == 0){
                         log_message("unrecognized value for ownership_strength "
                                         + std::string(1, optarg[0]),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
+                    else if (ownership_strength < -1) {
+                        log_message("incorrect value for ownership_strength "
+                                        + std::to_string(ownership_strength),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     }
@@ -370,7 +418,19 @@ public:
                 }
             case 'z':
                 {
-                    shapesize = atoi(optarg);
+                    int converted_param = sscanf(optarg, "%d", &shapesize);
+                    if (converted_param == 0){
+                        log_message("unrecognized value for shapesize "
+                                        + std::string(1, optarg[0]),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
+                    else if (shapesize < 10 || shapesize > 99) {
+                        log_message("incorrect value for shapesize "
+                                        + std::to_string(shapesize),
+                                Verbosity::ERROR);
+                        parse_ok = false;
+                    }
                     break;
                 }
             case '?':
