@@ -74,7 +74,8 @@ mentioned Test Suite.
 Additionally, the `interoperability_report.py` generates a JUnit report after
 its execution showing the results of the different tests performed.
 
-You can run the script either [automatically](#automation-with-github-actions)
+You can run the script `interoperability_report.py` either
+[automatically](#automation-with-github-actions)
 or [manually](#run-interoperability-test-manually).
 
 ## Vocabulary
@@ -87,7 +88,7 @@ interoperability between two `shape_main` applications.
 several parameters to configure different QoS and other DDS functionality
 (such as the Topic Name, color filter, domain, partition,
 data representation, etc).
-* `interoperability_report.py`: this is the script that run the different
+* `interoperability_report.py`: this is the script that runs the different
 Test Cases within a Test Suite and generates a report with the results.
 
 # Test Suite
@@ -97,7 +98,7 @@ following the next pattern:
 
 ~~~python
 # The Test Suite is a dictionary where each element
-# is a Test Case that the interoperability_report.py
+# is a Test Case that interoperability_report.py
 # executes.
 # The dictionary has the following structure:
 #       'name' : [[parameter_list], [expected_return_code_list], function]
