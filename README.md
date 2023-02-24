@@ -96,17 +96,24 @@ In order to create a Test Suite we must define it in a python file,
 following the next pattern:
 
 ~~~python
-# test_suite_name = {
-#   'test_name' : [[parameters], [expected_return_codes], <OPTIONAL>:function]
-# }
+# The Test Suite is a dictionary where each element
+# is a Test Case that the interoperability_report.py
+# executes.
+# The dictionary has the following structure:
+#       'name' : [[parameter_list], [expected_return_code_list], function]
 # where:
-#   * name: TestCase name (defined by us)
-#   * parameters: list with shape_main application parameters
+#   * name: TestCase's name
+#   * parameter_list: list in which each element is the parameters that
+#         the shape_main application will use.
 #   * expected_return_codes: list with expected ReturnCodes for
 #     a succeed test execution.
-#   * function [OPTIONAL]: function to check how the Subscribers receives
-#     the samples from the Publishers. By default it does not check
-#     anything. The function has to be implemented by us.
+#   * expected_return_code_list: list with expected ReturnCodes
+#         for a succeed test execution.
+#   * function [OPTIONAL]: function to check how the Subscribers receive
+#         the samples from the Publishers. By default, it just checks that
+#         the data is received. In case that it has a different behavior, that
+#         function must be implemented in the test_suite file and the test case
+#         should reference it in this parameter.
 #
 #     The function must have the following parameters:
 #     child_sub: child program generated with pexpect
@@ -114,6 +121,10 @@ following the next pattern:
 #                the Publishers send. Element 1 of the list is for
 #                Publisher 1, etc.
 #     timeout: time pexpect waits until it matches a pattern.
+
+#   The number of elements in parameter_list defines how many shape_main
+#   applications the interoperability_report will run. It should be the same as
+#   the number of elements in expected_return_code_list.
 
 # Example
 
@@ -208,66 +219,62 @@ The `interoperability_report.py` may configure the following options:
 $ python3 interoperability_report.py -h
 
 usage: interoperability_report.py [-h] -P publisher_name -S subscriber_name
-                                  [-v]
-                                  [-s test_suite_dictionary_file [test_suite_dictionary_file ...]]
+                                  [-v] [-s test_suite_dictionary_file]
                                   [-t test_cases [test_cases ...] | -d
                                   test_cases_disabled
                                   [test_cases_disabled ...]] [-o filename]
 
 Validation of interoperability of products compliant with OMG DDS-RTPS
 standard. This script generates automatically the verification between two
-executables compiled with the shape_main application. It will generate a xml
-report in a junit format.
+shape_main executables. It also generates an XML report in JUnit format.
 
 optional arguments:
   -h, --help            show this help message and exit
 
 general options:
   -P publisher_name, --publisher publisher_name
-                        Path to the Publisher shape_main application. If the
-                        executable is in the same folder as the script it
-                        should contain the "./". Example:
-                        ./rti_connext_dds-6.1.1_shape_main_linux
+                        Path to the Publisher shape_main application. It may
+                        be absolute or relative path. Example: if the
+                        executable is in the same folder as the script: "-P
+                        ./rti_connext_dds-6.1.1_shape_main_linux".
   -S subscriber_name, --subscriber subscriber_name
-                        Path to the Subscriber shape_main application. If the
-                        executable is in the same folder as the script it
-                        should contain the "./". Example:
-                        ./rti_connext_dds-6.1.1_shape_main_linux
+                        Path to the Subscriber shape_main application. It may
+                        be absolute or relative path. Example: if the
+                        executable is in the same folder as the script: "-S
+                        ./rti_connext_dds-6.1.1_shape_main_linux".
 
 optional parameters:
-  -v, --verbose         Print debug information to stdout. It will track the
-                        interoperability_report execution and it will show the
-                        shape_main application output in case of error. By
-                        default is non selected and the console output will be
-                        the results of the tests.
+  -v, --verbose         Print debug information to stdout. This option also
+                        shows the shape_main application output in case of
+                        error. If this option is not used, only the test
+                        results are printed in the stdout. (Default: False).
 
 Test Case and Test Suite:
-  -s test_suite_dictionary_file [test_suite_dictionary_file ...], --suite test_suite_dictionary_file [test_suite_dictionary_file ...]
+  -s test_suite_dictionary_file, --suite test_suite_dictionary_file
                         Test Suite that is going to be tested. Test Suite is a
-                        file with a dictionary defined, it should be located
-                        on the same directory as interoperability_report. By
-                        default is test_suite. To call it do not write ".py",
-                        only the name of the file. It will run all the
-                        dictionaries defined in the file. Multiple files can
-                        be passed.
+                        file with a Python dictionary defined. It must be
+                        located on the same directory as
+                        interoperability_report. This value should not contain
+                        the extension ".py", only the name of the file. It
+                        will run all the dictionaries defined in the file.
+                        (Default: test_suite).
   -t test_cases [test_cases ...], --test test_cases [test_cases ...]
-                        Test Case that the script will run. By default it will
-                        run all the Test Cases contained in the Test Suite.
-                        This options is not supported with --disable_test.
+                        Test Case that the script will run. This option is not
+                        supported with --disable_test. This allows to set
+                        multiple values separated by a space. (Default: run
+                        all Test Cases from the Test Suite.)
   -d test_cases_disabled [test_cases_disabled ...], --disable_test test_cases_disabled [test_cases_disabled ...]
-                        Test Case that the script will skip. By default it
-                        will run all the Test Cases contained in the Test
-                        Suite. This option is not supported with --test.
+                        Test Case that the script will skip. This allows to
+                        set multiple values separated by a space. This option
+                        is not supported with --test. (Default: None)
 
 output options:
   -o filename, --output-name filename
-                        Name of the xml report that will be generated. By
-                        default the report name will be:
-                        <publisher_name>-<subscriber_name>-date.xml If the
+                        Name of the xml report that will be generated. If the
                         file passed already exists, it will add the new
                         results to it. In other case it will create a new
-                        file.
-
+                        file. (Default:
+                        <publisher_name>-<subscriber_name>-date.xml)
 ```
 
 
