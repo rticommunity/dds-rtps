@@ -47,9 +47,9 @@ and can interoperate with each other.
 
     * 5.3. [Create a new release](#create-a-new-release)
 
-      * 5.1.1. [When to create a release](#when-to-create-a-release)
+      * 5.1.1. [Release and tag name](#release-and-tag-name)
 
-      * 5.1.2. [Release and tag name](#release-and-tag-name)
+      * 5.1.2. [When to create a release](#when-to-create-a-release)
 
       * 5.1.3. [Process of creating the release](#process-of-creating-the-release)
 
@@ -57,29 +57,38 @@ and can interoperate with each other.
 
 # Introduction
 
-In order to test the interoperability between different DDS implementations, a DDS
-application is used. This application is `shape_main`. The `shape_main` application
-adds a big variety of options to modify several parameters it uses, such as the topic name,
-the kind of entity (publisher/subscriber), includes DDS QoSes...
-The `shape_main` application is built statically with different DDS implementations
-and those executables are tested between them to check their interoperability with
-different parameter sets defined in a Test Suite. This is done by the
-`interoperability_report.py` script.
-This repository contains a Test Suite `test_suite.py' with all different Test Cases
-that the `interoperability_report.py` performs. The user may create different
-Test Suites for other testing scenarios or add new Test Cases to the mentioned
-Test Suite.
-Additionally, the `interoperability_report.py` generates a JUnit report after its
-execution showing the results of the different tests performed.
+In order to test the interoperability between different DDS implementations, a
+DDS application is used. This application is `shape_main`. The `shape_main`
+application adds a big variety of options to modify several parameters it uses,
+such as the topic name, the kind of entity (publisher/subscriber), includes
+DDS QoSes... The `shape_main` application is built statically with different
+DDS implementations and those executables are tested between them to check
+their interoperability with different parameter sets defined in a Test Suite.
+This is done by the `interoperability_report.py` script.
+
+This repository contains a Test Suite `test_suite.py` with all different
+Test Cases that the `interoperability_report.py` performs. The user may create
+different Test Suites for other testing scenarios or add new Test Cases to the
+mentioned Test Suite.
+
+Additionally, the `interoperability_report.py` generates a JUnit report after
+its execution showing the results of the different tests performed.
 
 You can run the script either [automatically](#automation-with-github-actions)
 or [manually](#run-interoperability-test-manually).
+
 ## Vocabulary
 
-* Test Suite: this is a Python file that contains different Test Cases...
-* Test Case: this is the definition of one testing scenario. This is composed by a set of parameters that the shape_main application will use...
-* shape_main application: this is a static-linked DDS application that has several parameters to configure different QoS and other DDS functionality (such as the Topic Name)...
-* interoperability_report.py: this is the script that run the different Test Cases within a Test Suite...
+* Test Suite: this is a Python file that contains different Test Cases.
+* Test Case: this is the definition of one testing scenario. This is composed
+by a set of parameters that the `shape_main` application will use to test the
+interoperability between two `shape_main` applications.
+* `shape_main` application: this is a static-linked DDS application that has
+several parameters to configure different QoS and other DDS functionality
+(such as the Topic Name, color filter, domain, partition,
+data representation, etc).
+* `interoperability_report.py`: this is the script that run the different
+Test Cases within a Test Suite and generates a report with the results.
 
 # Test Suite
 
@@ -98,8 +107,16 @@ following the next pattern:
 #   * function [OPTIONAL]: function to check how the Subscribers receives
 #     the samples from the Publishers. By default it does not check
 #     anything. The function has to be implemented by us.
+#
+#     The function must have the following parameters:
+#     child_sub: child program generated with pexpect
+#     samples_sent: list of multiprocessing Queues with the samples
+#                the Publishers send. Element 1 of the list is for
+#                Publisher 1, etc.
+#     timeout: time pexpect waits until it matches a pattern.
 
 # Example
+
 rtps_test_suite_1 = {
   # one publisher with parameters [-t Square -x 2] and one subscriber with
   # [-t Square -c RED -x 2]. The publisher expected return code is OK
@@ -112,6 +129,35 @@ rtps_test_suite_1 = {
 }
 ~~~
 
+By default, the `interoperability_report.py` script runs the tests from
+`test_suite.py` in its same directory. The Test Suites defined **must** be
+located in the same directory as `interoperability_report.py`.
+
+## `shape_main` application parameters
+
+The `shape_main` application allows the following parameters:
+
+~~~
+   -d <int>        : domain id (default: 0)
+   -b              : BEST_EFFORT reliability
+   -r              : RELIABLE reliability
+   -k <depth>      : keep history depth (0: KEEP_ALL)
+   -f <interval>   : set a 'deadline' with interval (seconds)
+   -i <interval>   : apply 'time based filter' with interval (seconds)
+   -s <int>        : set ownership strength [-1: SHARED]
+   -t <topic_name> : set the topic name
+   -c <color>      : set color to publish (filter if subscriber)
+   -p <partition>  : set a 'partition' string
+   -D [v|l|t|p]    : set durability [v: VOLATILE,  l: TRANSIENT_LOCAL]
+                                     t: TRANSIENT, p: PERSISTENT]
+   -P              : publish samples
+   -S              : subscribe samples
+   -x [1|2]        : set data representation [1: XCDR, 2: XCDR2]
+   -w              : print Publisher's samples
+   -z <int>        : set shapesize (between 10-99)
+   -v [e|d]        : set log message verbosity [e: ERROR, d: DEBUG]
+
+~~~
 
 # Run Interoperability Test Manually
 
@@ -237,13 +283,13 @@ $ python3 interoperability_report.py -P <path_to_publisher_executable>
 
 ## Report
 
-The script will generate a report file in JUnit (xml).
+The script generates a report file in JUnit (xml).
 
-> **Note**: to visualize the report in a more friendly-human way
+> **Note**: to visualize the report in a more friendly way
 you can use `junit-viewer`: \
 > `junit-viewer --results=<xml_name> --save=<html_name>`
 
-The report file will contain some items:
+The report file contains the following items:
 * **Test Suites**
     * The headers inside the report.
     * They have some items:
@@ -269,11 +315,27 @@ The report file will contain some items:
 
 # Automation with GitHub Actions
 
-With GitHub Actions we can automate the task of calling the script
-`interoperability_report.py` and generating the report.
+GitHub Actions allows to automate the testing phase by calling
+`interoperability_report.py` and generating the report. Although
+this process has to be launched manually by the user.
+GitHub Actions take care of unzipping the different executables
+that are part of the latest release and run all the combinations of
+the executables. For example, if we have 3 executables (A, B and C)
+the following tests are performed, the left-side executable is a
+publisher application and the right-side executable a subscriber
+application:
+* A-A
+* A-B
+* A-C
+* B-A
+* B-B
+* B-C
+* C-A
+* C-B
+* C-C
 
-We will trigger the process in the following cases:
-  * With the upload of a new executable
+The GitHub Actions process must be launched in the following cases:
+  * Whenever a new executable is uploaded
   * When `interoperability_report.py` changes
   * When `test_suite.py` changes
 
@@ -297,14 +359,13 @@ Example of a successful and a failed test:
 ![Failed test](./doc/img5.png)
 
 
-5. You will find something similar to this. At the bottom of the page
-you will see an **Artifacts** section with the report generated.
-
+5. At the bottom of the page you can find the attached artifacts
+in the **Artifacts** section that contains the generated report.
 ![Artifacts-1](./doc/img6.png)
 ![Artifacts-2](./doc/img7.png)
 
-6. Open it (the html file named `index.html`, inside `report`) and
-you will have the report generated. It will look something like this
+6. Download and unzip it. There is file called `index.html`, inside
+`report.zip` that is the generated report. It will look something like this
 (set pretty option):
 
 ![report-1](./doc/img8.png)
@@ -313,35 +374,40 @@ you will have the report generated. It will look something like this
 > **Note**: The status of the GitHub Action will be **Failure** :x:,
 if any of the Test Cases that we are testing has an error,
 or **Success** :heavy_check_mark: if none of them reported any error.
+
 # Workflow
 
 This section explains which are the events you may find in the process
 of maintaining the repository.
+
 ## Create executable
 
-The cases when we should create an executable are:
+New executables should be created and uploaded to the corresponding
+release when:
 
-* With the release of a new version of the dds implementation
-* When  `shape_main.cxx` changes. In this case there will be a new
-  release version and, depending on the importance of the change,
-  maybe the old executables are not compatible.
+* A new release of the product (DDS implementation)
+* When `shape_main.cxx` changes. In this case, there will be a new
+  release version in GitHub. New executables must be created with
+  these changes.
 
 The steps to compile with `shape_main.cxx` are not defined but
 there are some `makefiles` to help you with the task in the `srcCxx` folder.
 
-> **Note**: to compile with `connext` you may want to use
-  `makefile_rti_connext_dds_linux`.
+For example, if you want to build `shape_main.cxx` with RTI Connext,
+you can use `makefile_rti_connext_dds_linux`.
+
 ## Upload executable
 
-Each vendor should compile their own version of their product with
-the `shape_main.cxx` application. They should name the executable created as:
-`<product_name>_shape_main_linux` and compress it into a `.zip.`
+Each vendor should compile `shape_main.cxx` with their own product.
+The executable created **must** follow the following pattern:
+`<product_name_and_version>_shape_main_linux` and compress it
+into a `.zip` file.
 
 Example:
 
 ![zip](./doc/img10.png)
 
-Then they should upload the executable to git in the following way:
+Then, the executable should be uploaded to the corresponding release:
 
 > **Note**: to do it with the command line see `gh release`
 
@@ -359,32 +425,12 @@ Keep marked *Set as the latest release*, and press *Update release*.
 
 ![Attach](./doc/img13.png)
 
-> **Note**: when a new executable is uploaded we should generate a new report.
-To do it, go to
-[Automation with GitHub Actions](#automation-with-github-actions)
+> **Note**: once the executable is uploaded, the user should run
+> GitHub Actions to generate a new report.
+See [Automation with GitHub Actions](#automation-with-github-actions)
+for further information.
+
 ## Create a new release
-
-### When to create a release
-
-There are two cases when we will create a new release:
-* Once a year \
-    At the beginning of a new year we will create a new release.
-    * Before creating the release we should:
-        * Generate a report (see
-          [Automation with GitHub Actions](#automation-with-github-actions)).
-        * Upload the report generated as an asset to the latest release
-          (see
-          [Upload executable](#upload-executable)
-          and follow the same steps but with the report
-          instead than with the executable).
-* When there is a new functionality in `shape_main.cxx`,
- `interoperability_report.py`, or the creation of any other file that
- could be considered as a new functionality.
-
-Every time we create a new release we need to select which executables
-we want to maintain in the new release. This new release should contain
-the last version uploaded for every vendor.
-The executables could also be uploaded (or removed) later.
 
 ### Release and tag name
 
@@ -395,31 +441,53 @@ It should follow the next rule: \
 * y: minor version
 * z: year
 
-Depending on the importance of the changes from the old release to the new one,
-it will be a major or a minor version change:
+Whenever there are changes that affect functionality, the major
+or minor versions should be updated:
 * New functionality, major change -> major version
 * Bug fix or new functionality, minor change -> minor version
 
 
-> Case of use: actual name -> `v1.0.2022`
+> Example: actual name -> `v1.0.2022`
 > * If there is a small change in the repository: `v1.1.2022`
 > * If there is a big change in the repository: `v2.0.2022`
 > * At the beginning of a new year: `v1.0.2023`
 >   * If last release was `v1.2.2022`, it would be `v1.2.2023`
 
+### When to create a release
+
+There are two cases when we will create a new release:
+
+* Once a year
+    A new release is created every year, updating the latest version of all
+    executables. This increases the year in the release name and tag.
+    * Before creating the release, it's required to:
+        * Generate a report (see
+          [Automation with GitHub Actions](#automation-with-github-actions)).
+        * Upload the report generated as an asset to the current release
+          (see [Upload executable](#upload-executable)
+          and follow the same steps but with the report file).
+* When there is a new functionality in `shape_main.cxx`,
+ `interoperability_report.py`, or the creation of any other file that
+ could be considered as a new functionality. This increases the
+ major or minor version in the release name/tag but no the year.
+
+Every time we create a new release we need to select which executables
+we want to maintain in the new release. This new release should contain
+the last version uploaded for every vendor.
+The executables could also be uploaded (or removed) later.
+
 ### Process of creating the release
 
-It is important that we set the release that we are creating as the
-latest release, and that we do not create it as a pre-release.
+The automatic test only work with the latest release, so it is important
+to keep it up-to-date. Also, the release cannot be set as a pre-release.
 Here it is explained how to create the release with the graphic interface.
 
-> **Note**: to do it with the command line see `gh release` \
-> You should also create the tag first. In order to do it:
+> **Note**: to do it with the command line see `gh release`.
+> You also need to create the tag first. In order to do it:
 > ~~~
 > git checkout master
 > git tag <tag_name>
 > ~~~
-
 
 The name of the release and the tag should be as explained in
 [Release and tag name](#release-and-tag-name).
@@ -427,7 +495,6 @@ The name of the release and the tag should be as explained in
 1. In the main page, go to *Releases*.
 
 ![Releases](./doc/img11.png)
-
 
 2. Go to *Draft a new release*.
 
@@ -454,6 +521,7 @@ check first that the problem found is not generated by their executables.
 If the cause of the problem is not known or it is believed to be generated
 by other executables, they should report the problem as an issue
 in the following way.
+
 * Go to *Issues*.
 
 ![Issues](./doc/img16.png)
@@ -467,7 +535,7 @@ in the following way.
 
 ![Issue-Get started](./doc/img18.png)
 
-* Do:
+* Fill out the corresponding information:
     * Title: `Problem with <QoS or parameter>`
     * Fill the fields (publisher and subscriber name, Test Suite,
       Test Case, expected codes and produced codes).
