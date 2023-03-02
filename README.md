@@ -151,6 +151,8 @@ By default, the `interoperability_report.py` script runs the tests from
 `test_suite.py` in its same directory. The Test Suites defined **must** be
 located in the same directory as `interoperability_report.py`.
 
+## Return Code
+
 # Shape Application
 
 The Shape application is created in the folder `srcCxx/shape_main.cxx`.
