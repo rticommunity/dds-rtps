@@ -153,6 +153,47 @@ located in the same directory as `interoperability_report.py`.
 
 ## Return Code
 
+The `shape_main` application always follows a specific sequence of steps:
+
+* Publisher `shape_main` application
+  * Topic is created
+  * Data Writer is created
+  * Data Writer matches Data Reader
+  * Data Writer sends samples
+
+* Subscriber `shape_main` application
+  * Topic is created
+  * Data Reader is created
+  * Data Reader matches Data Writer
+  * Data Writer is detected as alive
+  * Data Reader receives samples
+
+At each step the `shape_main` application prints a specific string which
+allows the `interoperability_report` script to know how was the execution
+of the application.
+Each Return Code is related to one publisher/subscriber step, and they are
+set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not.
+* OK
+* UNRECOGNIZED_VALUE
+* TOPIC_NOT_CREATED
+* READER_NOT_CREATED
+* WRITER_NOT_CREATED
+* FILTER_NOT_CREATED
+* INCOMPATIBLE_QOS
+* READER_NOT_MATCHED
+* WRITER_NOT_MATCHED
+* WRITER_NOT_ALIVE
+* DATA_NOT_RECEIVED
+* DATA_NOT_SENT
+* DATA_NOT_CORRECT
+* RECEIVING_FROM_ONE
+* RECEIVING_FROM_BOTH
+
+> Example:
+> * Publisher parameters: Square Color Red \
+> * Subscriber parameters: Square Color Blue \
+> * Publisher expected return code: OK \
+> * Subscriber expected return code: DATA_NOT_RECEIVED
 # Shape Application
 
 The Shape application is created in the folder `srcCxx/shape_main.cxx`.
