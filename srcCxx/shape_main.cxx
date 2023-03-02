@@ -453,12 +453,12 @@ public:
                 "\n    ReliabilityKind = " + convert_reliability_to_value(reliability_kind) +
                 "\n    DurabilityKind = " + convert_durability_to_value(durability_kind) +
                 "\n    DataRepresentation = " + convert_data_representation_to_value(data_representation) +
-                "\n    HistoryDepth = " + history_convert_to_value(history_depth) +
-                "\n    OwnershipStrength = " + ownership_to_value(ownership_strength) +
+                "\n    HistoryDepth = " + convert_history_to_value(history_depth) +
+                "\n    OwnershipStrength = " + convert_ownership_to_value(ownership_strength) +
                 "\n    Publish = " + std::to_string(publish) +
                 "\n    Subscribe = " + std::to_string(subscribe) +
-                "\n    TimeBasedFilterInterval = " + time_based_filter_to_value(timebasedfilter_interval) +
-                "\n    DeadlineInterval = " + deadline_to_value(deadline_interval) +
+                "\n    TimeBasedFilterInterval = " + convert_time_based_filter_to_value(timebasedfilter_interval) +
+                "\n    DeadlineInterval = " + convert_deadline_to_value(deadline_interval) +
                 "\n    Shapesize = " + std::to_string(shapesize) +
                 "\n    Verbosity = " + convert_verbosity_to_value(verbosity),
                 Verbosity::DEBUG);
@@ -561,7 +561,7 @@ public:
         }
     }
 
-    std::string ownership_to_value(int ownership_value)
+    std::string convert_ownership_to_value(int ownership_value)
     {
         switch (ownership_value)
         {
@@ -575,7 +575,7 @@ public:
         }
     }
 
-    std::string history_convert_to_value(int history_value)
+    std::string convert_history_to_value(int history_value)
     {
         switch (history_value)
         {
@@ -593,7 +593,7 @@ public:
         }
     }
 
-    std::string history_kind_convert_to_value(int history_kind_value)
+    std::string convert_history_kind_to_value(int history_kind_value)
     {
         switch (history_kind_value)
         {
@@ -610,7 +610,7 @@ public:
         }
     }
 
-    std::string ownership_kind_to_value(int ownership_value)
+    std::string convert_ownership_kind_to_value(int ownership_value)
     {
         switch (ownership_value)
         {
@@ -627,7 +627,7 @@ public:
         }
     }
 
-    std::string deadline_to_value(int deadline_value)
+    std::string convert_deadline_to_value(int deadline_value)
     {
         switch (deadline_value)
         {
@@ -641,7 +641,7 @@ public:
         }
     }
 
-    std::string time_based_filter_to_value(int time_based_filter_value)
+    std::string convert_time_based_filter_to_value(int time_based_filter_value)
     {
         switch (time_based_filter_value)
         {
@@ -889,7 +889,7 @@ public:
         if ( options->ownership_strength == -1 ) {
             dw_qos.ownership.kind = SHARED_OWNERSHIP_QOS;
         }
-        options->log_message("    Ownership = " + options->ownership_kind_to_value(dw_qos.ownership.kind), Verbosity::DEBUG);
+        options->log_message("    Ownership = " + options->convert_ownership_kind_to_value(dw_qos.ownership.kind), Verbosity::DEBUG);
         options->log_message("    OwnershipStrength = " + std::to_string(dw_qos.ownership_strength.value), Verbosity::DEBUG);
 
         if ( options->deadline_interval > 0 ) {
@@ -906,7 +906,7 @@ public:
         else if ( options->history_depth == 0 ) {
             dw_qos.history.kind  = KEEP_ALL_HISTORY_QOS;
         }
-        options->log_message("    HistoryKind = " + options->history_kind_convert_to_value(dw_qos.history.kind), Verbosity::DEBUG);
+        options->log_message("    HistoryKind = " + options->convert_history_kind_to_value(dw_qos.history.kind), Verbosity::DEBUG);
         options->log_message("    HistoryDepth = " + std::to_string(dw_qos.history.depth), Verbosity::DEBUG);
 
         printf("Create writer for topic: %s color: %s\n", options->topic_name, options->color );
@@ -975,9 +975,9 @@ public:
             dr_qos.time_based_filter.minimum_separation.sec      = options->timebasedfilter_interval;
             dr_qos.time_based_filter.minimum_separation.nanosec  = 0;
         }
-        options->log_message("    TimeBasedFilter = " + options->time_based_filter_to_value(dr_qos.time_based_filter.minimum_separation.sec), Verbosity::DEBUG);
+        options->log_message("    TimeBasedFilter = " + options->convert_time_based_filter_to_value(dr_qos.time_based_filter.minimum_separation.sec), Verbosity::DEBUG);
 
-        options->log_message("    Ownership = " + options->ownership_kind_to_value(dr_qos.ownership.kind), Verbosity::DEBUG);
+        options->log_message("    Ownership = " + options->convert_ownership_kind_to_value(dr_qos.ownership.kind), Verbosity::DEBUG);
 
         if ( options->deadline_interval > 0 ) {
             dr_qos.deadline.period.sec      = options->deadline_interval;
@@ -993,7 +993,7 @@ public:
         else if ( options->history_depth == 0 ) {
             dr_qos.history.kind  = KEEP_ALL_HISTORY_QOS;
         }
-        options->log_message("    HistoryKind = " + options->history_kind_convert_to_value(dr_qos.history.kind), Verbosity::DEBUG);
+        options->log_message("    HistoryKind = " + options->convert_history_kind_to_value(dr_qos.history.kind), Verbosity::DEBUG);
         options->log_message("    HistoryDepth = " + std::to_string(dr_qos.history.depth), Verbosity::DEBUG);
 
         if ( options->color != NULL ) {
