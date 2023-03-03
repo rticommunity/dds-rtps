@@ -315,8 +315,7 @@ public:
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
-                    }
-                    else if (deadline_interval < 0) {
+                    } else if (deadline_interval < 0) {
                         log_message("incorrect value for deadline_interval "
                                         + std::to_string(deadline_interval),
                                 Verbosity::ERROR);
@@ -332,8 +331,7 @@ public:
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
-                    }
-                    else if (history_depth < 0) {
+                    } else if (history_depth < 0) {
                         log_message("incorrect value for history_depth "
                                         + std::to_string(history_depth),
                                 Verbosity::ERROR);
@@ -359,8 +357,7 @@ public:
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
-                    }
-                    else if (ownership_strength < -1) {
+                    } else if (ownership_strength < -1) {
                         log_message("incorrect value for ownership_strength "
                                         + std::to_string(ownership_strength),
                                 Verbosity::ERROR);
@@ -450,17 +447,17 @@ public:
         }
         log_message("Shape Options: "
                 "\n    DomainId = " + std::to_string(domain_id) +
-                "\n    ReliabilityKind = " + convert_reliability_to_value(reliability_kind) +
-                "\n    DurabilityKind = " + convert_durability_to_value(durability_kind) +
-                "\n    DataRepresentation = " + convert_data_representation_to_value(data_representation) +
-                "\n    HistoryDepth = " + convert_history_to_value(history_depth) +
-                "\n    OwnershipStrength = " + convert_ownership_to_value(ownership_strength) +
+                "\n    ReliabilityKind = " + to_string(reliability_kind) +
+                "\n    DurabilityKind = " + to_string(durability_kind) +
+                "\n    DataRepresentation = " + to_string(data_representation) +
+                "\n    HistoryDepth = " + std::to_string(history_depth) +
+                "\n    OwnershipStrength = " + std::to_string(ownership_strength) +
                 "\n    Publish = " + std::to_string(publish) +
                 "\n    Subscribe = " + std::to_string(subscribe) +
-                "\n    TimeBasedFilterInterval = " + convert_time_based_filter_to_value(timebasedfilter_interval) +
-                "\n    DeadlineInterval = " + convert_deadline_to_value(deadline_interval) +
+                "\n    TimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval) +
+                "\n    DeadlineInterval = " + std::to_string(deadline_interval) +
                 "\n    Shapesize = " + std::to_string(shapesize) +
-                "\n    Verbosity = " + convert_verbosity_to_value(verbosity),
+                "\n    Verbosity = " + to_string(verbosity),
                 Verbosity::DEBUG);
         if (topic_name != NULL){
             log_message("    Topic = " + std::string(topic_name),
@@ -476,8 +473,6 @@ public:
         return parse_ok;
     }
 
-
-
     void log_message(std::string message, Verbosity level_verbosity)
     {
         if (level_verbosity <= verbosity) {
@@ -485,75 +480,47 @@ public:
         }
     }
 
-    std::string convert_reliability_to_value(int reliability_value)
+    std::string to_string(ReliabilityQosPolicyKind reliability_value)
     {
-        switch (reliability_value)
-        {
-        case 0:
-            return "Best Effort";
-            break;
-
-        case 1:
-            return "Reliable";
-            break;
-
-        default:
-            break;
+        if (reliability_value == BEST_EFFORT_RELIABILITY_QOS){
+            return "BEST_EFFORT";
+        } else if (reliability_value == RELIABLE_RELIABILITY_QOS){
+            return "RELIABLE";
         }
     }
 
-    std::string convert_durability_to_value(int durability_value)
+    std::string to_string(DurabilityQosPolicyKind durability_value)
     {
-        switch (durability_value)
-        {
-        case 0:
-            return "Volatile";
-            break;
-
-        case 1:
-            return "Transient Local";
-            break;
-
-        case 2:
-            return "Transient";
-            break;
-
-        case 3:
-            return "Persistent";
-            break;
-
-        default:
-            break;
+        if ( durability_value == VOLATILE_DURABILITY_QOS){
+            return "VOLATILE";
+        } else if (durability_value == TRANSIENT_LOCAL_DURABILITY_QOS){
+            return "TRANSIENT_LOCAL";
+        } else if (durability_value == TRANSIENT_DURABILITY_QOS){
+            return "TRANSIENT";
+        } else if (durability_value == PERSISTENT_DURABILITY_QOS){
+            return "PERSISTENT";
         }
     }
 
-    std::string convert_data_representation_to_value(int data_representation_value)
+    std::string to_string(DataRepresentationId_t data_representation_value)
     {
-        switch (data_representation_value)
-        {
-        case 0:
+        if (data_representation_value == XCDR_DATA_REPRESENTATION){
             return "XCDR";
-            break;
-
-        case 2:
+        } else if (data_representation_value == XCDR2_DATA_REPRESENTATION){
             return "XCDR2";
-            break;
-
-        default:
-            break;
         }
     }
 
-    std::string convert_verbosity_to_value(int verbosity_value)
+    std::string to_string(Verbosity verbosity_value)
     {
         switch (verbosity_value)
         {
-        case 1:
-            return "Error";
+        case ERROR:
+            return "ERROR";
             break;
 
-        case 2:
-            return "Debug";
+        case DEBUG:
+            return "DEBUG";
             break;
 
         default:
@@ -561,103 +528,24 @@ public:
         }
     }
 
-    std::string convert_ownership_to_value(int ownership_value)
+    std::string to_string(OwnershipQosPolicyKind ownership_kind_value)
     {
-        switch (ownership_value)
-        {
-        case -1:
-            return "Shared";
-            break;
-
-        default:
-            return std::to_string(ownership_value);
-            break;
+        if (ownership_kind_value == SHARED_OWNERSHIP_QOS){
+            return "SHARED";
+        } else if (ownership_kind_value == EXCLUSIVE_OWNERSHIP_QOS){
+            return "EXCLUSIVE";
         }
     }
 
-    std::string convert_history_to_value(int history_value)
+    std::string to_string(HistoryQosPolicyKind history_kind_value)
     {
-        switch (history_value)
-        {
-        case -1:
-            return "Default";
-            break;
-
-        case 0:
-            return "Keep All";
-            break;
-
-        default:
-            return "Keep Last " + std::to_string(history_value);
-            break;
+        if (history_kind_value == KEEP_ALL_HISTORY_QOS){
+            return "KEEP_ALL";
+        } else if (history_kind_value == KEEP_LAST_HISTORY_QOS){
+            return "KEEP_LAST";
         }
     }
-
-    std::string convert_history_kind_to_value(int history_kind_value)
-    {
-        switch (history_kind_value)
-        {
-        case 0:
-            return "Keep Last";
-            break;
-
-        case 1:
-            return "Keep All";
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    std::string convert_ownership_kind_to_value(int ownership_value)
-    {
-        switch (ownership_value)
-        {
-        case 0:
-            return "Shared";
-            break;
-
-        case 1:
-            return "Exclusive";
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    std::string convert_deadline_to_value(int deadline_value)
-    {
-        switch (deadline_value)
-        {
-        case 0:
-            return "OFF";
-            break;
-
-        default:
-            return std::to_string(deadline_value);
-            break;
-        }
-    }
-
-    std::string convert_time_based_filter_to_value(int time_based_filter_value)
-    {
-        switch (time_based_filter_value)
-        {
-        case 0:
-            return "OFF";
-            break;
-
-        default:
-            return std::to_string(time_based_filter_value);
-            break;
-        }
-    }
-
 };
-
-
 
 /*************************************************************/
 class DPListener : public DomainParticipantListener
@@ -866,9 +754,9 @@ public:
         options->log_message("Data Writer QoS:", Verbosity::DEBUG);
         pub->get_default_datawriter_qos( dw_qos );
         dw_qos.reliability.kind = options->reliability_kind;
-        options->log_message("    Reliability = " + options->convert_reliability_to_value(dw_qos.reliability.kind), Verbosity::DEBUG);
+        options->log_message("    Reliability = " + options->to_string(dw_qos.reliability.kind), Verbosity::DEBUG);
         dw_qos.durability.kind  = options->durability_kind;
-        options->log_message("    Durability = " + options->convert_durability_to_value(dw_qos.durability.kind), Verbosity::DEBUG);
+        options->log_message("    Durability = " + options->to_string(dw_qos.durability.kind), Verbosity::DEBUG);
 
 #if   defined(RTI_CONNEXT_DDS)
         DataRepresentationIdSeq data_representation_seq;
@@ -880,7 +768,7 @@ public:
         dw_qos.representation.value.length(1);
         dw_qos.representation.value[0] = options->data_representation;
 #endif
-        options->log_message("    Data_Representation = " + options->convert_data_representation_to_value(dw_qos.representation.value[0]), Verbosity::DEBUG);
+        options->log_message("    Data_Representation = " + options->to_string(dw_qos.representation.value[0]), Verbosity::DEBUG);
         if ( options->ownership_strength != -1 ) {
             dw_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
             dw_qos.ownership_strength.value = options->ownership_strength;
@@ -889,8 +777,10 @@ public:
         if ( options->ownership_strength == -1 ) {
             dw_qos.ownership.kind = SHARED_OWNERSHIP_QOS;
         }
-        options->log_message("    Ownership = " + options->convert_ownership_kind_to_value(dw_qos.ownership.kind), Verbosity::DEBUG);
-        options->log_message("    OwnershipStrength = " + std::to_string(dw_qos.ownership_strength.value), Verbosity::DEBUG);
+        options->log_message("    Ownership = " + options->to_string(dw_qos.ownership.kind), Verbosity::DEBUG);
+        if (dw_qos.ownership.kind == EXCLUSIVE_OWNERSHIP_QOS){
+            options->log_message("    OwnershipStrength = " + std::to_string(dw_qos.ownership_strength.value), Verbosity::DEBUG);
+        }
 
         if ( options->deadline_interval > 0 ) {
             dw_qos.deadline.period.sec      = options->deadline_interval;
@@ -906,8 +796,10 @@ public:
         else if ( options->history_depth == 0 ) {
             dw_qos.history.kind  = KEEP_ALL_HISTORY_QOS;
         }
-        options->log_message("    HistoryKind = " + options->convert_history_kind_to_value(dw_qos.history.kind), Verbosity::DEBUG);
-        options->log_message("    HistoryDepth = " + std::to_string(dw_qos.history.depth), Verbosity::DEBUG);
+        options->log_message("    History = " + options->to_string(dw_qos.history.kind), Verbosity::DEBUG);
+        if (dw_qos.history.kind == KEEP_LAST_HISTORY_QOS){
+            options->log_message("    HistoryDepth = " + std::to_string(dw_qos.history.depth), Verbosity::DEBUG);
+        }
 
         printf("Create writer for topic: %s color: %s\n", options->topic_name, options->color );
         dw = dynamic_cast<ShapeTypeDataWriter *>(pub->create_datawriter( topic, dw_qos, NULL, 0));
@@ -952,9 +844,9 @@ public:
         options->log_message("Data Reader QoS:", Verbosity::DEBUG);
         sub->get_default_datareader_qos( dr_qos );
         dr_qos.reliability.kind = options->reliability_kind;
-        options->log_message("    Reliability = " + options->convert_reliability_to_value(dr_qos.reliability.kind), Verbosity::DEBUG);
+        options->log_message("    Reliability = " + options->to_string(dr_qos.reliability.kind), Verbosity::DEBUG);
         dr_qos.durability.kind  = options->durability_kind;
-        options->log_message("    Durability = " + options->convert_durability_to_value(dr_qos.durability.kind), Verbosity::DEBUG);
+        options->log_message("    Durability = " + options->to_string(dr_qos.durability.kind), Verbosity::DEBUG);
 
 #if   defined(RTI_CONNEXT_DDS)
             DataRepresentationIdSeq data_representation_seq;
@@ -966,18 +858,16 @@ public:
         dr_qos.representation.value.length(1);
         dr_qos.representation.value[0] = options->data_representation;
 #endif
-        options->log_message("    DataRepresentation = " + options->convert_data_representation_to_value(dr_qos.representation.value[0]), Verbosity::DEBUG);
+        options->log_message("    DataRepresentation = " + options->to_string(dr_qos.representation.value[0]), Verbosity::DEBUG);
         if ( options->ownership_strength != -1 ) {
             dr_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
         }
-
+        options->log_message("    Ownership = " + options->to_string(dr_qos.ownership.kind), Verbosity::DEBUG);
         if ( options->timebasedfilter_interval > 0) {
             dr_qos.time_based_filter.minimum_separation.sec      = options->timebasedfilter_interval;
             dr_qos.time_based_filter.minimum_separation.nanosec  = 0;
         }
-        options->log_message("    TimeBasedFilter = " + options->convert_time_based_filter_to_value(dr_qos.time_based_filter.minimum_separation.sec), Verbosity::DEBUG);
-
-        options->log_message("    Ownership = " + options->convert_ownership_kind_to_value(dr_qos.ownership.kind), Verbosity::DEBUG);
+        options->log_message("    TimeBasedFilter = " + std::to_string(dr_qos.time_based_filter.minimum_separation.sec), Verbosity::DEBUG);
 
         if ( options->deadline_interval > 0 ) {
             dr_qos.deadline.period.sec      = options->deadline_interval;
@@ -993,8 +883,10 @@ public:
         else if ( options->history_depth == 0 ) {
             dr_qos.history.kind  = KEEP_ALL_HISTORY_QOS;
         }
-        options->log_message("    HistoryKind = " + options->convert_history_kind_to_value(dr_qos.history.kind), Verbosity::DEBUG);
-        options->log_message("    HistoryDepth = " + std::to_string(dr_qos.history.depth), Verbosity::DEBUG);
+        options->log_message("    History = " + options->to_string(dr_qos.history.kind), Verbosity::DEBUG);
+        if (dr_qos.history.kind == KEEP_LAST_HISTORY_QOS){
+            options->log_message("    HistoryDepth = " + std::to_string(dr_qos.history.depth), Verbosity::DEBUG);
+        }
 
         if ( options->color != NULL ) {
             /*  filter on specified color */
