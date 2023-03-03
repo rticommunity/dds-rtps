@@ -16,46 +16,50 @@ and can interoperate with each other.
 ## Table of contents
 
 * 1\. [Introduction](#introduction)
+
     * 1.1. [Vocabulary](#vocabulary)
 
-* 2\. [Shape Application](#shape-application)
+* 2\. [Test Suite](#test-suite)
 
-* 3\. [Test Suite](#test-suite)
+    * 2.1. [Shape Application parameters](#shape-application-parameters)
 
-* 4\. [Run Interoperability Test Manually](#run-interoperability-test-manually)
-    * 4.1. [Requirements](#requirements)
+    * 2.2. [Return Code](#return-code)
 
-      * 4.1.1. [Using virtual environments](#using-virtual-environments)
+* 3\. [Run Interoperability Test Manually](#run-interoperability-test-manually)
 
-        * 4.1.1.1. [Create virtual environment](#create-virtual-environment)
+    * 3.1. [Requirements](#requirements)
 
-        * 4.1.1.2. [Activate virtual environment](#activate-virtual-environment)
+      * 3.1.1. [Using virtual environments](#using-virtual-environments)
 
-        * 4.1.1.3. [Install requirements](#install-requirements)
+        * 3.1.1.1. [Create virtual environment](#create-virtual-environment)
 
-    * 4.2. [Options of interoperability_report](#options-of-interoperability_report)
+        * 3.1.1.2. [Activate virtual environment](#activate-virtual-environment)
 
-    * 4.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
+        * 3.1.1.3. [Install requirements](#install-requirements)
 
-    * 4.4. [Report](#report)
+    * 3.2. [Options of interoperability_report](#options-of-interoperability_report)
 
-* 5\. [Automation with GitHub Actions](#automation-with-github-actions)
+    * 3.3. [Example of use interoperability_report](#example-of-use-interoperability_report)
 
-* 6\. [Workflow](#workflow)
+    * 3.4. [Report](#report)
 
-    * 6.1. [Create executable](#create-executable)
+* 4\. [Automation with GitHub Actions](#automation-with-github-actions)
 
-    * 6.2. [Upload executable](#upload-executable)
+* 5\. [Workflow](#workflow)
 
-    * 6.3. [Create a new release](#create-a-new-release)
+    * 5.1. [Create executable](#create-executable)
 
-      * 6.1.1. [Release and tag name](#release-and-tag-name)
+    * 5.2. [Upload executable](#upload-executable)
 
-      * 6.1.2. [When to create a release](#when-to-create-a-release)
+    * 5.3. [Create a new release](#create-a-new-release)
 
-      * 6.1.3. [Process of creating the release](#process-of-creating-the-release)
+      * 5.1.1. [Release and tag name](#release-and-tag-name)
 
-    * 6.4. [Report Bugs](#report-bugs)
+      * 5.1.2. [When to create a release](#when-to-create-a-release)
+
+      * 5.1.3. [Process of creating the release](#process-of-creating-the-release)
+
+    * 5.4. [Report Bugs](#report-bugs)
 
 # Introduction
 
@@ -63,7 +67,7 @@ In order to test the interoperability between different DDS implementations, a
 DDS application is used. This application is `shape_main`. The `shape_main`
 application adds a big variety of options to modify several parameters it uses,
 such as the topic name, the kind of entity (publisher/subscriber), includes
-DDS QoSes... The `shape_main` application is built statically with different
+DDS QoSes, etc. The `shape_main` application is built statically with different
 DDS implementations and those executables are tested between them to check
 their interoperability with different parameter sets defined in a Test Suite.
 This is done by the `interoperability_report.py` script.
@@ -96,7 +100,7 @@ Test Cases within a Test Suite and generates a report with the results.
 # Test Suite
 
 This is the file that contains all the different Test Cases that GitHub
-Actions run. This is a Python dictionary in which each element defines
+Actions runs. This is a Python dictionary in which each element defines
 a Test Case. This Test Suite may also contain different functions that
 the `interoperability_report.py` script uses to determine whether the
 test result is succesful or not. The Python dictionary must follow
@@ -151,77 +155,7 @@ By default, the `interoperability_report.py` script runs the tests from
 `test_suite.py` in its same directory. The Test Suites defined **must** be
 located in the same directory as `interoperability_report.py`.
 
-## Return Code
-
-The `shape_main` application always follows a specific sequence of steps:
-
-* Publisher `shape_main` application
-  * Topic is created
-  * Data Writer is created
-  * Data Writer matches Data Reader
-  * Data Writer sends samples
-
-* Subscriber `shape_main` application
-  * Topic is created
-  * Data Reader is created
-  * Data Reader matches Data Writer
-  * Data Writer is detected as alive
-  * Data Reader receives samples
-
-At each step the `shape_main` application prints a specific string which
-allows the `interoperability_report` script to know how was the execution
-of the application.
-Each Return Code is related to one publisher/subscriber step, and they are
-set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not. The workflow is:
-
-**Publisher**:
-
-* `'unrecognized value'` found: UNRECOGNIZED_VALUE
-* `'please specify topic name'` found or none string matched: TOPIC_NOT_CREATED
-* `'Create topic'` found:
-  * `'Create writer for topic'` not found: WRITER_NOT_CREATED
-  * `'Create writer for topic'` found:
-    * `'on_offered_incompatible_qos()'` found: INCOMPATIBLE_QOS
-    * None string matched: READER_NOT_MATCHED
-    * `'on_publication_matched()'` found:
-      * case '-w' not in parameters:
-        * OK
-      * case '-w' in parameters:
-        * `'[10-99]'` found: OK
-        * `'[10-99]'` not found: DATA_NOT_SENT
-
-**Subscriber**:
-
-* `'unrecognized value'` found: UNRECOGNIZED_VALUE
-* `'please specify topic name'` found or none string matched: TOPIC_NOT_CREATED
-* `'Create topic'` found:
-  * `'failed to create content filtered topic'` found: FILTER_NOT_CREATED
-  * None string matched: READER_NOT_CREATED
-  * `'Create reader for topic'` found:
-    * `'on_requested_incompatible_qos()'` found: INCOMPATIBLE_QOS
-    * None string matched:  WRITER_NOT_MATCHED
-    * `'on_subscription_matched()'` found:
-      * `'on_liveliness_changed()'` not found: WRITER_NOT_ALIVE
-      * `'on_liveliness_changed()'` found:
-        * `'[10-99]'` not found: DATA_NOT_RECEIVED
-        * `'[10-99]'` found:
-          * `function` not defined in parameters: OK
-          * `function` defined in parameters: OK, DATA_NOT_CORRECT, RECEIVING_FROM_ONE or RECEIVING_FROM_BOTH, depending on the function.
-
-The codes DATA_NOT_CORRECT, RECEIVING_FROM_ONE and RECEIVING_FROM_BOTH are meant
-to be used only if a specific function to handle them is passed as a parameter
-in the Test Case.
-
-> Example:
-> * Publisher parameters: Square Color Red
-> * Subscriber parameters: Square Color Blue (content filter topic)
-> * Publisher expected return code: OK
-> * Subscriber expected return code: DATA_NOT_RECEIVED
-
-> **Note**: `interoperability_report` is based on the string patterns from
-`shape_main` application. In order to keep it working right, please do not
-modify the `shape_main` application strings format.
-## Shape Application
+## Shape Application parameters
 
 The Shape application is created in the folder `srcCxx/shape_main.cxx`.
 This application allows the user to test the interoperability between
@@ -250,6 +184,76 @@ The Shape application allows the following parameters:
    -v [e|d]        : set log message verbosity [e: ERROR, d: DEBUG]
 
 ~~~
+
+## Return Code
+
+The `shape_main` application always follows a specific sequence of steps:
+
+* Publisher `shape_main` application
+  * Topic is created
+  * Data Writer is created
+  * Data Writer matches Data Reader
+  * Data Writer sends samples
+
+* Subscriber `shape_main` application
+  * Topic is created
+  * Data Reader is created
+  * Data Reader matches Data Writer
+  * Data Writer is detected as alive
+  * Data Reader receives samples
+
+At each step the `shape_main` application prints a specific string which
+allows the `interoperability_report` script to know how was the execution
+of the application. In order to keep track of the `shape_main` application execution there are some Return Codes, each of them related to one publisher/subscriber step. They are
+set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not. The workflow is:
+
+**Publisher**:
+
+* `'unrecognized value'` found: `UNRECOGNIZED_VALUE`
+* `'please specify topic name'` found or no string matched: TOPIC_NOT_CREATED
+* `'Create topic'` found:
+  * `'Create writer for topic'` not found: WRITER_NOT_CREATED
+  * `'Create writer for topic'` found:
+    * `'on_offered_incompatible_qos()'` found: INCOMPATIBLE_QOS
+    * No string matched: READER_NOT_MATCHED
+    * `'on_publication_matched()'` found:
+      * case '-w' not in parameters:
+        * OK
+      * case '-w' in parameters:
+        * `'[10-99]'` found: OK
+        * `'[10-99]'` not found: DATA_NOT_SENT
+
+**Subscriber**:
+
+* `'unrecognized value'` found: UNRECOGNIZED_VALUE
+* `'please specify topic name'` found or no string matched: TOPIC_NOT_CREATED
+* `'Create topic'` found:
+  * `'failed to create content filtered topic'` found: FILTER_NOT_CREATED
+  * No string matched: READER_NOT_CREATED
+  * `'Create reader for topic'` found:
+    * `'on_requested_incompatible_qos()'` found: INCOMPATIBLE_QOS
+    * None string matched:  WRITER_NOT_MATCHED
+    * `'on_subscription_matched()'` found:
+      * `'on_liveliness_changed()'` not found: WRITER_NOT_ALIVE
+      * `'on_liveliness_changed()'` found:
+        * `'[10-99]'` not found: DATA_NOT_RECEIVED
+        * `'[10-99]'` found:
+          * `function` not defined in parameters: OK
+          * `function` defined in parameters: OK, DATA_NOT_CORRECT, RECEIVING_FROM_ONE or RECEIVING_FROM_BOTH, depending on the function.
+
+The codes DATA_NOT_CORRECT, RECEIVING_FROM_ONE and RECEIVING_FROM_BOTH are meant
+to be used only if a specific function to handle them is passed as a parameter
+in the Test Case.
+
+> Example:
+> * Publisher parameters: Square Color Red
+> * Subscriber parameters: Square Color Blue (content filter topic)
+> * Publisher expected return code: OK
+> * Subscriber expected return code: DATA_NOT_RECEIVED
+
+> **Note**: `interoperability_report` is based on the string patterns from
+`shape_main` application. In order to keep it working right, please do not
+modify the `shape_main` application strings format.
 
 # Run Interoperability Test Manually
 
