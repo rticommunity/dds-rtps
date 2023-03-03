@@ -172,30 +172,56 @@ At each step the `shape_main` application prints a specific string which
 allows the `interoperability_report` script to know how was the execution
 of the application.
 Each Return Code is related to one publisher/subscriber step, and they are
-set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not.
-* OK
-* UNRECOGNIZED_VALUE
-* TOPIC_NOT_CREATED
-* READER_NOT_CREATED
-* WRITER_NOT_CREATED
-* FILTER_NOT_CREATED
-* INCOMPATIBLE_QOS
-* READER_NOT_MATCHED
-* WRITER_NOT_MATCHED
-* WRITER_NOT_ALIVE
-* DATA_NOT_RECEIVED
-* DATA_NOT_SENT
-* DATA_NOT_CORRECT
-* RECEIVING_FROM_ONE
-* RECEIVING_FROM_BOTH
+set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not. The workflow is:
+
+**Publisher**:
+
+* `'unrecognized value'` found: UNRECOGNIZED_VALUE
+* `'please specify topic name'` found or none string matched: TOPIC_NOT_CREATED
+* `'Create topic'` found:
+  * `'Create writer for topic'` not found: WRITER_NOT_CREATED
+  * `'Create writer for topic'` found:
+    * `'on_offered_incompatible_qos()'` found: INCOMPATIBLE_QOS
+    * None string matched: READER_NOT_MATCHED
+    * `'on_publication_matched()'` found:
+      * case '-w' not in parameters:
+        * OK
+      * case '-w' in parameters:
+        * `'[10-99]'` found: OK
+        * `'[10-99]'` not found: DATA_NOT_SENT
+
+**Subscriber**:
+
+* `'unrecognized value'` found: UNRECOGNIZED_VALUE
+* `'please specify topic name'` found or none string matched: TOPIC_NOT_CREATED
+* `'Create topic'` found:
+  * `'failed to create content filtered topic'` found: FILTER_NOT_CREATED
+  * None string matched: READER_NOT_CREATED
+  * `'Create reader for topic'` found:
+    * `'on_requested_incompatible_qos()'` found: INCOMPATIBLE_QOS
+    * None string matched:  WRITER_NOT_MATCHED
+    * `'on_subscription_matched()'` found:
+      * `'on_liveliness_changed()'` not found: WRITER_NOT_ALIVE
+      * `'on_liveliness_changed()'` found:
+        * `'[10-99]'` not found: DATA_NOT_RECEIVED
+        * `'[10-99]'` found:
+          * `function` not defined in parameters: OK
+          * `function` defined in parameters: OK, DATA_NOT_CORRECT, RECEIVING_FROM_ONE or RECEIVING_FROM_BOTH, depending on the function.
+
+The codes DATA_NOT_CORRECT, RECEIVING_FROM_ONE and RECEIVING_FROM_BOTH are meant
+to be used only if a specific function to handle them is passed as a parameter
+in the Test Case.
 
 > Example:
 > * Publisher parameters: Square Color Red
-> * Subscriber parameters: Square Color Blue
+> * Subscriber parameters: Square Color Blue (content filter topic)
 > * Publisher expected return code: OK
 > * Subscriber expected return code: DATA_NOT_RECEIVED
 
-# Shape Application
+> **Note**: `interoperability_report` is based on the string patterns from
+`shape_main` application. In order to keep it working right, please do not
+modify the `shape_main` application strings format.
+## Shape Application
 
 The Shape application is created in the folder `srcCxx/shape_main.cxx`.
 This application allows the user to test the interoperability between
