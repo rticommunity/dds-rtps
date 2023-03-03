@@ -205,43 +205,42 @@ The `shape_main` application always follows a specific sequence of steps:
 At each step the `shape_main` application prints a specific string which
 allows the `interoperability_report` script to know how was the execution
 of the application. In order to keep track of the `shape_main` application execution there are some Return Codes, each of them related to one publisher/subscriber step. They are
-set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not. The workflow is:
+set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not. The workflow and the corresponding Return Code are:
 
 **Publisher**:
 
-* `'unrecognized value'` found: `UNRECOGNIZED_VALUE`
-* `'please specify topic name'` found or no string matched: TOPIC_NOT_CREATED
+* `'unrecognized value'` found -> `UNRECOGNIZED_VALUE`
+* `'please specify topic name'` found or no string matched -> `TOPIC_NOT_CREATED`
 * `'Create topic'` found:
-  * `'Create writer for topic'` not found: WRITER_NOT_CREATED
+  * `'Create writer for topic'` not found -> `WRITER_NOT_CREATED`
   * `'Create writer for topic'` found:
-    * `'on_offered_incompatible_qos()'` found: INCOMPATIBLE_QOS
-    * No string matched: READER_NOT_MATCHED
+    * `'on_offered_incompatible_qos()'` found -> `INCOMPATIBLE_QOS`
+    * No string matched -> `READER_NOT_MATCHED`
     * `'on_publication_matched()'` found:
-      * case '-w' not in parameters:
-        * OK
+      * case '-w' not in parameters -> `OK`
       * case '-w' in parameters:
-        * `'[10-99]'` found: OK
-        * `'[10-99]'` not found: DATA_NOT_SENT
+        * `'[10-99]'` found -> `OK`
+        * `'[10-99]'` not found -> `DATA_NOT_SENT`
 
 **Subscriber**:
 
-* `'unrecognized value'` found: UNRECOGNIZED_VALUE
-* `'please specify topic name'` found or no string matched: TOPIC_NOT_CREATED
+* `'unrecognized value'` found -> `UNRECOGNIZED_VALUE`
+* `'please specify topic name'` found or no string matched -> `TOPIC_NOT_CREATED`
 * `'Create topic'` found:
-  * `'failed to create content filtered topic'` found: FILTER_NOT_CREATED
-  * No string matched: READER_NOT_CREATED
+  * `'failed to create content filtered topic'` found -> `FILTER_NOT_CREATED`
+  * No string matched -> `READER_NOT_CREATED`
   * `'Create reader for topic'` found:
-    * `'on_requested_incompatible_qos()'` found: INCOMPATIBLE_QOS
-    * None string matched:  WRITER_NOT_MATCHED
+    * `'on_requested_incompatible_qos()'` found -> `INCOMPATIBLE_QOS`
+    * None string matched ->  `WRITER_NOT_MATCHED`
     * `'on_subscription_matched()'` found:
-      * `'on_liveliness_changed()'` not found: WRITER_NOT_ALIVE
+      * `'on_liveliness_changed()'` not found -> `WRITER_NOT_ALIVE`
       * `'on_liveliness_changed()'` found:
-        * `'[10-99]'` not found: DATA_NOT_RECEIVED
+        * `'[10-99]'` not found -> `DATA_NOT_RECEIVED`
         * `'[10-99]'` found:
-          * `function` not defined in parameters: OK
-          * `function` defined in parameters: OK, DATA_NOT_CORRECT, RECEIVING_FROM_ONE or RECEIVING_FROM_BOTH, depending on the function.
+          * `function` not defined in parameters -> `OK`
+          * `function` defined in parameters -> `OK`, `DATA_NOT_CORRECT`, `RECEIVING_FROM_ONE` or `RECEIVING_FROM_BOTH`, depending on the function.
 
-The codes DATA_NOT_CORRECT, RECEIVING_FROM_ONE and RECEIVING_FROM_BOTH are meant
+The codes `DATA_NOT_CORRECT`, `RECEIVING_FROM_ONE` and `RECEIVING_FROM_BOTH` are meant
 to be used only if a specific function to handle them is passed as a parameter
 in the Test Case.
 
