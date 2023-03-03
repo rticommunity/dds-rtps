@@ -167,9 +167,9 @@ The Shape application allows the following parameters:
    -d <int>        : domain id (default: 0)
    -b              : BEST_EFFORT reliability
    -r              : RELIABLE reliability
-   -k <depth>      : keep history depth (0: KEEP_ALL)
-   -f <interval>   : set a 'deadline' with interval (seconds)
-   -i <interval>   : apply 'time based filter' with interval (seconds)
+   -k <depth>      : keep history depth [0: KEEP_ALL]
+   -f <interval>   : set a 'deadline' with interval (seconds) [0: OFF]
+   -i <interval>   : apply 'time based filter' with interval (seconds) [0: OFF]
    -s <int>        : set ownership strength [-1: SHARED]
    -t <topic_name> : set the topic name
    -c <color>      : set color to publish (filter if subscriber)
@@ -182,7 +182,6 @@ The Shape application allows the following parameters:
    -w              : print Publisher's samples
    -z <int>        : set shapesize (between 10-99)
    -v [e|d]        : set log message verbosity [e: ERROR, d: DEBUG]
-
 ~~~
 
 ## Return Code
