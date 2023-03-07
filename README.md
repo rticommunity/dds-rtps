@@ -111,7 +111,7 @@ this pattern:
 # is a Test Case that interoperability_report.py
 # executes.
 # The dictionary has the following structure:
-#       'name' : [[parameter_list], [expected_return_code_list], function]
+#       'name' : [[parameter_list], [expected_return_code_list], checking_function]
 # where:
 #   * name: TestCase's name
 #   * parameter_list: list in which each element is the parameters that
@@ -120,13 +120,13 @@ this pattern:
 #     a succeed test execution.
 #   * expected_return_code_list: list with expected ReturnCodes
 #         for a succeed test execution.
-#   * function [OPTIONAL]: function to check how the Subscribers receive
+#   * checking_function [OPTIONAL]: function to check how the Subscribers receive
 #         the samples from the Publishers. By default, it just checks that
 #         the data is received. In case that it has a different behavior, that
 #         function must be implemented in the test_suite file and the test case
 #         should reference it in this parameter.
 #
-#     The function must have the following parameters:
+#     The checking_function must have the following parameters:
 #     child_sub: child program generated with pexpect
 #     samples_sent: list of multiprocessing Queues with the samples
 #                the Publishers send. Element 1 of the list is for
