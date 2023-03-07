@@ -100,10 +100,10 @@ Test Cases within a Test Suite and generates a report with the results.
 # Test Suite
 
 This is the file that contains all the different Test Cases that GitHub
-Actions runs. This is a Python dictionary in which each element defines
+Actions run. This is a Python dictionary in which each element defines
 a Test Case. This Test Suite may also contain different functions that
 the `interoperability_report.py` script uses to determine whether the
-test result is succesful or not. The Python dictionary must follow
+test result is successful or not. The Python dictionary must follow
 this pattern:
 
 ~~~python
@@ -189,69 +189,83 @@ The Shape application allows the following parameters:
 The `shape_main` application always follows a specific sequence of steps:
 
 * Publisher `shape_main` application
-  * Topic is created
-  * Data Writer is created
-  * Data Writer matches Data Reader
-  * Data Writer sends samples
+  * Create Topic
+  * Create DataWriter
+  * DataWriter matches DataReader
+  * DataWriter sends samples
 
 * Subscriber `shape_main` application
-  * Topic is created
-  * Data Reader is created
-  * Data Reader matches Data Writer
-  * Data Writer is detected as alive
-  * Data Reader receives samples
+  * Create Topic
+  * Create DataReader
+  * DataReader matches DataWriter
+  * DataWriter is detected as alive
+  * DataReader receives samples
 
-At each step the `shape_main` application prints a specific string which
+At each step, the `shape_main` application prints a specific string which
 allows the `interoperability_report` script to know how was the execution
-of the application. In order to keep track of the `shape_main` application execution there are some Return Codes, each of them related to one publisher/subscriber step. They are
-set depending on whether the publisher/subscriber `shape_application` is supposed to achieve that step or not. The workflow and the corresponding Return Code are:
+of the application. In order to keep track of the `shape_main` application
+execution, there are some Return Codes, each of them related to one
+publisher/subscriber step. They are set depending on the stdout strings.
+These printed strings and the corresponding Return Codes follows this workflow
+(at the left side, the stdout string; at the right side, the Return Code):
 
 **Publisher**:
 
-* `'unrecognized value'` found -> `UNRECOGNIZED_VALUE`
-* `'please specify topic name'` found or no string matched -> `TOPIC_NOT_CREATED`
-* `'Create topic'` found:
+* `'unrecognized value'` -> `UNRECOGNIZED_VALUE`
+* `'please specify topic name'` or no string matched -> `TOPIC_NOT_CREATED`
+* `'Create topic'`:
   * `'Create writer for topic'` not found -> `WRITER_NOT_CREATED`
-  * `'Create writer for topic'` found:
-    * `'on_offered_incompatible_qos()'` found -> `INCOMPATIBLE_QOS`
+  * `'Create writer for topic'`:
+    * `'on_offered_incompatible_qos()'` -> `INCOMPATIBLE_QOS`
     * No string matched -> `READER_NOT_MATCHED`
-    * `'on_publication_matched()'` found:
+    * `'on_publication_matched()'`:
       * case '-w' not in parameters -> `OK`
       * case '-w' in parameters:
-        * `'[10-99]'` found -> `OK`
+        * `'[10-99]'`-> `OK`
         * `'[10-99]'` not found -> `DATA_NOT_SENT`
 
 **Subscriber**:
 
-* `'unrecognized value'` found -> `UNRECOGNIZED_VALUE`
-* `'please specify topic name'` found or no string matched -> `TOPIC_NOT_CREATED`
-* `'Create topic'` found:
-  * `'failed to create content filtered topic'` found -> `FILTER_NOT_CREATED`
+* `'unrecognized value'`-> `UNRECOGNIZED_VALUE`
+* `'please specify topic name'`or no string matched -> `TOPIC_NOT_CREATED`
+* `'Create topic'`:
+  * `'failed to create content filtered topic'`-> `FILTER_NOT_CREATED`
   * No string matched -> `READER_NOT_CREATED`
-  * `'Create reader for topic'` found:
-    * `'on_requested_incompatible_qos()'` found -> `INCOMPATIBLE_QOS`
+  * `'Create reader for topic'`:
+    * `'on_requested_incompatible_qos()'`-> `INCOMPATIBLE_QOS`
     * None string matched ->  `WRITER_NOT_MATCHED`
-    * `'on_subscription_matched()'` found:
+    * `'on_subscription_matched()'`:
       * `'on_liveliness_changed()'` not found -> `WRITER_NOT_ALIVE`
-      * `'on_liveliness_changed()'` found:
+      * `'on_liveliness_changed()'`:
         * `'[10-99]'` not found -> `DATA_NOT_RECEIVED`
-        * `'[10-99]'` found:
-          * `function` not defined in parameters -> `OK`
-          * `function` defined in parameters -> `OK`, `DATA_NOT_CORRECT`, `RECEIVING_FROM_ONE` or `RECEIVING_FROM_BOTH`, depending on the function.
+        * `'[10-99]'`:
+          * `checking_function` not defined in Test Case -> `OK`
+          * `checking_function` defined in Test Case -> `OK`, `DATA_NOT_CORRECT`,
+          `RECEIVING_FROM_ONE` or `RECEIVING_FROM_BOTH`, depending on the function.
 
-The codes `DATA_NOT_CORRECT`, `RECEIVING_FROM_ONE` and `RECEIVING_FROM_BOTH` are meant
-to be used only if a specific function to handle them is passed as a parameter
-in the Test Case.
+> **Note**: `'[10-99]'` is the shapesize of the samples. The
+> `interoperability_report` script is only taking into account the shapesize in
+> order to match a printed shape sample. This does not prevent the script to
+> recover the other information: x, y and color.
 
-> Example:
+The codes `DATA_NOT_CORRECT`, `RECEIVING_FROM_ONE` and `RECEIVING_FROM_BOTH`
+are only used in specific `checking_function`. These functions check specific
+behavior of a test. For example, Reliability and Ownership work correctly, etc.
+
+> Example of the Return Code that a Test Case should use in a specific scenario.
+> In this case, the Publisher and Subscriber will not have communication because
+> the Subscriber creates a content filtered topic for color Blue and the
+> Publisher sends Red samples. Therefore the Publisher is created correctly
+> (Return Code `OK`) and the Subscriber matches the Publisher but does not
+> read any data (Return Code `DATA_NOT_RECEIVED`):
 > * Publisher parameters: Square Color Red
-> * Subscriber parameters: Square Color Blue (content filter topic)
-> * Publisher expected return code: OK
-> * Subscriber expected return code: DATA_NOT_RECEIVED
+> * Subscriber parameters: Square Color Blue (content filtered topic)
+> * Publisher expected return code: `OK`
+> * Subscriber expected return code: `DATA_NOT_RECEIVED`
 
-> **Note**: `interoperability_report` is based on the string patterns from
-`shape_main` application. In order to keep it working right, please do not
-modify the `shape_main` application strings format.
+> **NOTE: `interoperability_report` is based on the string patterns from the**
+> **`shape_main` application. In order to keep it working right, please do not**
+> **modify the `shape_main` application strings**.
 
 # Run Interoperability Test Manually
 
