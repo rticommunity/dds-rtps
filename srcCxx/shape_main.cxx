@@ -444,31 +444,32 @@ public:
         }
         if ( !parse_ok ) {
             print_usage(argv[0]);
-        }
-        log_message("Shape Options: "
-                "\n    DomainId = " + std::to_string(domain_id) +
-                "\n    ReliabilityKind = " + to_string(reliability_kind) +
-                "\n    DurabilityKind = " + to_string(durability_kind) +
-                "\n    DataRepresentation = " + to_string(data_representation) +
-                "\n    HistoryDepth = " + std::to_string(history_depth) +
-                "\n    OwnershipStrength = " + std::to_string(ownership_strength) +
-                "\n    Publish = " + std::to_string(publish) +
-                "\n    Subscribe = " + std::to_string(subscribe) +
-                "\n    TimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval) +
-                "\n    DeadlineInterval = " + std::to_string(deadline_interval) +
-                "\n    Shapesize = " + std::to_string(shapesize) +
-                "\n    Verbosity = " + to_string(verbosity),
-                Verbosity::DEBUG);
-        if (topic_name != NULL){
-            log_message("    Topic = " + std::string(topic_name),
+        } else {
+            std::string app_kind = publish ? "publisher" : "subscriber";
+            log_message("Shape Options: "
+                    "\n    This application is a " + app_kind +
+                    "\n    DomainId = " + std::to_string(domain_id) +
+                    "\n    ReliabilityKind = " + to_string(reliability_kind) +
+                    "\n    DurabilityKind = " + to_string(durability_kind) +
+                    "\n    DataRepresentation = " + to_string(data_representation) +
+                    "\n    HistoryDepth = " + std::to_string(history_depth) +
+                    "\n    OwnershipStrength = " + std::to_string(ownership_strength) +
+                    "\n    TimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval) +
+                    "\n    DeadlineInterval = " + std::to_string(deadline_interval) +
+                    "\n    Shapesize = " + std::to_string(shapesize) +
+                    "\n    Verbosity = " + to_string(verbosity),
                     Verbosity::DEBUG);
-        }
-        if (color != NULL) {
-            log_message("    Color = " + std::string(color),
-                    Verbosity::DEBUG);
-        }
-        if (partition != NULL) {
-            log_message("    Partition = " + std::string(partition), Verbosity::DEBUG);
+            if (topic_name != NULL){
+                log_message("    Topic = " + std::string(topic_name),
+                        Verbosity::DEBUG);
+            }
+            if (color != NULL) {
+                log_message("    Color = " + std::string(color),
+                        Verbosity::DEBUG);
+            }
+            if (partition != NULL) {
+                log_message("    Partition = " + std::string(partition), Verbosity::DEBUG);
+            }
         }
         return parse_ok;
     }
