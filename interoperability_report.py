@@ -686,8 +686,8 @@ def main():
     if args.output_name is None:
         now = datetime.now()
         date_time = now.strftime('%Y%m%d-%H_%M_%S')
-        options['filename_report'] = f'{name_publisher}-{name_subscriber}-\
-            {date_time}.xml'
+        options['filename_report'] = \
+            f'{name_publisher}-{name_subscriber}-{date_time}.xml'
         xml = junitparser.JUnitXml()
 
     else:
