@@ -4,7 +4,6 @@ class ReturnCode(Enum):
     Codes to give information about Shape Applications' behavior.
 
     OK                   : Publisher/Subscriber sent/received data correctly
-    UNRECOGNIZED_VALUE   : Parameters for the Publisher/Subscriber not supported
     TOPIC_NOT_CREATED    : Publisher/Subscriber does not create the topic
     READER_NOT_CREATED   : Subscriber does not create the Data Reader
     WRITER_NOT_CREATED   : Publisher does not create the Data Writer
@@ -20,7 +19,6 @@ class ReturnCode(Enum):
     RECEIVING_FROM_BOTH  : Subscriber receives from two Publishers
     """
     OK = 0
-    UNRECOGNIZED_VALUE = 1
     TOPIC_NOT_CREATED = 2
     READER_NOT_CREATED = 3
     WRITER_NOT_CREATED = 4
