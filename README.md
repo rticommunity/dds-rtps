@@ -315,7 +315,7 @@ The `interoperability_report.py` may configure the following options:
 ```
 $ python3 interoperability_report.py -h
 
-usage: interoperability_report.py [-h] -P publisher_name -S subscriber_name
+usage: interoperability_report.py [-h] -P publisher_executable_name -S subscriber_executable_name
                                   [-v] [-s test_suite_dictionary_file]
                                   [-t test_cases [test_cases ...] | -d
                                   test_cases_disabled
@@ -329,12 +329,12 @@ optional arguments:
   -h, --help            show this help message and exit
 
 general options:
-  -P publisher_name, --publisher publisher_name
+  -P publisher_executable_name, --publisher publisher_executable_name
                         Path to the Publisher shape_main application. It may
                         be absolute or relative path. Example: if the
                         executable is in the same folder as the script: "-P
                         ./rti_connext_dds-6.1.1_shape_main_linux".
-  -S subscriber_name, --subscriber subscriber_name
+  -S subscriber_executable_name, --subscriber subscriber_executable_name
                         Path to the Subscriber shape_main application. It may
                         be absolute or relative path. Example: if the
                         executable is in the same folder as the script: "-S
