@@ -576,7 +576,7 @@ class Arguments:
             default=None,
             required=True,
             type=str,
-            metavar='publisher_name',
+            metavar='publisher_executable_name',
             help='Path to the Publisher shape_main application. '
                 'It may be absolute or relative path. Example: if the executable '
                 'is in the same folder as the script: '
@@ -585,7 +585,7 @@ class Arguments:
             default=None,
             required=True,
             type=str,
-            metavar='subscriber_name',
+            metavar='subscriber_executable_name',
             help='Path to the Subscriber shape_main application. '
                 'It may be absolute or relative path. Example: if the executable '
                 'is in the same folder as the script: '
