@@ -211,8 +211,7 @@ These printed strings and the corresponding Return Codes follows this workflow
 
 **Publisher**:
 
-* `'unrecognized value'` -> `UNRECOGNIZED_VALUE`
-* `'please specify topic name'` or no string matched -> `TOPIC_NOT_CREATED`
+* `'Create topic'` not found -> `TOPIC_NOT_CREATED`
 * `'Create topic'`:
   * `'Create writer for topic'` not found -> `WRITER_NOT_CREATED`
   * `'Create writer for topic'`:
@@ -226,8 +225,7 @@ These printed strings and the corresponding Return Codes follows this workflow
 
 **Subscriber**:
 
-* `'unrecognized value'`-> `UNRECOGNIZED_VALUE`
-* `'please specify topic name'`or no string matched -> `TOPIC_NOT_CREATED`
+* `'Create topic'` not found -> `TOPIC_NOT_CREATED`
 * `'Create topic'`:
   * `'failed to create content filtered topic'`-> `FILTER_NOT_CREATED`
   * No string matched -> `READER_NOT_CREATED`
