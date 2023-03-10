@@ -40,7 +40,6 @@ using namespace DDS;
 
 /*************************************************************/
 int  all_done  = 0;
-
 /*************************************************************/
 void
 handle_sig(int sig)
@@ -69,6 +68,105 @@ enum Verbosity
     DEBUG=2,
 };
 
+class QosUtils {
+public:
+    static std::string to_string(ReliabilityQosPolicyKind reliability_value)
+    {
+        if (reliability_value == BEST_EFFORT_RELIABILITY_QOS){
+            return "BEST_EFFORT";
+        } else if (reliability_value == RELIABLE_RELIABILITY_QOS){
+            return "RELIABLE";
+        }
+    }
+
+    static std::string to_string(DurabilityQosPolicyKind durability_value)
+    {
+        if ( durability_value == VOLATILE_DURABILITY_QOS){
+            return "VOLATILE";
+        } else if (durability_value == TRANSIENT_LOCAL_DURABILITY_QOS){
+            return "TRANSIENT_LOCAL";
+        } else if (durability_value == TRANSIENT_DURABILITY_QOS){
+            return "TRANSIENT";
+        } else if (durability_value == PERSISTENT_DURABILITY_QOS){
+            return "PERSISTENT";
+        }
+    }
+
+    static std::string to_string(DataRepresentationId_t data_representation_value)
+    {
+        if (data_representation_value == XCDR_DATA_REPRESENTATION){
+            return "XCDR";
+        } else if (data_representation_value == XCDR2_DATA_REPRESENTATION){
+            return "XCDR2";
+        }
+    }
+
+    static std::string to_string(Verbosity verbosity_value)
+    {
+        switch (verbosity_value)
+        {
+        case ERROR:
+            return "ERROR";
+            break;
+
+        case DEBUG:
+            return "DEBUG";
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    static std::string to_string(OwnershipQosPolicyKind ownership_kind_value)
+    {
+        if (ownership_kind_value == SHARED_OWNERSHIP_QOS){
+            return "SHARED";
+        } else if (ownership_kind_value == EXCLUSIVE_OWNERSHIP_QOS){
+            return "EXCLUSIVE";
+        }
+    }
+
+    static std::string to_string(HistoryQosPolicyKind history_kind_value)
+    {
+        if (history_kind_value == KEEP_ALL_HISTORY_QOS){
+            return "KEEP_ALL";
+        } else if (history_kind_value == KEEP_LAST_HISTORY_QOS){
+            return "KEEP_LAST";
+        }
+    }
+};
+
+class Logger{
+public:
+    Logger(enum Verbosity v)
+    {
+        verbosity_ = v;
+    }
+
+    void verbosity(enum Verbosity v)
+    {
+        verbosity_ = v;
+    }
+
+    enum Verbosity verbosity()
+    {
+        return verbosity_;
+    }
+
+    void log_message(std::string message, enum Verbosity level_verbosity)
+    {
+        if (level_verbosity <= verbosity_) {
+            std::cout << message << std::endl;
+        }
+    }
+
+private:
+    enum Verbosity verbosity_;
+};
+
+/*************************************************************/
+Logger logger(ERROR);
 /*************************************************************/
 class ShapeOptions {
 public:
@@ -96,7 +194,6 @@ public:
     int                 yvel;
     int                 shapesize;
 
-    Verbosity           verbosity;
     bool                print_writer_samples;
 
 public:
@@ -127,7 +224,6 @@ public:
         yvel = 3;
         shapesize = 20;
 
-        verbosity            = Verbosity::ERROR;
         print_writer_samples = false;
     }
 
@@ -166,20 +262,20 @@ public:
     //-------------------------------------------------------------
     bool validate() {
         if (topic_name == NULL) {
-            log_message("please specify topic name [-t]", Verbosity::ERROR);
+            logger.log_message("please specify topic name [-t]", Verbosity::ERROR);
             return false;
         }
         if ( (!publish) && (!subscribe) ) {
-            log_message("please specify publish [-P] or subscribe [-S]", Verbosity::ERROR);
+            logger.log_message("please specify publish [-P] or subscribe [-S]", Verbosity::ERROR);
             return false;
         }
         if ( publish && subscribe ) {
-            log_message("please specify only one of: publish [-P] or subscribe [-S]", Verbosity::ERROR);
+            logger.log_message("please specify only one of: publish [-P] or subscribe [-S]", Verbosity::ERROR);
             return false;
         }
         if (publish && (color == NULL) ) {
             color = strdup("BLUE");
-            log_message("warning: color was not specified, defaulting to \"BLUE\"", Verbosity::ERROR);
+            logger.log_message("warning: color was not specified, defaulting to \"BLUE\"", Verbosity::ERROR);
         }
         return true;
     }
@@ -202,17 +298,17 @@ public:
                         {
                         case 'd':
                             {
-                                verbosity = Verbosity::DEBUG;
+                                logger.verbosity(DEBUG);
                                 break;
                             }
                         case 'e':
                             {
-                                verbosity = Verbosity::ERROR;
+                                logger.verbosity(ERROR);
                                 break;
                             }
                         default:
                             {
-                                log_message("unrecognized value for verbosity "
+                                logger.log_message("unrecognized value for verbosity "
                                                 + std::string(1, optarg[0]),
                                         Verbosity::ERROR);
                                 parse_ok = false;
@@ -240,13 +336,13 @@ public:
                 {
                     int converted_param = sscanf(optarg, "%d", &domain_id);
                     if (converted_param == 0) {
-                        log_message("unrecognized value for domain_id "
+                        logger.log_message("unrecognized value for domain_id "
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     }
                     else if (domain_id < 0) {
-                        log_message("incorrect value for domain_id "
+                        logger.log_message("incorrect value for domain_id "
                                         + std::to_string(domain_id),
                                 Verbosity::ERROR);
                         parse_ok = false;
@@ -281,7 +377,7 @@ public:
                         }
                     default:
                         {
-                            log_message("unrecognized value for durability "
+                            logger.log_message("unrecognized value for durability "
                                             + std::string(1, optarg[0]),
                                     Verbosity::ERROR);
                             parse_ok = false;
@@ -294,13 +390,13 @@ public:
                 {
                     int converted_param = sscanf(optarg, "%d", &timebasedfilter_interval);
                     if (converted_param == 0) {
-                        log_message("unrecognized value for timebasedfilter_interval "
+                        logger.log_message("unrecognized value for timebasedfilter_interval "
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     }
                     else if (timebasedfilter_interval < 0) {
-                        log_message("incorrect value for timebasedfilter_interval "
+                        logger.log_message("incorrect value for timebasedfilter_interval "
                                         + std::to_string(timebasedfilter_interval),
                                 Verbosity::ERROR);
                         parse_ok = false;
@@ -311,12 +407,12 @@ public:
                 {
                     int converted_param = sscanf(optarg, "%d", &deadline_interval);
                     if (converted_param == 0) {
-                        log_message("unrecognized value for deadline_interval "
+                        logger.log_message("unrecognized value for deadline_interval "
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     } else if (deadline_interval < 0) {
-                        log_message("incorrect value for deadline_interval "
+                        logger.log_message("incorrect value for deadline_interval "
                                         + std::to_string(deadline_interval),
                                 Verbosity::ERROR);
                         parse_ok = false;
@@ -327,12 +423,12 @@ public:
                 {
                     int converted_param = sscanf(optarg, "%d", &history_depth);
                     if (converted_param == 0){
-                        log_message("unrecognized value for history_depth "
+                        logger.log_message("unrecognized value for history_depth "
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     } else if (history_depth < 0) {
-                        log_message("incorrect value for history_depth "
+                        logger.log_message("incorrect value for history_depth "
                                         + std::to_string(history_depth),
                                 Verbosity::ERROR);
                         parse_ok = false;
@@ -353,12 +449,12 @@ public:
                 {
                     int converted_param = sscanf(optarg, "%d", &ownership_strength);
                     if (converted_param == 0){
-                        log_message("unrecognized value for ownership_strength "
+                        logger.log_message("unrecognized value for ownership_strength "
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     } else if (ownership_strength < -1) {
-                        log_message("incorrect value for ownership_strength "
+                        logger.log_message("incorrect value for ownership_strength "
                                         + std::to_string(ownership_strength),
                                 Verbosity::ERROR);
                         parse_ok = false;
@@ -404,7 +500,7 @@ public:
                             }
                         default:
                             {
-                            log_message("unrecognized value for data representation "
+                            logger.log_message("unrecognized value for data representation "
                                             + std::string(1, optarg[0]),
                                     Verbosity::ERROR);
                             parse_ok = false;
@@ -417,13 +513,13 @@ public:
                 {
                     int converted_param = sscanf(optarg, "%d", &shapesize);
                     if (converted_param == 0){
-                        log_message("unrecognized value for shapesize "
+                        logger.log_message("unrecognized value for shapesize "
                                         + std::string(1, optarg[0]),
                                 Verbosity::ERROR);
                         parse_ok = false;
                     }
                     else if (shapesize < 10 || shapesize > 99) {
-                        log_message("incorrect value for shapesize "
+                        logger.log_message("incorrect value for shapesize "
                                         + std::to_string(shapesize),
                                 Verbosity::ERROR);
                         parse_ok = false;
@@ -446,105 +542,32 @@ public:
             print_usage(argv[0]);
         } else {
             std::string app_kind = publish ? "publisher" : "subscriber";
-            log_message("Shape Options: "
+            logger.log_message("Shape Options: "
                     "\n    This application is a " + app_kind +
                     "\n    DomainId = " + std::to_string(domain_id) +
-                    "\n    ReliabilityKind = " + to_string(reliability_kind) +
-                    "\n    DurabilityKind = " + to_string(durability_kind) +
-                    "\n    DataRepresentation = " + to_string(data_representation) +
+                    "\n    ReliabilityKind = " + QosUtils::to_string(reliability_kind) +
+                    "\n    DurabilityKind = " + QosUtils::to_string(durability_kind) +
+                    "\n    DataRepresentation = " + QosUtils::to_string(data_representation) +
                     "\n    HistoryDepth = " + std::to_string(history_depth) +
                     "\n    OwnershipStrength = " + std::to_string(ownership_strength) +
                     "\n    TimeBasedFilterInterval = " + std::to_string(timebasedfilter_interval) +
                     "\n    DeadlineInterval = " + std::to_string(deadline_interval) +
                     "\n    Shapesize = " + std::to_string(shapesize) +
-                    "\n    Verbosity = " + to_string(verbosity),
+                    "\n    Verbosity = " + QosUtils::to_string(logger.verbosity()),
                     Verbosity::DEBUG);
             if (topic_name != NULL){
-                log_message("    Topic = " + std::string(topic_name),
+                logger.log_message("    Topic = " + std::string(topic_name),
                         Verbosity::DEBUG);
             }
             if (color != NULL) {
-                log_message("    Color = " + std::string(color),
+                logger.log_message("    Color = " + std::string(color),
                         Verbosity::DEBUG);
             }
             if (partition != NULL) {
-                log_message("    Partition = " + std::string(partition), Verbosity::DEBUG);
+                logger.log_message("    Partition = " + std::string(partition), Verbosity::DEBUG);
             }
         }
         return parse_ok;
-    }
-
-    void log_message(std::string message, Verbosity level_verbosity)
-    {
-        if (level_verbosity <= verbosity) {
-            std::cout << message << std::endl;
-        }
-    }
-
-    std::string to_string(ReliabilityQosPolicyKind reliability_value)
-    {
-        if (reliability_value == BEST_EFFORT_RELIABILITY_QOS){
-            return "BEST_EFFORT";
-        } else if (reliability_value == RELIABLE_RELIABILITY_QOS){
-            return "RELIABLE";
-        }
-    }
-
-    std::string to_string(DurabilityQosPolicyKind durability_value)
-    {
-        if ( durability_value == VOLATILE_DURABILITY_QOS){
-            return "VOLATILE";
-        } else if (durability_value == TRANSIENT_LOCAL_DURABILITY_QOS){
-            return "TRANSIENT_LOCAL";
-        } else if (durability_value == TRANSIENT_DURABILITY_QOS){
-            return "TRANSIENT";
-        } else if (durability_value == PERSISTENT_DURABILITY_QOS){
-            return "PERSISTENT";
-        }
-    }
-
-    std::string to_string(DataRepresentationId_t data_representation_value)
-    {
-        if (data_representation_value == XCDR_DATA_REPRESENTATION){
-            return "XCDR";
-        } else if (data_representation_value == XCDR2_DATA_REPRESENTATION){
-            return "XCDR2";
-        }
-    }
-
-    std::string to_string(Verbosity verbosity_value)
-    {
-        switch (verbosity_value)
-        {
-        case ERROR:
-            return "ERROR";
-            break;
-
-        case DEBUG:
-            return "DEBUG";
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    std::string to_string(OwnershipQosPolicyKind ownership_kind_value)
-    {
-        if (ownership_kind_value == SHARED_OWNERSHIP_QOS){
-            return "SHARED";
-        } else if (ownership_kind_value == EXCLUSIVE_OWNERSHIP_QOS){
-            return "EXCLUSIVE";
-        }
-    }
-
-    std::string to_string(HistoryQosPolicyKind history_kind_value)
-    {
-        if (history_kind_value == KEEP_ALL_HISTORY_QOS){
-            return "KEEP_ALL";
-        } else if (history_kind_value == KEEP_LAST_HISTORY_QOS){
-            return "KEEP_LAST";
-        }
     }
 };
 
@@ -686,20 +709,20 @@ public:
 #endif
         DomainParticipantFactory *dpf = OBTAIN_DOMAIN_PARTICIPANT_FACTORY;
         if (dpf == NULL) {
-            options->log_message("failed to create participant factory (missing license?).", Verbosity::ERROR);
+            logger.log_message("failed to create participant factory (missing license?).", Verbosity::ERROR);
             return false;
         }
-        options->log_message("Participant Factory created", Verbosity::DEBUG);
+        logger.log_message("Participant Factory created", Verbosity::DEBUG);
 #ifdef CONFIGURE_PARTICIPANT_FACTORY
         CONFIGURE_PARTICIPANT_FACTORY
 #endif
 
         dp = dpf->create_participant( options->domain_id, PARTICIPANT_QOS_DEFAULT, &dp_listener, LISTENER_STATUS_MASK_ALL );
         if (dp == NULL) {
-            options->log_message("failed to create participant (missing license?).", Verbosity::ERROR);
+            logger.log_message("failed to create participant (missing license?).", Verbosity::ERROR);
             return false;
         }
-        options->log_message("Participant created", Verbosity::DEBUG);
+        logger.log_message("Participant created", Verbosity::DEBUG);
 #ifndef REGISTER_TYPE
 #define REGISTER_TYPE ShapeTypeTypeSupport::register_type
 #endif
@@ -708,7 +731,7 @@ public:
         printf("Create topic: %s\n", options->topic_name );
         topic = dp->create_topic( options->topic_name, "ShapeType", TOPIC_QOS_DEFAULT, NULL, 0);
         if (topic == NULL) {
-            options->log_message("failed to create topic", Verbosity::ERROR);
+            logger.log_message("failed to create topic", Verbosity::ERROR);
             return false;
         }
 
@@ -736,7 +759,7 @@ public:
     //-------------------------------------------------------------
     bool init_publisher(ShapeOptions *options)
     {
-        options->log_message("Initializing Publisher", Verbosity::DEBUG);
+        logger.log_message("Initializing Publisher", Verbosity::DEBUG);
         PublisherQos  pub_qos;
         DataWriterQos dw_qos;
         ShapeType     shape;
@@ -748,16 +771,16 @@ public:
 
         pub = dp->create_publisher(pub_qos, NULL, 0);
         if (pub == NULL) {
-            options->log_message("failed to create publisher", Verbosity::ERROR);
+            logger.log_message("failed to create publisher", Verbosity::ERROR);
             return false;
         }
-        options->log_message("Publisher created", Verbosity::DEBUG);
-        options->log_message("Data Writer QoS:", Verbosity::DEBUG);
+        logger.log_message("Publisher created", Verbosity::DEBUG);
+        logger.log_message("Data Writer QoS:", Verbosity::DEBUG);
         pub->get_default_datawriter_qos( dw_qos );
         dw_qos.reliability.kind = options->reliability_kind;
-        options->log_message("    Reliability = " + options->to_string(dw_qos.reliability.kind), Verbosity::DEBUG);
+        logger.log_message("    Reliability = " + QosUtils::to_string(dw_qos.reliability.kind), Verbosity::DEBUG);
         dw_qos.durability.kind  = options->durability_kind;
-        options->log_message("    Durability = " + options->to_string(dw_qos.durability.kind), Verbosity::DEBUG);
+        logger.log_message("    Durability = " + QosUtils::to_string(dw_qos.durability.kind), Verbosity::DEBUG);
 
 #if   defined(RTI_CONNEXT_DDS)
         DataRepresentationIdSeq data_representation_seq;
@@ -769,7 +792,7 @@ public:
         dw_qos.representation.value.length(1);
         dw_qos.representation.value[0] = options->data_representation;
 #endif
-        options->log_message("    Data_Representation = " + options->to_string(dw_qos.representation.value[0]), Verbosity::DEBUG);
+        logger.log_message("    Data_Representation = " + QosUtils::to_string(dw_qos.representation.value[0]), Verbosity::DEBUG);
         if ( options->ownership_strength != -1 ) {
             dw_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
             dw_qos.ownership_strength.value = options->ownership_strength;
@@ -778,16 +801,16 @@ public:
         if ( options->ownership_strength == -1 ) {
             dw_qos.ownership.kind = SHARED_OWNERSHIP_QOS;
         }
-        options->log_message("    Ownership = " + options->to_string(dw_qos.ownership.kind), Verbosity::DEBUG);
+        logger.log_message("    Ownership = " + QosUtils::to_string(dw_qos.ownership.kind), Verbosity::DEBUG);
         if (dw_qos.ownership.kind == EXCLUSIVE_OWNERSHIP_QOS){
-            options->log_message("    OwnershipStrength = " + std::to_string(dw_qos.ownership_strength.value), Verbosity::DEBUG);
+            logger.log_message("    OwnershipStrength = " + std::to_string(dw_qos.ownership_strength.value), Verbosity::DEBUG);
         }
 
         if ( options->deadline_interval > 0 ) {
             dw_qos.deadline.period.sec      = options->deadline_interval;
             dw_qos.deadline.period.nanosec  = 0;
         }
-        options->log_message("    DeadlinePeriod = " + std::to_string(dw_qos.deadline.period.sec), Verbosity::DEBUG);
+        logger.log_message("    DeadlinePeriod = " + std::to_string(dw_qos.deadline.period.sec), Verbosity::DEBUG);
 
         // options->history_depth < 0 means leave default value
         if ( options->history_depth > 0 )  {
@@ -797,16 +820,16 @@ public:
         else if ( options->history_depth == 0 ) {
             dw_qos.history.kind  = KEEP_ALL_HISTORY_QOS;
         }
-        options->log_message("    History = " + options->to_string(dw_qos.history.kind), Verbosity::DEBUG);
+        logger.log_message("    History = " + QosUtils::to_string(dw_qos.history.kind), Verbosity::DEBUG);
         if (dw_qos.history.kind == KEEP_LAST_HISTORY_QOS){
-            options->log_message("    HistoryDepth = " + std::to_string(dw_qos.history.depth), Verbosity::DEBUG);
+            logger.log_message("    HistoryDepth = " + std::to_string(dw_qos.history.depth), Verbosity::DEBUG);
         }
 
         printf("Create writer for topic: %s color: %s\n", options->topic_name, options->color );
         dw = dynamic_cast<ShapeTypeDataWriter *>(pub->create_datawriter( topic, dw_qos, NULL, 0));
 
         if (dw == NULL) {
-            options->log_message("failed to create datawriter", Verbosity::ERROR);
+            logger.log_message("failed to create datawriter", Verbosity::ERROR);
             return false;
         }
 
@@ -815,12 +838,12 @@ public:
         yvel = options->yvel;
         da_width  = options->da_width;
         da_height = options->da_height;
-        options->log_message("Data Writer created", Verbosity::DEBUG);
-        options->log_message("Color " + std::string(color), Verbosity::DEBUG);
-        options->log_message("xvel " + std::to_string(xvel), Verbosity::DEBUG);
-        options->log_message("yvel " + std::to_string(yvel), Verbosity::DEBUG);
-        options->log_message("da_width " + std::to_string(da_width), Verbosity::DEBUG);
-        options->log_message("da_height " + std::to_string(da_height), Verbosity::DEBUG);
+        logger.log_message("Data Writer created", Verbosity::DEBUG);
+        logger.log_message("Color " + std::string(color), Verbosity::DEBUG);
+        logger.log_message("xvel " + std::to_string(xvel), Verbosity::DEBUG);
+        logger.log_message("yvel " + std::to_string(yvel), Verbosity::DEBUG);
+        logger.log_message("da_width " + std::to_string(da_width), Verbosity::DEBUG);
+        logger.log_message("da_height " + std::to_string(da_height), Verbosity::DEBUG);
 
         return true;
     }
@@ -838,16 +861,16 @@ public:
 
         sub = dp->create_subscriber( sub_qos, NULL, 0 );
         if (sub == NULL) {
-            options->log_message("failed to create subscriber", Verbosity::ERROR);
+            logger.log_message("failed to create subscriber", Verbosity::ERROR);
             return false;
         }
-        options->log_message("Subscriber created", Verbosity::DEBUG);
-        options->log_message("Data Reader QoS:", Verbosity::DEBUG);
+        logger.log_message("Subscriber created", Verbosity::DEBUG);
+        logger.log_message("Data Reader QoS:", Verbosity::DEBUG);
         sub->get_default_datareader_qos( dr_qos );
         dr_qos.reliability.kind = options->reliability_kind;
-        options->log_message("    Reliability = " + options->to_string(dr_qos.reliability.kind), Verbosity::DEBUG);
+        logger.log_message("    Reliability = " + QosUtils::to_string(dr_qos.reliability.kind), Verbosity::DEBUG);
         dr_qos.durability.kind  = options->durability_kind;
-        options->log_message("    Durability = " + options->to_string(dr_qos.durability.kind), Verbosity::DEBUG);
+        logger.log_message("    Durability = " + QosUtils::to_string(dr_qos.durability.kind), Verbosity::DEBUG);
 
 #if   defined(RTI_CONNEXT_DDS)
             DataRepresentationIdSeq data_representation_seq;
@@ -859,22 +882,22 @@ public:
         dr_qos.representation.value.length(1);
         dr_qos.representation.value[0] = options->data_representation;
 #endif
-        options->log_message("    DataRepresentation = " + options->to_string(dr_qos.representation.value[0]), Verbosity::DEBUG);
+        logger.log_message("    DataRepresentation = " + QosUtils::to_string(dr_qos.representation.value[0]), Verbosity::DEBUG);
         if ( options->ownership_strength != -1 ) {
             dr_qos.ownership.kind = EXCLUSIVE_OWNERSHIP_QOS;
         }
-        options->log_message("    Ownership = " + options->to_string(dr_qos.ownership.kind), Verbosity::DEBUG);
+        logger.log_message("    Ownership = " + QosUtils::to_string(dr_qos.ownership.kind), Verbosity::DEBUG);
         if ( options->timebasedfilter_interval > 0) {
             dr_qos.time_based_filter.minimum_separation.sec      = options->timebasedfilter_interval;
             dr_qos.time_based_filter.minimum_separation.nanosec  = 0;
         }
-        options->log_message("    TimeBasedFilter = " + std::to_string(dr_qos.time_based_filter.minimum_separation.sec), Verbosity::DEBUG);
+        logger.log_message("    TimeBasedFilter = " + std::to_string(dr_qos.time_based_filter.minimum_separation.sec), Verbosity::DEBUG);
 
         if ( options->deadline_interval > 0 ) {
             dr_qos.deadline.period.sec      = options->deadline_interval;
             dr_qos.deadline.period.nanosec  = 0;
         }
-        options->log_message("    DeadlinePeriod = " + std::to_string(dr_qos.deadline.period.sec), Verbosity::DEBUG);
+        logger.log_message("    DeadlinePeriod = " + std::to_string(dr_qos.deadline.period.sec), Verbosity::DEBUG);
 
         // options->history_depth < 0 means leave default value
         if ( options->history_depth > 0 )  {
@@ -884,9 +907,9 @@ public:
         else if ( options->history_depth == 0 ) {
             dr_qos.history.kind  = KEEP_ALL_HISTORY_QOS;
         }
-        options->log_message("    History = " + options->to_string(dr_qos.history.kind), Verbosity::DEBUG);
+        logger.log_message("    History = " + QosUtils::to_string(dr_qos.history.kind), Verbosity::DEBUG);
         if (dr_qos.history.kind == KEEP_LAST_HISTORY_QOS){
-            options->log_message("    HistoryDepth = " + std::to_string(dr_qos.history.depth), Verbosity::DEBUG);
+            logger.log_message("    HistoryDepth = " + std::to_string(dr_qos.history.depth), Verbosity::DEBUG);
         }
 
         if ( options->color != NULL ) {
@@ -899,14 +922,14 @@ public:
             sprintf(parameter, "'%s'",  options->color);
             StringSeq_push(cf_params, parameter);
             cft = dp->create_contentfilteredtopic(options->topic_name, topic, "color MATCH %0", cf_params);
-            options->log_message("    ContentFilterTopic = color MATCH " + std::string(parameter), Verbosity::DEBUG);
+            logger.log_message("    ContentFilterTopic = color MATCH " + std::string(parameter), Verbosity::DEBUG);
 #elif defined(TWINOAKS_COREDX) || defined(OPENDDS)
             StringSeq_push(cf_params, options->color);
             cft = dp->create_contentfilteredtopic(options->topic_name, topic, "color = %0", cf_params);
-            options->log_message("    ContentFilterTopic = color = " + std::string(options->color), Verbosity::DEBUG);
+            logger.log_message("    ContentFilterTopic = color = " + std::string(options->color), Verbosity::DEBUG);
 #endif
             if (cft == NULL) {
-                options->log_message("failed to create content filtered topic", Verbosity::ERROR);
+                logger.log_message("failed to create content filtered topic", Verbosity::ERROR);
                 return false;
             }
 
@@ -920,10 +943,10 @@ public:
 
 
         if (dr == NULL) {
-            options->log_message("failed to create datareader", Verbosity::ERROR);
+            logger.log_message("failed to create datareader", Verbosity::ERROR);
             return false;
         }
-        options->log_message("Data Reader created", Verbosity::DEBUG);
+        logger.log_message("Data Reader created", Verbosity::DEBUG);
         return true;
     }
 
