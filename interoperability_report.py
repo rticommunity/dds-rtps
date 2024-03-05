@@ -737,7 +737,7 @@ def main():
     # results of running different TestCases between two shape_main
     # applications. A TestSuite contains a collection of TestCases.
     suite = junitparser.TestSuite(
-            f"{name_publisher}---{name_subscriber} XCDR{options["data_representation"]}")
+            f"{name_publisher}---{name_subscriber} XCDR{options['data_representation']}")
 
     timeout = 5
     now = datetime.now()
