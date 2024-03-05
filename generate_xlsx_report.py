@@ -134,26 +134,32 @@ class JunitData:
     This class represents all extracted data from the JUnit results. This is the
     data that will be represented in the xlsx document.
     summary_dict: dictionary that contains the passed_tests/total_tests per
-                  product(key)
+                  product(key) for xcdr 1 or 2
     product_summary_dict: dictionary that contains the passed_tests/total_tests
                           information per pair of products (key). For example
                           RTI Connext/OpenDDS --> passed_tests/total_tests
+                          for xcdr 1 or 2
     publisher_product_dict: dictionary that contains a list with all results of
                             all tests for a specific publisher product (key)
-                            with all other products as subscriber.
+                            with all other products as subscriber for xcdr 1 or 2
     subscriber_product_dict: dictionary that contains a list with all results of
                              all tests for a specific publisher product (key)
-                             with all other products as subscriber.
+                             with all other products as subscriber for xcdr 1 or 2
     """
     # [product, aggregated data]
-    summary_dict: dict[str,JunitAggregatedData] = {}
+    summary_dict_xcdr1: dict[str,JunitAggregatedData] = {}
+    summary_dict_xcdr2: dict[str,JunitAggregatedData] = {}
     # [(publisher_name, subscriber_name), aggregated data]
-    product_summary_dict: dict[(str,str),JunitAggregatedData] = {}
+    product_summary_dict_xcdr1: dict[(str,str),JunitAggregatedData] = {}
+    product_summary_dict_xcdr2: dict[(str,str),JunitAggregatedData] = {}
 
     # [publisher_name, list of test case aggregated data]
-    publisher_product_dict: dict[str,list[JunitTestCaseAggregatedData]] = {}
+    publisher_product_dict_xcdr1: dict[str,list[JunitTestCaseAggregatedData]] = {}
+    publisher_product_dict_xcdr2: dict[str,list[JunitTestCaseAggregatedData]] = {}
+
     # [subscriber_name, list of test case aggregated data]
-    subscriber_product_dict: dict[str,list[JunitTestCaseAggregatedData]] = {}
+    subscriber_product_dict_xcdr1: dict[str,list[JunitTestCaseAggregatedData]] = {}
+    subscriber_product_dict_xcdr2: dict[str,list[JunitTestCaseAggregatedData]] = {}
 
     def __init__(self, input: pathlib.Path):
         self.get_info(input)
@@ -212,6 +218,7 @@ class JunitData:
             product_names = re.search(r'([\S]+)\-\-\-([\S]+)', suite.name)
             publisher_name = ProductUtils.get_product_name(product_names.group(1))
             subscriber_name = ProductUtils.get_product_name(product_names.group(2))
+            data_representation = re.search(r'(XCDR\d)').group(1)
 
             # get the value of the passed_tests and total_tests as a
             # JunitAggregatedData
@@ -223,9 +230,12 @@ class JunitData:
             # update the information of the product in the summary_dict with
             # the information of the publisher and the subscriber
             self.update_value_aggregated_data_dict(
-                self.summary_dict, publisher_name, element)
+                self.summary_dict_xcdr1 if data_representation == 'XCDR1' else self.summary_dict_xcdr2,
+                publisher_name,
+                element)
             self.update_value_aggregated_data_dict(
-                self.summary_dict, subscriber_name, element)
+                self.summary_dict_xcdr1 if data_representation == 'XCDR1' else self.summary_dict_xcdr2,
+                subscriber_name, element)
 
             # Get table with the summary of the test passed/total_tests for
             # every product as publisher and as subscriber
@@ -234,7 +244,7 @@ class JunitData:
                 suite.tests - suite.failures - suite.skipped - suite.errors,
                 suite.tests)
             self.update_value_aggregated_data_dict(
-                self.product_summary_dict,
+                self.product_summary_dict_xcdr1 if data_representation == 'XCDR1' else self.product_summary_dict_xcdr2,
                 product_dict_key,
                 product_test_data)
 
@@ -259,7 +269,8 @@ class JunitData:
                 self.update_value_to_product_dict(
                         key=publisher_name,
                         value=publisher_test_result,
-                        product_dict=self.publisher_product_dict
+                    product_dict=self.publisher_product_dict_xcdr1 if data_representation == 'XCDR1'
+                            else self.publisher_product_dict_xcdr2,
                 )
 
                 # update the value of the subscriber_name as subscriber with
@@ -277,7 +288,8 @@ class JunitData:
                 self.update_value_to_product_dict(
                         key=subscriber_name,
                         value=subscriber_test_result,
-                        product_dict=self.subscriber_product_dict
+                        product_dict=self.subscriber_product_dict_xcdr1 if data_representation == 'XCDR1'
+                            else self.subscriber_product_dict_xcdr2,
                 )
 
 class ColorUtils:
@@ -464,7 +476,7 @@ class XlsxReport:
         # create a list that contains the worksheet names per product. These
         # product names are the same for the publisher and the subscriber
         product_names = []
-        for name in self.__data.publisher_product_dict.keys():
+        for name in self.__data.publisher_product_dict_xcdr1.keys():
             product_names.append(name)
 
         # Create a worksheet per product that contains the following info for
@@ -473,7 +485,7 @@ class XlsxReport:
         #  * product as subscriber with all other products as publishers
         for name in product_names:
             # truncate the name of the string to 31 chars
-            worksheet = self.workbook.add_worksheet((name)[:31])
+            worksheet = self.workbook.add_worksheet((name + 'XCDR 1')[:31])
             self.set_worksheet_defaults(worksheet)
 
             current_cell = (1, 1) # B2
@@ -486,7 +498,7 @@ class XlsxReport:
                 worksheet=worksheet,
                 starting_column=1, # B
                 starting_row=starting_row,
-                value=self.__data.publisher_product_dict[name],
+                value=self.__data.publisher_product_dict_xcdr1[name],
                 print_test_name=True
             )
 
@@ -502,7 +514,7 @@ class XlsxReport:
                 worksheet=worksheet,
                 starting_column=current_cell[1] + 1, # next column
                 starting_row=starting_row,
-                value=self.__data.subscriber_product_dict[name],
+                value=self.__data.subscriber_product_dict_xcdr1[name],
                 print_test_name=False
             )
 
@@ -515,6 +527,53 @@ class XlsxReport:
                     product_name=name,
                     product_count=len(product_names))
 
+        # Create a worksheet per product that contains the following info for
+        # all tests:
+        #  * product as publisher with all other products as subscribers
+        #  * product as subscriber with all other products as publishers
+        for name in product_names:
+            # truncate the name of the string to 31 chars
+            worksheet = self.workbook.add_worksheet((name + 'XCDR 2')[:31])
+            self.set_worksheet_defaults(worksheet)
+
+            current_cell = (1, 1) # B2
+
+            # next row
+            starting_row = current_cell[0] + 1
+
+            # Add table with the product as publisher
+            current_cell = self.add_product_table(
+                worksheet=worksheet,
+                starting_column=1, # B
+                starting_row=starting_row,
+                value=self.__data.publisher_product_dict_xcdr2[name],
+                print_test_name=True
+            )
+
+            # Set the column size of the separation column between publisher
+            # and subscriber tables
+            worksheet.set_column(current_cell[1] + 1, current_cell[1] + 1, 4)
+
+            # Add table with the product as subscriber
+
+            # as the test_name is not printed, the starting_column does not
+            # write anything, so, the table starts at starting_column + 1
+            self.add_product_table(
+                worksheet=worksheet,
+                starting_column=current_cell[1] + 1, # next column
+                starting_row=starting_row,
+                value=self.__data.subscriber_product_dict_xcdr2[name],
+                print_test_name=False
+            )
+
+            # After having all data that may have an unknown length, we call
+            # autofit to modify the column size to show all data, then we add
+            # the static data that does not require autofit
+            worksheet.autofit()
+            self.add_static_data_test(
+                    worksheet=worksheet,
+                    product_name=name,
+                    product_count=len(product_names))
 
     def add_product_table(self,
             worksheet: xlsxwriter.Workbook.worksheet_class,
@@ -608,12 +667,17 @@ class XlsxReport:
             'Product', self.__formats['bold_w_border'])
         worksheet.write(
             current_row, current_column + 2,
-            'Test Passed', self.__formats['bold_w_border'])
+            'Test Passed XCDR1', self.__formats['bold_w_border'])
+        worksheet.write(
+            current_row, current_column + 3,
+            'Test Passed XCDR2', self.__formats['bold_w_border'])
 
         current_row += 1
 
-        # Create table with the total passed_tests/total_tests per product
-        for product_name, value in self.__data.summary_dict.items():
+        # Create table with the total passed_tests/total_tests per product for
+        # XCDR1
+        previous_row = current_row
+        for product_name, value in self.__data.summary_dict_xcdr1.items():
             worksheet.write(
                 current_row, current_column,
                 ProductUtils.get_company_name(product_name),
@@ -630,11 +694,21 @@ class XlsxReport:
                                       value.get_total_tests()))
             current_row += 1
 
+        # Put the information for XCDR2 tests
+        for product_name, value in self.__data.summary_dict_xcdr2.items():
+            worksheet.write(
+                current_row, current_column + 3,
+                str(value.get_passed_tests()) + ' / ' +
+                str(value.get_total_tests()),
+                self.get_format_color(value.get_passed_tests(),
+                                      value.get_total_tests()))
+            current_row += 1
+
         # Add 2 rows of gap for the next table
         current_row += 2
         worksheet.write(
             current_row, current_column,
-            'Publisher/Subscriber', self.__formats['bold_w_border'])
+            'Publisher/Subscriber XCDR1', self.__formats['bold_w_border'])
 
         # create a dictionary to store the row/column of the product name
         # for example, row_dict['Connext 6.1.2'] = 30 means that the

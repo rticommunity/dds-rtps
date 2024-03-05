@@ -736,7 +736,8 @@ def main():
     # TestSuite is a class from junitparser that will contain the
     # results of running different TestCases between two shape_main
     # applications. A TestSuite contains a collection of TestCases.
-    suite = junitparser.TestSuite(f"{name_publisher}---{name_subscriber}")
+    suite = junitparser.TestSuite(
+            f"{name_publisher}---{name_subscriber} XCDR{options["data_representation"]}")
 
     timeout = 5
     now = datetime.now()
@@ -797,7 +798,7 @@ def main():
                     assert(len(parameters) == len(expected_codes))
 
                     for element in parameters:
-                        if not '-x ' in element:
+                        if not '-x ' in element and not '--data-representation ' in element:
                             element += f'-x {options["data_representation"]}'
 
                     case = junitparser.TestCase(f'{test_suite_name}_{test_case_name}')
