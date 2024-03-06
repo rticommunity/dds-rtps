@@ -218,7 +218,7 @@ class JunitData:
             product_names = re.search(r'([\S]+)\-\-\-([\S]+)', suite.name)
             publisher_name = ProductUtils.get_product_name(product_names.group(1))
             subscriber_name = ProductUtils.get_product_name(product_names.group(2))
-            data_representation = re.search(r'(XCDR\d)').group(1)
+            data_representation = re.search(r'(XCDR\d)', suite.name).group(1)
 
             # get the value of the passed_tests and total_tests as a
             # JunitAggregatedData
@@ -484,96 +484,55 @@ class XlsxReport:
         #  * product as publisher with all other products as subscribers
         #  * product as subscriber with all other products as publishers
         for name in product_names:
-            # truncate the name of the string to 31 chars
-            worksheet = self.workbook.add_worksheet((name + 'XCDR 1')[:31])
-            self.set_worksheet_defaults(worksheet)
+            for data_representation_name in ('XCDR 1', 'XCDR 2'):
+                # truncate the name of the string to 31 chars
+                worksheet = self.workbook.add_worksheet((name + ' ' + data_representation_name)[:31])
+                self.set_worksheet_defaults(worksheet)
 
-            current_cell = (1, 1) # B2
+                current_cell = (1, 1) # B2
 
-            # next row
-            starting_row = current_cell[0] + 1
+                # next row
+                starting_row = current_cell[0] + 1
 
-            # Add table with the product as publisher
-            current_cell = self.add_product_table(
-                worksheet=worksheet,
-                starting_column=1, # B
-                starting_row=starting_row,
-                value=self.__data.publisher_product_dict_xcdr1[name],
-                print_test_name=True
-            )
-
-            # Set the column size of the separation column between publisher
-            # and subscriber tables
-            worksheet.set_column(current_cell[1] + 1, current_cell[1] + 1, 4)
-
-            # Add table with the product as subscriber
-
-            # as the test_name is not printed, the starting_column does not
-            # write anything, so, the table starts at starting_column + 1
-            self.add_product_table(
-                worksheet=worksheet,
-                starting_column=current_cell[1] + 1, # next column
-                starting_row=starting_row,
-                value=self.__data.subscriber_product_dict_xcdr1[name],
-                print_test_name=False
-            )
-
-            # After having all data that may have an unknown length, we call
-            # autofit to modify the column size to show all data, then we add
-            # the static data that does not require autofit
-            worksheet.autofit()
-            self.add_static_data_test(
+                # Add table with the product as publisher
+                publisher_dict = (self.__data.publisher_product_dict_xcdr1
+                        if data_representation_name == 'XCDR 1'
+                        else self.__data.publisher_product_dict_xcdr2)
+                current_cell = self.add_product_table(
                     worksheet=worksheet,
-                    product_name=name,
-                    product_count=len(product_names))
+                    starting_column=1, # B
+                    starting_row=starting_row,
+                    value=publisher_dict[name],
+                    print_test_name=True
+                )
 
-        # Create a worksheet per product that contains the following info for
-        # all tests:
-        #  * product as publisher with all other products as subscribers
-        #  * product as subscriber with all other products as publishers
-        for name in product_names:
-            # truncate the name of the string to 31 chars
-            worksheet = self.workbook.add_worksheet((name + 'XCDR 2')[:31])
-            self.set_worksheet_defaults(worksheet)
+                # Set the column size of the separation column between publisher
+                # and subscriber tables
+                worksheet.set_column(current_cell[1] + 1, current_cell[1] + 1, 4)
 
-            current_cell = (1, 1) # B2
+                # Add table with the product as subscriber
 
-            # next row
-            starting_row = current_cell[0] + 1
-
-            # Add table with the product as publisher
-            current_cell = self.add_product_table(
-                worksheet=worksheet,
-                starting_column=1, # B
-                starting_row=starting_row,
-                value=self.__data.publisher_product_dict_xcdr2[name],
-                print_test_name=True
-            )
-
-            # Set the column size of the separation column between publisher
-            # and subscriber tables
-            worksheet.set_column(current_cell[1] + 1, current_cell[1] + 1, 4)
-
-            # Add table with the product as subscriber
-
-            # as the test_name is not printed, the starting_column does not
-            # write anything, so, the table starts at starting_column + 1
-            self.add_product_table(
-                worksheet=worksheet,
-                starting_column=current_cell[1] + 1, # next column
-                starting_row=starting_row,
-                value=self.__data.subscriber_product_dict_xcdr2[name],
-                print_test_name=False
-            )
-
-            # After having all data that may have an unknown length, we call
-            # autofit to modify the column size to show all data, then we add
-            # the static data that does not require autofit
-            worksheet.autofit()
-            self.add_static_data_test(
+                # as the test_name is not printed, the starting_column does not
+                # write anything, so, the table starts at starting_column + 1
+                subscriber_dict = (self.__data.subscriber_product_dict_xcdr1
+                        if data_representation_name == 'XCDR 1'
+                        else self.__data.subscriber_product_dict_xcdr2)
+                self.add_product_table(
                     worksheet=worksheet,
-                    product_name=name,
-                    product_count=len(product_names))
+                    starting_column=current_cell[1] + 1, # next column
+                    starting_row=starting_row,
+                    value=subscriber_dict[name],
+                    print_test_name=False
+                )
+
+                # After having all data that may have an unknown length, we call
+                # autofit to modify the column size to show all data, then we add
+                # the static data that does not require autofit
+                worksheet.autofit()
+                self.add_static_data_test(
+                        worksheet=worksheet,
+                        product_name=name,
+                        product_count=len(product_names))
 
     def add_product_table(self,
             worksheet: xlsxwriter.Workbook.worksheet_class,
@@ -667,16 +626,16 @@ class XlsxReport:
             'Product', self.__formats['bold_w_border'])
         worksheet.write(
             current_row, current_column + 2,
-            'Test Passed XCDR1', self.__formats['bold_w_border'])
+            'Test Passed XCDR 1', self.__formats['bold_w_border'])
         worksheet.write(
             current_row, current_column + 3,
-            'Test Passed XCDR2', self.__formats['bold_w_border'])
+            'Test Passed XCDR 2', self.__formats['bold_w_border'])
 
         current_row += 1
 
         # Create table with the total passed_tests/total_tests per product for
         # XCDR1
-        previous_row = current_row
+        summary_product_row = {}
         for product_name, value in self.__data.summary_dict_xcdr1.items():
             worksheet.write(
                 current_row, current_column,
@@ -686,6 +645,7 @@ class XlsxReport:
                 current_row, current_column + 1,
                 product_name,
                 self.__formats['bold_w_border'])
+            summary_product_row[product_name] = current_row
             worksheet.write(
                 current_row, current_column + 2,
                 str(value.get_passed_tests()) + ' / ' +
@@ -697,64 +657,70 @@ class XlsxReport:
         # Put the information for XCDR2 tests
         for product_name, value in self.__data.summary_dict_xcdr2.items():
             worksheet.write(
-                current_row, current_column + 3,
+                summary_product_row[product_name], current_column + 3,
                 str(value.get_passed_tests()) + ' / ' +
                 str(value.get_total_tests()),
                 self.get_format_color(value.get_passed_tests(),
                                       value.get_total_tests()))
-            current_row += 1
 
-        # Add 2 rows of gap for the next table
-        current_row += 2
-        worksheet.write(
-            current_row, current_column,
-            'Publisher/Subscriber XCDR1', self.__formats['bold_w_border'])
+        starting_column = current_column
+        for data_representation_name in ('XCDR 1', 'XCDR 2'):
+            current_column = starting_column
+            # Add 2 rows of gap for the next table
+            current_row += 2
+            worksheet.write(
+                current_row, current_column,
+                'Publisher/Subscriber ' + data_representation_name,
+                self.__formats['bold_w_border'])
 
-        # create a dictionary to store the row/column of the product name
-        # for example, row_dict['Connext 6.1.2'] = 30 means that the
-        # row (publisher) of Connext 6.1.2 is in the xlsx row 29.
-        # Column for the publisher is always fixed: 1 --> B
-        # Row for the subscriber is always fixed: current_row
-        subscriber_row = current_row
-        publisher_column = 1
-        row_dict={} # publishers
-        column_dict={} # subscribers
+            # create a dictionary to store the row/column of the product name
+            # for example, row_dict['Connext 6.1.2'] = 30 means that the
+            # row (publisher) of Connext 6.1.2 is in the xlsx row 29.
+            # Column for the publisher is always fixed: 1 --> B
+            # Row for the subscriber is always fixed: current_row
+            subscriber_row = current_row
+            publisher_column = 1
+            row_dict={} # publishers
+            column_dict={} # subscribers
 
-        # Add the table passed_tests/total_tests with all combinations of product
-        # as publishers and as subscribers
-        for (publisher_name, subscriber_name), value in self.__data.product_summary_dict.items():
-            # if the publisher hasn't been already processed yet, determine
-            # what is the process_row by selecting the next free row
-            # (current_row+1)
-            if not publisher_name in row_dict:
-                current_row += 1
-                process_row = current_row
-                row_dict[publisher_name] = current_row
-                worksheet.write(current_row, publisher_column,
-                                publisher_name, self.__formats['bold_w_border'])
-            else:
-                # if the publisher has been already processed, just set the
-                # process_row to the corresponding row
-                process_row = row_dict[publisher_name]
+            # Add the table passed_tests/total_tests with all combinations of product
+            # as publishers and as subscribers
+            product_summary_dict = (self.__data.product_summary_dict_xcdr1
+                    if 'XCDR 1' in data_representation_name else self.__data.product_summary_dict_xcdr2)
+            for (publisher_name, subscriber_name), value in product_summary_dict.items():
+                # if the publisher hasn't been already processed yet, determine
+                # what is the process_row by selecting the next free row
+                # (current_row+1)
+                if not publisher_name in row_dict:
+                    current_row += 1
+                    process_row = current_row
+                    row_dict[publisher_name] = current_row
+                    worksheet.write(current_row, publisher_column,
+                                    publisher_name, self.__formats['bold_w_border'])
+                else:
+                    # if the publisher has been already processed, just set the
+                    # process_row to the corresponding row
+                    process_row = row_dict[publisher_name]
 
-            # if the subscriber hasn't been already processed yet, determine
-            # what is the process_column by selecting the next free column
-            # (current_column+1)
-            if not subscriber_name in column_dict:
-                current_column += 1
-                process_column = current_column
-                column_dict[subscriber_name] = current_column
-                worksheet.write(subscriber_row, current_column,
-                                subscriber_name, self.__formats['bold_w_border'])
-            else:
-                # if the subscriber has been already processed, just set the
-                # process_column to the corresponding column
-                process_column = column_dict[subscriber_name]
+                # if the subscriber hasn't been already processed yet, determine
+                # what is the process_column by selecting the next free column
+                # (current_column+1)
+                if not subscriber_name in column_dict:
+                    current_column += 1
+                    process_column = current_column
+                    column_dict[subscriber_name] = current_column
+                    worksheet.write(subscriber_row, current_column,
+                                    subscriber_name, self.__formats['bold_w_border'])
+                else:
+                    # if the subscriber has been already processed, just set the
+                    # process_column to the corresponding column
+                    process_column = column_dict[subscriber_name]
 
-            worksheet.write(process_row, process_column,
-                            str(value.get_passed_tests()) + ' / ' +
-                            str(value.get_total_tests()),
-                            self.get_format_color(value.get_passed_tests(), value.get_total_tests()))
+                worksheet.write(process_row, process_column,
+                                str(value.get_passed_tests()) + ' / ' +
+                                str(value.get_total_tests()),
+                                self.get_format_color(value.get_passed_tests(),
+                                                      value.get_total_tests()))
 
     def add_static_data_summary_worksheet(self,
             worksheet: xlsxwriter.Workbook.worksheet_class,
