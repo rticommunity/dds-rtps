@@ -483,24 +483,27 @@ public:
         if (!coherent_set_enabled && !ordered_access_enabled && coherent_set_access_scope_set) {
             logger.log_message("warning: --access-scope ignored because not coherent, or ordered access enabled", Verbosity::ERROR);
         }
-#if defined(RTI_CONNEXT_MICRO)
-        if (!publish && color != NULL) {
-            free(color);
-            color = NULL;
-            logger.log_message("warning: content filtered topic not supported, normal topic used", Verbosity::ERROR);
-        }
-        if (!publish && take_read_next_instance == true ) {
-            take_read_next_instance = false;
-            logger.log_message("warning: use of take/read_next_instance() not available, using take/read()", Verbosity::ERROR);
-        }
-#endif
         if (size_modulo > 0 && shapesize != 0) {
             logger.log_message("warning: --size-modulo has no effect unless shapesize (-z) is set to 0", Verbosity::ERROR);
         }
         if (subscribe && color != NULL && cft_expression != NULL) {
-            logger.log_message("error: cannot specify both --cft and -c/--color for subscriber applications", Verbosity::ERROR);
+            logger.log_message("error: cannot specify both --cft and -c for subscriber applications", Verbosity::ERROR);
             return false;
         }
+
+#if defined(RTI_CONNEXT_MICRO)
+        if (subscribe && (color != NULL || cft_expression != NULL)) {
+            STRING_FREE(color);
+            color = NULL;
+            STRING_FREE(cft_expression);
+            cft_expression = NULL;
+            logger.log_message("warning: content filtered topic not supported, normal topic used", Verbosity::ERROR);
+        }
+        if (subscribe && take_read_next_instance == true ) {
+            take_read_next_instance = false;
+            logger.log_message("warning: use of take/read_next_instance() not available, using take/read()", Verbosity::ERROR);
+        }
+#endif
 
         return true;
     }
@@ -1682,7 +1685,7 @@ public:
         }
 
         if ( options->cft_expression != NULL || options->color != NULL) {
-            /* For Connext Micro color will be always NULL */
+            /* For Connext Micro color and cft_expression will be always NULL */
 #if !defined(RTI_CONNEXT_MICRO)
             /*  filter on specified color */
             ContentFilteredTopic *cft = NULL;
