@@ -1702,32 +1702,34 @@ public:
                     logger.log_message("    ContentFilterTopic = \"" + std::string(filter_expr) + "\"", Verbosity::DEBUG);
                 } else if (options->color != NULL) {
   #if defined(RTI_CONNEXT_DDS)
-                char parameter[64];
-                snprintf(parameter, 64, "'%s'",  options->color);
-                StringSeq_push(cf_params, parameter);
+                    char parameter[64];
+                    snprintf(parameter, 64, "'%s'",  options->color);
+                    StringSeq_push(cf_params, parameter);
 
-                cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color MATCH %0", cf_params);
-                logger.log_message("    ContentFilterTopic = \"color MATCH "
-                    + std::string(parameter) + std::string("\""), Verbosity::DEBUG);
+                    cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color MATCH %0", cf_params);
+                    logger.log_message("    ContentFilterTopic = \"color MATCH "
+                        + std::string(parameter) + std::string("\""), Verbosity::DEBUG);
   #elif  defined(INTERCOM_DDS)
-                char parameter[64];
-                snprintf(parameter, 64, "'%s'",  options->color);
-                StringSeq_push(cf_params, parameter);
+                    char parameter[64];
+                    snprintf(parameter, 64, "'%s'",  options->color);
+                    StringSeq_push(cf_params, parameter);
 
-                cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color = %0", cf_params);
-                logger.log_message("    ContentFilterTopic = \"color = "
-                    + std::string(parameter) + std::string("\""), Verbosity::DEBUG);
+                    cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color = %0", cf_params);
+                    logger.log_message("    ContentFilterTopic = \"color = "
+                        + std::string(parameter) + std::string("\""), Verbosity::DEBUG);
   #elif defined(TWINOAKS_COREDX) || defined(OPENDDS)
-                StringSeq_push(cf_params, options->color);
-                cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color = %0", cf_params);
-                logger.log_message("    ContentFilterTopic = \"color = "
-                    + std::string(options->color) + std::string("\""), Verbosity::DEBUG);
+                    StringSeq_push(cf_params, options->color);
+                    cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color = %0", cf_params);
+                    logger.log_message("    ContentFilterTopic = \"color = "
+                        + std::string(options->color) + std::string("\""), Verbosity::DEBUG);
   #elif defined(EPROSIMA_FAST_DDS)
-                cf_params.push_back(std::string("'") + options->color + std::string("'"));
-                cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color = %0", cf_params);
-                logger.log_message("    ContentFilterTopic = \"color = "
-                    + cf_params[0] + std::string("\""), Verbosity::DEBUG);
+                    cf_params.push_back(std::string("'") + options->color + std::string("'"));
+                    cft = dp->create_contentfilteredtopic(filtered_topic_name, topics[i], "color = %0", cf_params);
+                    logger.log_message("    ContentFilterTopic = \"color = "
+                        + cf_params[0] + std::string("\""), Verbosity::DEBUG);
   #endif
+                }
+
                 if (cft == NULL) {
                     logger.log_message("failed to create content filtered topic", Verbosity::ERROR);
                     return false;
@@ -1741,7 +1743,6 @@ public:
                 }
             }
 #endif
-
 
         } else {
             // Create different DataReaders (depending on the number of entities)
