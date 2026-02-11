@@ -898,10 +898,10 @@ public:
                     parse_ok = false;
                 }
                 // the spec mentions that the fragment size must satisfy:
-                // fragment size <= 65536 bytes.
-                if (converted_param > 65536) {
+                // fragment size <= 65535 bytes.
+                if (converted_param > 65535) {
                     logger.log_message("incorrect value for datafrag-size, "
-                            "it must be <= 65536 bytes"
+                            "it must be <= 65535 bytes"
                                 + std::to_string(converted_param),
                             Verbosity::ERROR);
                     parse_ok = false;
@@ -952,7 +952,7 @@ public:
                             + (unregister ? "Unregister" : (dispose ? "Dispose" : "not specified")) +
                     "\n    Periodic Announcement Period = "
                             + std::to_string(periodic_announcement_period_us / 1000) + "ms" +
-                    "\n    Data Fragmentation Size = " + std::to_string(datafrag_size) + "ms",
+                    "\n    Data Fragmentation Size = " + std::to_string(datafrag_size) + " bytes",
                     Verbosity::DEBUG);
             if (topic_name != NULL){
                 logger.log_message("    Topic = " + std::string(topic_name),
