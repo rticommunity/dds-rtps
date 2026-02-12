@@ -499,7 +499,7 @@ public:
             cft_expression = NULL;
             logger.log_message("warning: content filtered topic not supported, normal topic used", Verbosity::ERROR);
         }
-        if (subscribe && take_read_next_instance == true ) {
+        if (subscribe && take_read_next_instance) {
             take_read_next_instance = false;
             logger.log_message("warning: use of take/read_next_instance() not available, using take/read()", Verbosity::ERROR);
         }
