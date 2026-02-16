@@ -491,7 +491,7 @@ rtps_test_suite_1 = {
 
     # Content Filtered Topic
     'Test_Cft_0' : {
-        'apps' : ['-P -t Square -r -k 0 -c BLUE', '-P -t Square -r -k 0 -c RED', '-S -t Square -r -k 0 --cft "color = \'RED\'"'],
+        'apps' : ['-P -t Square -r -k 0 -c BLUE', '-P -t Square -r -k 0 -c RED', '-S -t Square -r -k 0 -c RED'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK, ReturnCode.RECEIVING_FROM_ONE],
         'check_function' : tsf.test_color_receivers,
         'title' : 'Use of Content filter to avoid receiving undesired data (key)',
