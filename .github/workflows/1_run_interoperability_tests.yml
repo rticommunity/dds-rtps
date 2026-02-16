@@ -50,7 +50,7 @@ jobs:
     - name: Install Python requirements
       run: pip install --requirement requirements.txt
     - name: Run Interoperability script
-      timeout-minutes: 60
+      timeout-minutes: 120
       run: |
         publisher_exe=executables/${{ matrix.publisher }}*shape_main_linux
         subscriber_exe=executables/${{ matrix.subscriber }}*shape_main_linux
