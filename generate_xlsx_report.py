@@ -759,6 +759,13 @@ class XlsxReport:
         worksheet.write(
             current_row, current_column + 4,
             'Supported Tests Passed', self.__formats['bold_w_border'])
+        worksheet.write(
+            current_row, current_column + 5,
+            'Vendor Coverage', self.__formats['bold_w_border'])
+        worksheet.write(
+            current_row, current_column + 6,
+            'Vendor Coverage Passed', self.__formats['bold_w_border'])
+
 
         current_row += 1
 
@@ -795,7 +802,37 @@ class XlsxReport:
                     str(value.get_supported_tests()),
                 self.get_format_color(value.get_passed_tests(),
                                       value.get_supported_tests()))
+
+            # vendor coverage
+
+            # for the vendor coverage, we need to find the right data in the
+            # product_summary_dict, which is the one with the same product as
+            # publisher and subscriber
+            for key, value in self.__data.product_summary_dict.items():
+                if product_name == key[0] and product_name == key[1]:
+                    vendor_coverage_supported_tests = value.get_supported_tests()
+                    vendor_coverage_total_tests = value.get_total_tests()
+                    vendor_coverage_passed_tests = value.get_passed_tests()
+
+                    # vendor coverage
+                    worksheet.write(
+                        current_row, current_column + 5,
+                        str(vendor_coverage_supported_tests) + ' / ' +
+                                str(vendor_coverage_total_tests),
+                        self.get_format_color(
+                                vendor_coverage_supported_tests,
+                                vendor_coverage_total_tests))
+                    # vendor coverage passed
+                    worksheet.write(
+                        current_row, current_column + 6,
+                        str(vendor_coverage_passed_tests) + ' / ' +
+                                str(vendor_coverage_supported_tests),
+                        self.get_format_color(
+                                vendor_coverage_passed_tests,
+                                vendor_coverage_supported_tests))
+
             current_row += 1
+
 
         # Add 2 rows of gap for the next table
         current_row += 2
@@ -902,6 +939,19 @@ class XlsxReport:
         current_row += 1
         worksheet.write(current_row, starting_column + 1,'Documentation')
         worksheet.write(current_row, starting_column + 2, self.REPO_DOC)
+
+        # Add number of tests
+
+        # Find the total number of unique tests by looking for a
+        # (publisher, subscriber) pair where both are the same
+        test_count = 0
+        for key, value in self.__data.product_summary_dict.items():
+            if key[0] == key[1]:
+                test_count = value.get_total_tests()
+                break
+        current_row += 1
+        worksheet.write(current_row, starting_column + 1,'Unique tests count')
+        worksheet.write(current_row, starting_column + 2, test_count)
 
     def add_static_data_description_worksheet(self,
             worksheet: xlsxwriter.Workbook.worksheet_class,
