@@ -380,7 +380,7 @@ def run_publisher_shape_main(
                                     r'\[[0-9]+\]', # index = 0
                                     'on_offered_deadline_missed()', # index = 1
                                     re.compile('not supported', re.IGNORECASE), # index = 2
-                                    pexpect.TIMEOUT # index = 3
+                                    pexpect.TIMEOUT, # index = 3
                                     pexpect.EOF # index = 4
                                 ],
                                 timeout)
