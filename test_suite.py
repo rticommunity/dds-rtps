@@ -133,7 +133,7 @@ rtps_test_suite_1 = {
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the subscriber application receives samples and the value of the "size" member is always increasing\n\n'
                         'The test passes if the value of the "size" is always increasing in '
-                            f'{tsf.MAX_SAMPLES_READ} samples, even if there are missed samples (since reliability '
+                            f'{tsf.MAX_SAMPLES_READ} samples read, even if there are missed samples (since reliability '
                             'is BEST_EFFORT) as long as there are no out-of-order or duplicated samples\n'
     },
 
@@ -183,8 +183,8 @@ rtps_test_suite_1 = {
                         ' * Configures the publisher and subscriber with history KEEP_ALL\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
                         'The test passes if the subscriber, after receiving a (first) sample from the publisher, it '
-                            f'receives the next {tsf.MAX_SAMPLES_READ} subsequent samples, without losses or duplicates, in '
-                            'the same order as sent\n'
+                            f'receives the next {tsf.MAX_SAMPLES_READ} subsequent samples read, without '
+                            'losses or duplicates, in the same order as sent\n'
         },
 
     'Test_Reliability_5' : {
@@ -201,10 +201,9 @@ rtps_test_suite_1 = {
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                        'The test passes if the subscriber, after receiving a (first) sample from the publisher, it '
-                            'receives subsequent samples per instance, without losses or duplicates, in '
-                            'the same order as sent\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ}\n'
+                        'The test passes if the subscriber, after receiving a (first) sample from the '
+                            f'publisher, it receives {tsf.MAX_SAMPLES_READ} subsequent samples per '
+                            'instance, without losses or duplicates, in the same order as sent\n'
         },
 
     'Test_History_0' : {
@@ -224,9 +223,9 @@ rtps_test_suite_1 = {
                         ' * Configures the subscriber with a reading period of 200ms\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                        'The test passes if the subscriber, after receiving a (first) sample from the publisher, it '
-                            f'receives the next {tsf.MAX_SAMPLES_READ} subsequent samples, without losses or duplicates, in '
-                            'the same order as sent.\n'
+                        'The test passes if the subscriber, after receiving a (first) sample from the '
+                            f'publisher, it receives the next {tsf.MAX_SAMPLES_READ} subsequent samples, '
+                            'without losses or duplicates, in the same order as sent.\n'
         },
 
     'Test_History_1' : {
@@ -247,10 +246,9 @@ rtps_test_suite_1 = {
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                        'The test passes if the subscriber, after receiving a (first) sample from the publisher, it '
-                            'receives subsequent samples per instance, without losses or duplicates, in '
-                            'the same order as sent\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ}\n'
+                        'The test passes if the subscriber, after receiving a (first) sample from the '
+                            f'publisher, it receives {tsf.MAX_SAMPLES_READ} subsequent samples per '
+                            'instance, without losses or duplicates, in the same order as sent\n'
         },
 
     # OWNERSHIP
@@ -521,8 +519,8 @@ rtps_test_suite_1 = {
                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                        ' * The publisher application sends samples with increasing value of the "size" member\n'
                        ' * Publisher sends samples with size cycling from 1 to 50 (using --size-modulo 50 and -z 0)\n'
-                       ' * Subscriber uses --cft "shapesize <= 20"\n'
-                       ' * The test passes if all received samples have size < 20\n'
+                       ' * Subscriber uses --cft "shapesize <= 20"\n\n'
+                       f'The test passes if the subscriber receives {tsf.MAX_SAMPLES_READ/2} samples with size < 20\n'
     },
 
     # PARTITION
@@ -560,7 +558,8 @@ rtps_test_suite_1 = {
                         ' * Configures a second publisher to use PARTITION "x1" and "color" equal to "RED"\n'
                         ' * Verifies that only the first publisher (PARTITION "p1") discovers and matches subscriber\n'
                         ' * Verifies that the second publisher (PARTITION "x1") does not match the subscriber\n\n'
-                        f'The test passes if the subscriber receives {tsf.MAX_SAMPLES_READ} samples of one color (first publisher)\n'
+                        f'The test passes if the subscriber receives {tsf.MAX_SAMPLES_READ} samples of one color '
+                        '(first publisher)\n'
     },
 
     # DURABILITY
@@ -786,7 +785,7 @@ rtps_test_suite_1 = {
     },
 
     'Test_TimeBasedFilter_0' : {
-        'apps' : ['-P -t Square -z 0 -r -k 0 --write-period 100',
+        'apps' : ['-P -t Square -r -k 0 -z 0 --write-period 100',
                   '-S -t Square -r -k 0 --time-filter 1000'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.test_reading_1_sample_every_10_samples_w_instances,
@@ -798,13 +797,13 @@ rtps_test_suite_1 = {
                         ' * Configures the subscriber TIME_BASED_FILTER to 1 second\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                        'The test passes if the subscriber application receives a sample each 10 samples '
-                            'the publisher application has sent\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/20}\n'
+                        'The test passes if the subscriber application receives a sample every 10 samples '
+                            'the publisher application has sent. The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ/20} samples\n'
     },
 
     'Test_TimeBasedFilter_1' : {
-        'apps' : ['-P -t Square -z 0 -r -k 0 --write-period 100 --num-instances 4',
+        'apps' : ['-P -t Square -r -k 0 -z 0 --write-period 100 --num-instances 4',
                   '-S -t Square -r -k 0 --time-filter 1000'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.test_reading_1_sample_every_10_samples_w_instances,
@@ -818,9 +817,9 @@ rtps_test_suite_1 = {
                         ' * Configures the subscriber TIME_BASED_FILTER to 1 second\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                        'The test passes if the subscriber application receives a sample each 10 samples '
-                            'the publisher application has sent per instance\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/20}\n'
+                        'The test passes if the subscriber application receives a sample every 10 samples '
+                            'the publisher application has sent per instance. The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ/20} samples per instance\n'
     },
 
     'Test_FinalInstanceState_0' : {
@@ -860,7 +859,7 @@ rtps_test_suite_1 = {
         'check_function' : tsf.test_unregistering_w_instances,
         'title' : 'Test the instance state when finalizing the application',
         'description' : 'Verifies a subscriber receives NOT_ALIVE_NO_WRITERS when the publisher finishes '
-                            'without unregistering or disposing instances\n\n'
+                            'without unregistering or disposing instances explicitly\n\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher finishes after running 200 iterations\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
@@ -875,6 +874,8 @@ rtps_test_suite_1 = {
         'check_function' : tsf.test_large_data,
         'title' : 'Test large data',
         'description' : 'This test covers the interoperability scenario with large data:\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher to use 100000 additional payload size (to represent large data samples)\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
                         'The tests passes if the subscriber receives samples from the publisher and '
@@ -891,8 +892,8 @@ rtps_test_suite_1 = {
                             ' lifespan with fractions of seconds\n\n'
                         ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
                         ' * Configures the publisher / subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the publisher with a writing period of 100ms\n'
+                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the subscriber with a reading period of 500ms\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
@@ -900,8 +901,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time. The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ/10} samples\n'
     },
 
     'Test_Lifespan_1' : {
@@ -914,8 +915,8 @@ rtps_test_suite_1 = {
                             ' lifespan with fraction of seconds and different instances\n\n'
                         ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
                         ' * Configures the publisher / subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the publisher with a writing period of 100ms\n'
+                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the subscriber with a reading period of 500ms\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
@@ -924,8 +925,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time per instance\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time per instance. The subscriber has '
+                            f'to read {tsf.MAX_SAMPLES_READ/10} samples per instance\n'
     },
 
     'Test_Lifespan_2' : {
@@ -938,8 +939,8 @@ rtps_test_suite_1 = {
                             ' lifespan in seconds\n\n'
                         ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
                         ' * Configures the publisher / subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the publisher with a writing period of 400ms\n'
+                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the subscriber with a reading period of 2s\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
@@ -947,8 +948,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time. The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ/10} samples per instance\n'
     },
 
     'Test_Lifespan_3' : {
@@ -961,8 +962,8 @@ rtps_test_suite_1 = {
                             ' lifespan in seconds, and different instances\n\n'
                         ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
                         ' * Configures the publisher / subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the publisher with a writing period of 400ms\n'
+                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the subscriber with a reading period of 2s\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
@@ -971,8 +972,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time per instance\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time per instance. The subscriber has '
+                            f'to read {tsf.MAX_SAMPLES_READ/10} samples per instance\n'
     },
 
     'Test_Lifespan_4' : {
@@ -985,8 +986,8 @@ rtps_test_suite_1 = {
                             ' lifespan with fractions of seconds\n\n'
                         ' * Configures the publisher / subscriber with a BEST_EFFORT reliability\n'
                         ' * Configures the subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the publisher with a writing period of 100ms\n'
+                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the subscriber with a reading period of 500ms\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
@@ -994,8 +995,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time. The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ/10} samples\n'
     },
 
     'Test_Lifespan_5' : {
@@ -1008,8 +1009,8 @@ rtps_test_suite_1 = {
                             ' lifespan with fraction of seconds and different instances\n\n'
                         ' * Configures the publisher / subscriber with a BEST_EFFORT reliability\n'
                         ' * Configures the subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the publisher with a writing period of 100ms\n'
+                        ' * Configures the publisher with a lifespan of 250ms\n'
                         ' * Configures the subscriber with a reading period of 500ms\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
@@ -1018,8 +1019,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time per instance\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time per instance. The subscriber has '
+                            f'to read {tsf.MAX_SAMPLES_READ/10} samples per instance\n'
     },
 
     'Test_Lifespan_6' : {
@@ -1032,8 +1033,8 @@ rtps_test_suite_1 = {
                             ' lifespan in seconds\n\n'
                         ' * Configures the publisher / subscriber with a BEST_EFFORT reliability\n'
                         ' * Configures the subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the publisher with a writing period of 400ms\n'
+                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the subscriber with a reading period of 2s\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
@@ -1041,8 +1042,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time. The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ/10} samples\n'
     },
 
     'Test_Lifespan_7' : {
@@ -1055,8 +1056,8 @@ rtps_test_suite_1 = {
                             ' lifespan in seconds, and different instances\n\n'
                         ' * Configures the publisher / subscriber with a BEST_EFFORT reliability\n'
                         ' * Configures the subscriber with history KEEP_ALL\n'
-                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the publisher with a writing period of 400ms\n'
+                        ' * Configures the publisher with a lifespan of 1s\n'
                         ' * Configures the subscriber with a reading period of 2s\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher application sends samples with increasing value of the "size" member\n'
@@ -1065,8 +1066,8 @@ rtps_test_suite_1 = {
                             'each time it reads.\n'
                         'As the publisher sets the lifespan, it expires in some samples before the '
                             'subscriber reads data. The amount of consecutive samples read by the '
-                            'subscriber application is 2 or 3 each time per instance\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ/10}\n'
+                            'subscriber application is 2 or 3 each time per instance. The subscriber has '
+                            f'to read {tsf.MAX_SAMPLES_READ/10} samples per instance\n'
     },
 
 
@@ -1078,6 +1079,8 @@ rtps_test_suite_1 = {
                     'INSTANCE_PRESENTATION subscriber',
         'description' : 'Verifies an INSTANCE_PRESENTATION publisher is compatible with an '
                             'INSTANCE_PRESENTATION subscriber when using ordered access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with ordered access\n'
                         ' * Configures the publisher with INSTANCE_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
@@ -1093,6 +1096,8 @@ rtps_test_suite_1 = {
         'description' : 'Verifies an INSTANCE_PRESENTATION publisher does not match with a '
                             'TOPIC_PRESENTATION subscriber when using ordered access and '
                             'report an IncompatibleQos notification\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with ordered access\n'
                         ' * Configures the publisher with INSTANCE_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
@@ -1108,6 +1113,8 @@ rtps_test_suite_1 = {
         'description' : 'Verifies an INSTANCE_PRESENTATION publisher does not match with a '
                             'GROUP_PRESENTATION subscriber when using ordered access and '
                             'report an IncompatibleQos notification\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with ordered access\n'
                         ' * Configures the publisher with INSTANCE_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
@@ -1121,12 +1128,14 @@ rtps_test_suite_1 = {
         'title' : 'Compatibility for ordered access between TOPIC_PRESENTATION publisher and '
                     'INSTANCE_PRESENTATION subscriber',
         'description' : 'Verifies a TOPIC_PRESENTATION publisher compatible with an '
-                    'INSTANCE_PRESENTATION subscriber when using ordered access\n\n'
-                ' * Configures the publisher / subscriber with ordered access\n'
-                ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
-                ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
-                ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                'The test passes if the subscriber receives samples from the publisher\n'
+                            'INSTANCE_PRESENTATION subscriber when using ordered access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher / subscriber with ordered access\n'
+                        ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
+                        ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
+                        ' * Verifies the publisher and subscriber discover and match each other\n\n'
+                        'The test passes if the subscriber receives samples from the publisher\n'
     },
     'Test_OrderedAccess_4' : {
         'apps' : ['-P -t Square -r -k 0 --ordered --access-scope t',
@@ -1135,12 +1144,14 @@ rtps_test_suite_1 = {
         'title' : 'Compatibility for ordered access between TOPIC_PRESENTATION publisher and '
                     'TOPIC_PRESENTATION subscriber',
         'description' : 'Verifies a TOPIC_PRESENTATION publisher compatible with a '
-                    'TOPIC_PRESENTATION subscriber when using ordered access\n\n'
-                ' * Configures the publisher / subscriber with ordered access\n'
-                ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
-                ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
-                ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                'The test passes if the subscriber receives samples from the publisher\n'
+                            'TOPIC_PRESENTATION subscriber when using ordered access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher / subscriber with ordered access\n'
+                        ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
+                        ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
+                        ' * Verifies the publisher and subscriber discover and match each other\n\n'
+                        'The test passes if the subscriber receives samples from the publisher\n'
     },
     'Test_OrderedAccess_5' : {
         'apps' : ['-P -t Square -r -k 0 --ordered --access-scope t',
@@ -1151,6 +1162,8 @@ rtps_test_suite_1 = {
         'description' : 'Verifies an TOPIC_PRESENTATION publisher does not match with a '
                             'GROUP_PRESENTATION subscriber when using ordered access and '
                             'report an IncompatibleQos notification\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with ordered access\n'
                         ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
@@ -1164,12 +1177,14 @@ rtps_test_suite_1 = {
         'title' : 'Compatibility for ordered access between GROUP_PRESENTATION publisher and '
                     'INSTANCE_PRESENTATION subscriber',
         'description' : 'Verifies a GROUP_PRESENTATION publisher compatible with an '
-                    'INSTANCE_PRESENTATION subscriber when using ordered access\n\n'
-                ' * Configures the publisher / subscriber with ordered access\n'
-                ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
-                ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
-                ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                'The test passes if the subscriber receives samples from the publisher\n'
+                            'INSTANCE_PRESENTATION subscriber when using ordered access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher / subscriber with ordered access\n'
+                        ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
+                        ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
+                        ' * Verifies the publisher and subscriber discover and match each other\n\n'
+                        'The test passes if the subscriber receives samples from the publisher\n'
     },
     'Test_OrderedAccess_7' : {
         'apps' : ['-P -t Square -r -k 0 --ordered --access-scope g',
@@ -1178,12 +1193,14 @@ rtps_test_suite_1 = {
         'title' : 'Compatibility for ordered access between GROUP_PRESENTATION publisher and '
                     'TOPIC_PRESENTATION subscriber',
         'description' : 'Verifies a GROUP_PRESENTATION publisher compatible with a '
-                    'TOPIC_PRESENTATION subscriber when using ordered access\n\n'
-                ' * Configures the publisher / subscriber with ordered access\n'
-                ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
-                ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
-                ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                'The test passes if the subscriber receives samples from the publisher\n'
+                            'TOPIC_PRESENTATION subscriber when using ordered access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher / subscriber with ordered access\n'
+                        ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
+                        ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
+                        ' * Verifies the publisher and subscriber discover and match each other\n\n'
+                        'The test passes if the subscriber receives samples from the publisher\n'
     },
     'Test_OrderedAccess_8' : {
         'apps' : ['-P -t Square -r -k 0 --ordered --access-scope g',
@@ -1192,12 +1209,14 @@ rtps_test_suite_1 = {
         'title' : 'Compatibility for ordered access between GROUP_PRESENTATION publisher and '
                     'GROUP_PRESENTATION subscriber',
         'description' : 'Verifies a GROUP_PRESENTATION publisher compatible with an '
-                    'GROUP_PRESENTATION subscriber when using ordered access\n\n'
-                ' * Configures the publisher / subscriber with ordered access\n'
-                ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
-                ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
-                ' * Verifies the publisher and subscriber discover and match each other\n\n'
-                'The test passes if the subscriber receives samples from the publisher\n'
+                            'GROUP_PRESENTATION subscriber when using ordered access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher / subscriber with ordered access\n'
+                        ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
+                        ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
+                        ' * Verifies the publisher and subscriber discover and match each other\n\n'
+                        'The test passes if the subscriber receives samples from the publisher\n'
     },
     'Test_OrderedAccess_9' : {
         'apps' : ['-P -t Square -r -k 0 --ordered --access-scope t --num-instances 4 --write-period 100',
@@ -1216,16 +1235,16 @@ rtps_test_suite_1 = {
                         ' * Configures the publisher with a writing period of 100ms\n'
                         ' * Configures the first subscriber with access scope INSTANCE_PRESENTATION\n'
                         ' * Configures the second subscriber with access scope TOPIC_PRESENTATION\n'
-                        ' * Configures all subscribers with a reading period of 400ms\n'
                         ' * Configures all subscribers to use take() instead of take_next_instance()\n'
+                        ' * Configures all subscribers with a reading period of 400ms\n'
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
                         'The test passes if the subscriber applications are receiving the instances '
                             'with the specified ordered access / access scope. For INSTANCE_PRESENTATION, '
                             'all the samples for one instance is presented sequentially. For '
                             'TOPIC_PRESENTATION, the subscriber reads the samples in the same '
                             'order they have been published, independently of the instance they'
-                            'belong to (one sample of one instance each time)\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ}\n'
+                            'belong to (one sample of one instance each time). The subscriber has to read '
+                            f'{tsf.MAX_SAMPLES_READ} samples per instance\n'
     },
 
     'Test_CoherentSets_0' : {
@@ -1236,6 +1255,8 @@ rtps_test_suite_1 = {
                     'INSTANCE_PRESENTATION subscriber',
         'description' : 'Verifies an INSTANCE_PRESENTATION publisher is compatible with an '
                             'INSTANCE_PRESENTATION subscriber when using coherent access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with INSTANCE_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
@@ -1251,6 +1272,8 @@ rtps_test_suite_1 = {
         'description' : 'Verifies an INSTANCE_PRESENTATION publisher does not match with a '
                             'TOPIC_PRESENTATION subscriber when using coherent access and '
                             'report an IncompatibleQos notification\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with INSTANCE_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
@@ -1266,6 +1289,8 @@ rtps_test_suite_1 = {
         'description' : 'Verifies an INSTANCE_PRESENTATION publisher does not match with a '
                             'GROUP_PRESENTATION subscriber when using coherent access and '
                             'report an IncompatibleQos notification\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with INSTANCE_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
@@ -1280,6 +1305,8 @@ rtps_test_suite_1 = {
                     'INSTANCE_PRESENTATION subscriber',
         'description' : 'Verifies an TOPIC_PRESENTATION publisher is compatible with an '
                             'INSTANCE_PRESENTATION subscriber when using coherent access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
@@ -1294,6 +1321,8 @@ rtps_test_suite_1 = {
                     'TOPIC_PRESENTATION subscriber',
         'description' : 'Verifies an TOPIC_PRESENTATION publisher is compatible with an '
                             'TOPIC_PRESENTATION subscriber when using coherent access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
@@ -1309,6 +1338,8 @@ rtps_test_suite_1 = {
         'description' : 'Verifies an TOPIC_PRESENTATION publisher does not match with a '
                             'GROUP_PRESENTATION subscriber when using coherent access and '
                             'report an IncompatibleQos notification\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with TOPIC_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
@@ -1323,6 +1354,8 @@ rtps_test_suite_1 = {
                     'INSTANCE_PRESENTATION subscriber',
         'description' : 'Verifies an GROUP_PRESENTATION publisher is compatible with an '
                             'INSTANCE_PRESENTATION subscriber when using coherent access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with INSTANCE_PRESENTATION access_scope\n'
@@ -1337,6 +1370,8 @@ rtps_test_suite_1 = {
                     'TOPIC_PRESENTATION subscriber',
         'description' : 'Verifies an GROUP_PRESENTATION publisher is compatible with an '
                             'TOPIC_PRESENTATION subscriber when using coherent access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with TOPIC_PRESENTATION access_scope\n'
@@ -1351,6 +1386,8 @@ rtps_test_suite_1 = {
                     'GROUP_PRESENTATION subscriber',
         'description' : 'Verifies an GROUP_PRESENTATION publisher is compatible with an '
                             'GROUP_PRESENTATION subscriber when using coherent access\n\n'
+                        ' * Configures the publisher / subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher / subscriber with history KEEP_ALL\n'
                         ' * Configures the publisher / subscriber with coherent access\n'
                         ' * Configures the publisher with GROUP_PRESENTATION access_scope\n'
                         ' * Configures the subscriber with GROUP_PRESENTATION access_scope\n'
@@ -1359,7 +1396,7 @@ rtps_test_suite_1 = {
     },
 
     'Test_CoherentSets_9' : {
-        'apps' : ['-P -t Square -r -k 0 --coherent --access-scope i --num-instances 4 --num-topics 3 --coherent-sample-count 3 --write-period 100 -z 0',
+        'apps' : ['-P -t Square -r -k 0 --coherent --access-scope i --num-topics 3 --num-instances 4 --coherent-sample-count 3 --write-period 100 -z 0',
                   '-S -t Square -r -k 0 --coherent --access-scope i --num-topics 3 --take-read --read-period 100'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.coherent_sets_w_instances,
@@ -1381,11 +1418,11 @@ rtps_test_suite_1 = {
                         'The test passes if the subscriber application receives all samples of a coherent '
                             'set at the same. This coherent set is created with 36 samples: 3 samples per '
                             'instance, 4 instances and 3 topics. This test checks that the consecutive samples received '
-                            'per instance and topic is 3 each time we receive a new coherent set of samples\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ}\n'
+                            'per instance and topic is 3 each time we receive a new coherent set of samples. '
+                            f'The subscriber has to read {tsf.MAX_SAMPLES_READ} samples per instance\n'
     },
     'Test_CoherentSets_10' : {
-        'apps' : ['-P -t Square -r -k 0 --coherent --access-scope t --num-instances 4 --num-topics 3 --coherent-sample-count 3 --write-period 100 -z 0',
+        'apps' : ['-P -t Square -r -k 0 --coherent --access-scope t --num-topics 3 --num-instances 4 --coherent-sample-count 3 --write-period 100 -z 0',
                   '-S -t Square -r -k 0 --coherent --access-scope t --num-topics 3 --take-read --read-period 100'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.coherent_sets_w_instances,
@@ -1407,11 +1444,11 @@ rtps_test_suite_1 = {
                         'The test passes if the subscriber application receives all samples of a coherent '
                             'set at the same. This coherent set is created with 36 samples: 3 samples per '
                             'instance, 4 instances and 3 topics. This test checks that the consecutive samples received '
-                            'per instance and topic is 3 each time we receive a new coherent set of samples\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ}\n'
+                            'per instance and topic is 3 each time we receive a new coherent set of samples. '
+                            f'The subscriber has to read {tsf.MAX_SAMPLES_READ} samples per instance\n'
     },
     'Test_CoherentSets_11' : {
-        'apps' : ['-P -t Square -r -k 0 --coherent --access-scope g --num-instances 4 --num-topics 3 --coherent-sample-count 3 --write-period 100 -z 0',
+        'apps' : ['-P -t Square -r -k 0 --coherent --access-scope g --num-topics 3 --num-instances 4 --coherent-sample-count 3 --write-period 100 -z 0',
                   '-S -t Square -r -k 0 --coherent --access-scope g --num-topics 3 --take-read --read-period 100'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.coherent_sets_w_instances,
@@ -1433,7 +1470,7 @@ rtps_test_suite_1 = {
                         'The test passes if the subscriber application receives all samples of a coherent '
                             'set at the same. This coherent set is created with 36 samples: 3 samples per '
                             'instance, 4 instances and 3 topics. This test checks that the consecutive samples received '
-                            'per instance and topic is 3 each time we receive a new coherent set of samples\n'
-                        f'Max amount of samples read is {tsf.MAX_SAMPLES_READ}\n'
+                            'per instance and topic is 3 each time we receive a new coherent set of samples. '
+                            f'The subscriber has to read {tsf.MAX_SAMPLES_READ} samples per instance\n'
     },
 }
