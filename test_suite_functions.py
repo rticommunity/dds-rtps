@@ -937,6 +937,82 @@ def ordered_access_w_instances(child_sub, samples_sent, last_sample_saved, timeo
     print(f'Samples read per instance: {samples_read_per_instance}, instances: {instance_color}')
     return produced_code
 
+def test_order_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
+    """
+    This function tests that the subscriber receives the samples in order
+    (for several instances)
+    child_sub: child program generated with pexpect
+    samples_sent: not used
+    last_sample_saved: not used
+    timeout: time pexpect waits until it matches a pattern.
+    """
+
+    basic_check_retcode = basic_check(child_sub, samples_sent, last_sample_saved, timeout)
+
+    if basic_check_retcode != ReturnCode.OK:
+        return basic_check_retcode
+
+    produced_code = ReturnCode.DATA_NOT_RECEIVED
+
+    instance_color = []
+    instance_seq_num = []
+    first_iteration = []
+    samples_read_per_instance = 0
+    max_samples_received = MAX_SAMPLES_READ
+
+    while samples_read_per_instance < max_samples_received:
+        sub_string = re.search(r'\w+\s+(\w+)\s+[0-9]+\s+[0-9]+\s+\[([0-9]+)\]',
+            child_sub.before + child_sub.after)
+
+        if sub_string is not None:
+            # add a new instance to instance_color
+            if sub_string.group(1) not in instance_color:
+                instance_color.append(sub_string.group(1))
+                instance_seq_num.append(int(sub_string.group(2)))
+                first_iteration.append(True)
+
+            if sub_string.group(1) in instance_color:
+                index = instance_color.index(sub_string.group(1))
+                if first_iteration[index]:
+                    first_iteration[index] = False
+                else:
+                    # check that the next sequence number is the next value
+                    current_size = int(sub_string.group(2))
+                    if (current_size > instance_seq_num[index]):
+                        instance_seq_num[index] = current_size
+                    else:
+                        produced_code = ReturnCode.DATA_NOT_CORRECT
+                        break
+            else:
+                produced_code = ReturnCode.DATA_NOT_CORRECT
+                break
+
+        # Get the next sample the subscriber is receiving
+        index = child_sub.expect(
+            [
+                '\[[0-9]+\]', # index = 0
+                r'Reading with ordered access.*?\n', # index = 1
+                pexpect.TIMEOUT, # index = 2
+                pexpect.EOF # index = 3
+            ],
+            timeout
+        )
+        if index == 0:
+            if sub_string is not None and sub_string.group(1) == instance_color[0]:
+                samples_read_per_instance += 1
+        elif index == 2:
+            # no more data to process
+            break
+        elif index == 3:
+            return ReturnCode.DATA_NOT_RECEIVED
+
+    if max_samples_received == samples_read_per_instance:
+        produced_code = ReturnCode.OK
+
+    print(f'Samples read per instance: {samples_read_per_instance}, instances: {instance_color}')
+    return produced_code
+
+
 def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
     """
     This function tests that coherent sets works correctly. This counts the

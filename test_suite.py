@@ -1218,12 +1218,28 @@ rtps_test_suite_1 = {
                         ' * Verifies the publisher and subscriber discover and match each other\n\n'
                         'The test passes if the subscriber receives samples from the publisher\n'
     },
+
     'Test_OrderedAccess_9' : {
-        'apps' : ['-P -t Square -r -k 0 --ordered --access-scope t --num-instances 4 --write-period 100',
+        'apps' : ['-P -t Square -r -k 0 --access-scope t',
+                  '-S -t Square -r -k 0 --ordered --access-scope t'],
+        'expected_codes' : [ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+        'title' : 'No compatibility for no ordered access publisher and ordered access subscriber',
+        'description' : 'Verifies that publisher without ordered access does not match with a '
+                            'subscriber with ordered access\n\n'
+                        ' * Configures the publisher and the subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher and the subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher and the subscriber with access scope TOPIC_PRESENTATION\n'
+                        ' * Configures the subscriber with ordered access\n'
+                        'The test passes if the listeners trigger the IncompatibleQos notification in the publisher '
+                            'and the subscriber\n'
+    },
+
+    'Test_OrderedAccess_10' : {
+        'apps' : ['-P -t Square -r -k 0 --ordered --access-scope t -z 0 --num-instances 4 --write-period 100',
                   '-S -t Square -r -k 0 --ordered --access-scope i --take-read --read-period 400',
                   '-S -t Square -r -k 0 --ordered --access-scope t --take-read --read-period 400'],
-        'expected_codes' : [ReturnCode.OK, ReturnCode.ORDERED_ACCESS_INSTANCE, ReturnCode.ORDERED_ACCESS_TOPIC],
-        'check_function' : tsf.ordered_access_w_instances,
+        'expected_codes' : [ReturnCode.OK, ReturnCode.OK, ReturnCode.OK],
+        'check_function' : tsf.test_order_w_instances,
         'title' : 'Test the behavior of ordered access',
         'description' : 'Verifies subscribers receives data correctly depending on the ordered '
                             'access: TOPIC_PRESENTATION and INSTANCE_PRESENTATION.\n\n'
@@ -1231,6 +1247,7 @@ rtps_test_suite_1 = {
                         ' * Configures the publisher and all subscribers with history KEEP_ALL\n'
                         ' * Configures the publisher and all subscribers with ordered access\n'
                         ' * Configures the publisher with access scope TOPIC_PRESENTATION\n'
+                        ' * The publisher application sends samples with increasing value of the "size" member\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * Configures the publisher with a writing period of 100ms\n'
                         ' * Configures the first subscriber with access scope INSTANCE_PRESENTATION\n'
@@ -1396,6 +1413,21 @@ rtps_test_suite_1 = {
     },
 
     'Test_CoherentSets_9' : {
+        'apps' : ['-P -t Square -r -k 0 --access-scope t',
+                  '-S -t Square -r -k 0 --coherent --access-scope t'],
+        'expected_codes' : [ReturnCode.INCOMPATIBLE_QOS, ReturnCode.INCOMPATIBLE_QOS],
+        'title' : 'No compatibility for no coherent access publisher and coherent access subscriber',
+        'description' : 'Verifies that publisher without coherent access does not match with a '
+                            'subscriber with coherent access\n\n'
+                        ' * Configures the publisher and the subscriber with a RELIABLE reliability\n'
+                        ' * Configures the publisher and the subscriber with history KEEP_ALL\n'
+                        ' * Configures the publisher and the subscriber with access scope TOPIC_PRESENTATION\n'
+                        ' * Configures the subscriber with coherent access\n'
+                        'The test passes if the listeners trigger the IncompatibleQos notification in the publisher '
+                            'and the subscriber\n'
+    },
+
+    'Test_CoherentSets_10' : {
         'apps' : ['-P -t Square -r -k 0 --coherent --access-scope i --num-topics 3 --num-instances 4 --coherent-sample-count 3 --write-period 100 -z 0',
                   '-S -t Square -r -k 0 --coherent --access-scope i --num-topics 3 --take-read --read-period 100'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
@@ -1421,7 +1453,7 @@ rtps_test_suite_1 = {
                             'per instance and topic is 3 each time we receive a new coherent set of samples. '
                             f'The subscriber has to read {tsf.MAX_SAMPLES_READ} samples per instance\n'
     },
-    'Test_CoherentSets_10' : {
+    'Test_CoherentSets_11' : {
         'apps' : ['-P -t Square -r -k 0 --coherent --access-scope t --num-topics 3 --num-instances 4 --coherent-sample-count 3 --write-period 100 -z 0',
                   '-S -t Square -r -k 0 --coherent --access-scope t --num-topics 3 --take-read --read-period 100'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
@@ -1447,7 +1479,7 @@ rtps_test_suite_1 = {
                             'per instance and topic is 3 each time we receive a new coherent set of samples. '
                             f'The subscriber has to read {tsf.MAX_SAMPLES_READ} samples per instance\n'
     },
-    'Test_CoherentSets_11' : {
+    'Test_CoherentSets_12' : {
         'apps' : ['-P -t Square -r -k 0 --coherent --access-scope g --num-topics 3 --num-instances 4 --coherent-sample-count 3 --write-period 100 -z 0',
                   '-S -t Square -r -k 0 --coherent --access-scope g --num-topics 3 --take-read --read-period 100'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
