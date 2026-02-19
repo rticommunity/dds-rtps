@@ -936,6 +936,7 @@ public:
                     parse_ok = false;
                 }
                 datafrag_size = converted_param;
+                break;
             }
             case 'F':
                 cft_expression = strdup(optarg);
