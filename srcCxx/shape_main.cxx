@@ -936,6 +936,7 @@ public:
                     parse_ok = false;
                 }
                 datafrag_size = converted_param;
+                break;
             }
             case 'F':
                 cft_expression = strdup(optarg);
@@ -2037,7 +2038,9 @@ public:
         if (options->additional_payload_size > 0) {
             int size = options->additional_payload_size;
             DDS_UInt8Seq_ensure_length(&shape.additional_payload_size FIELD_ACCESSOR, size, size);
-            *DDS_UInt8Seq_get_reference(&shape.additional_payload_size FIELD_ACCESSOR, size - 1) = 255;
+            for (int i = 0; i < size; ++i) {
+                *DDS_UInt8Seq_get_reference(&shape.additional_payload_size FIELD_ACCESSOR, i) = 255;
+            }
         } else {
             DDS_UInt8Seq_ensure_length(&shape.additional_payload_size FIELD_ACCESSOR, 0, 0);
         }
