@@ -175,16 +175,14 @@ def test_size_less_than_20(child_sub, samples_sent, last_sample_saved, timeout):
     print(f'Samples read: {samples_read}')
     return return_code
 
-
-def test_reliability_order(child_sub, samples_sent, last_sample_saved, timeout):
+def test_order_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
     """
-    This function tests reliability, it checks whether the subscriber receives
-    the samples in order.
-
+    This function tests that the subscriber receives the samples in order
+    (for several instances)
     child_sub: child program generated with pexpect
     samples_sent: not used
     last_sample_saved: not used
-    timeout: not used
+    timeout: time pexpect waits until it matches a pattern.
     """
 
     basic_check_retcode = basic_check(child_sub, samples_sent, last_sample_saved, timeout)
@@ -194,48 +192,62 @@ def test_reliability_order(child_sub, samples_sent, last_sample_saved, timeout):
 
     produced_code = ReturnCode.DATA_NOT_RECEIVED
 
-    # Read the first sample printed by the subscriber
-    sub_string = re.search('[0-9]+ [0-9]+ \[([0-9]+)\]',
-        child_sub.before + child_sub.after)
-    last_size = 0
-
+    instance_color = []
+    instance_seq_num = []
+    first_iteration = []
+    samples_read_per_instance = 0
     max_samples_received = MAX_SAMPLES_READ
-    samples_read = 0
 
-    while sub_string is not None and samples_read < max_samples_received:
-        current_size = int(sub_string.group(1))
-        if (current_size > last_size):
-            last_size = current_size
-        else:
-            produced_code = ReturnCode.DATA_NOT_CORRECT
-            break
+    while samples_read_per_instance < max_samples_received:
+        sub_string = re.search(r'\w+\s+(\w+)\s+[0-9]+\s+[0-9]+\s+\[([0-9]+)\]',
+            child_sub.before + child_sub.after)
+
+        if sub_string is not None:
+            # add a new instance to instance_color
+            if sub_string.group(1) not in instance_color:
+                instance_color.append(sub_string.group(1))
+                instance_seq_num.append(int(sub_string.group(2)))
+                first_iteration.append(True)
+
+            if sub_string.group(1) in instance_color:
+                index = instance_color.index(sub_string.group(1))
+                if first_iteration[index]:
+                    first_iteration[index] = False
+                else:
+                    # check that the next sequence number is the next value
+                    current_size = int(sub_string.group(2))
+                    if (current_size > instance_seq_num[index]):
+                        instance_seq_num[index] = current_size
+                    else:
+                        produced_code = ReturnCode.DATA_NOT_CORRECT
+                        break
+            else:
+                produced_code = ReturnCode.DATA_NOT_CORRECT
+                break
 
         # Get the next sample the subscriber is receiving
         index = child_sub.expect(
             [
                 '\[[0-9]+\]', # index = 0
-                pexpect.TIMEOUT, # index = 1
-                pexpect.EOF # index = 2
+                r'Reading with ordered access.*?\n', # index = 1
+                pexpect.TIMEOUT, # index = 2
+                pexpect.EOF # index = 3
             ],
             timeout
         )
-        if index == 1:
+        if index == 0:
+            if sub_string is not None and sub_string.group(1) == instance_color[0]:
+                samples_read_per_instance += 1
+        elif index == 2:
             # no more data to process
             break
-        elif index == 2:
-            produced_code = ReturnCode.DATA_NOT_RECEIVED
-            break
+        elif index == 3:
+            return ReturnCode.DATA_NOT_RECEIVED
 
-        samples_read += 1
-
-        # search the next received sample by the subscriber app
-        sub_string = re.search('[0-9]+ [0-9]+ \[([0-9]+)\]',
-            child_sub.before + child_sub.after)
-
-    if samples_read == max_samples_received:
+    if max_samples_received == samples_read_per_instance:
         produced_code = ReturnCode.OK
 
-    print(f'Samples read: {samples_read}')
+    print(f'Samples read per instance: {samples_read_per_instance}, instances: {instance_color}')
     return produced_code
 
 def test_reliability_no_losses_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
@@ -807,7 +819,7 @@ def test_lifespan_2_3_consecutive_samples_w_instances(child_sub, samples_sent, l
     if max_samples_lifespan == samples_read_per_instance:
         produced_code = ReturnCode.OK
 
-    print(f'Samples read: {samples_read_per_instance}, instances: {instance_color}')
+    print(f'Samples read per instance: {samples_read_per_instance}, instances: {instance_color}')
     return produced_code
 
 def ordered_access_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
@@ -937,82 +949,6 @@ def ordered_access_w_instances(child_sub, samples_sent, last_sample_saved, timeo
     print(f'Samples read per instance: {samples_read_per_instance}, instances: {instance_color}')
     return produced_code
 
-def test_order_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
-    """
-    This function tests that the subscriber receives the samples in order
-    (for several instances)
-    child_sub: child program generated with pexpect
-    samples_sent: not used
-    last_sample_saved: not used
-    timeout: time pexpect waits until it matches a pattern.
-    """
-
-    basic_check_retcode = basic_check(child_sub, samples_sent, last_sample_saved, timeout)
-
-    if basic_check_retcode != ReturnCode.OK:
-        return basic_check_retcode
-
-    produced_code = ReturnCode.DATA_NOT_RECEIVED
-
-    instance_color = []
-    instance_seq_num = []
-    first_iteration = []
-    samples_read_per_instance = 0
-    max_samples_received = MAX_SAMPLES_READ
-
-    while samples_read_per_instance < max_samples_received:
-        sub_string = re.search(r'\w+\s+(\w+)\s+[0-9]+\s+[0-9]+\s+\[([0-9]+)\]',
-            child_sub.before + child_sub.after)
-
-        if sub_string is not None:
-            # add a new instance to instance_color
-            if sub_string.group(1) not in instance_color:
-                instance_color.append(sub_string.group(1))
-                instance_seq_num.append(int(sub_string.group(2)))
-                first_iteration.append(True)
-
-            if sub_string.group(1) in instance_color:
-                index = instance_color.index(sub_string.group(1))
-                if first_iteration[index]:
-                    first_iteration[index] = False
-                else:
-                    # check that the next sequence number is the next value
-                    current_size = int(sub_string.group(2))
-                    if (current_size > instance_seq_num[index]):
-                        instance_seq_num[index] = current_size
-                    else:
-                        produced_code = ReturnCode.DATA_NOT_CORRECT
-                        break
-            else:
-                produced_code = ReturnCode.DATA_NOT_CORRECT
-                break
-
-        # Get the next sample the subscriber is receiving
-        index = child_sub.expect(
-            [
-                '\[[0-9]+\]', # index = 0
-                r'Reading with ordered access.*?\n', # index = 1
-                pexpect.TIMEOUT, # index = 2
-                pexpect.EOF # index = 3
-            ],
-            timeout
-        )
-        if index == 0:
-            if sub_string is not None and sub_string.group(1) == instance_color[0]:
-                samples_read_per_instance += 1
-        elif index == 2:
-            # no more data to process
-            break
-        elif index == 3:
-            return ReturnCode.DATA_NOT_RECEIVED
-
-    if max_samples_received == samples_read_per_instance:
-        produced_code = ReturnCode.OK
-
-    print(f'Samples read per instance: {samples_read_per_instance}, instances: {instance_color}')
-    return produced_code
-
-
 def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeout):
     """
     This function tests that coherent sets works correctly. This counts the
@@ -1041,6 +977,7 @@ def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeou
     first_time_reading = True
     ignore_firsts_coherent_set = 2
     coherent_sets_count = 0
+    coherent_set_sample_count = 0
     coherent_sets_max_count = MAX_SAMPLES_READ / 5 # 100
 
     while samples_read_per_instance < coherent_sets_max_count:
@@ -1060,7 +997,7 @@ def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeou
             if topic_name not in topics:
                 topics[topic_name] = {}
             if instance_color not in topics[topic_name]:
-                topics[topic_name][instance_color] = 1
+                topics[topic_name][instance_color] = None
             # if the instance is already added
             if instance_color in topics[topic_name]:
                 # the instance exists
@@ -1068,6 +1005,8 @@ def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeou
                 # check the previous color and increase consecutive samples
                 if previous_sample_color is not None:
                     if current_color == previous_sample_color:
+                        if topics[topic_name][instance_color] is None:
+                            topics[topic_name][instance_color] = 1
                         topics[topic_name][instance_color] += 1
                 previous_sample_color = current_color
         # different message than a sample
@@ -1080,29 +1019,41 @@ def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeou
                 # if DataReader has received samples
                 if ignore_firsts_coherent_set != 0 and new_coherent_set_read:
                     ignore_firsts_coherent_set -= 1
+                    coherent_set_sample_count = 0
                     for topic in topics:
                         for color in topics[topic]:
-                            topics[topic][color] = 1
+                            topics[topic][color] = None
                 elif new_coherent_set_read:
                     # the test is only ok if it has received coherent sets
                     produced_code = ReturnCode.OK
+                    # each set has 4 instances, 3 samples per instance, 3 topics
+                    # therefore, each set contains 4*3*3 = 36 samples, if the count
+                    # is different than 36, it means that there is an error
+                    if coherent_set_sample_count != 36:
+                        print(f'Coherent set sample count is {coherent_set_sample_count} instead of 36')
+                        produced_code = ReturnCode.DATA_NOT_CORRECT
+                        break
+                    else:
+                        coherent_set_sample_count = 0
                     for topic in topics:
                         for color in topics[topic]:
                             if first_time_reading:
                                 # with group presentation we may get several coherent
                                 # sets at the beginning, just checking that the samples
-                                # received are multiple of 3
-                                if topics[topic][color] % 3 != 0:
+                                # received are multiple of 3 (coherent set count)
+                                if topics[topic][color] is not None and topics[topic][color] % 3 != 0:
+                                    print(f'Coherent set count for topic {topic} and instance {color} is {topics[topic][color]} instead of 3')
                                     produced_code = ReturnCode.DATA_NOT_CORRECT
                                     break
                             else:
                                 # there should be 3 consecutive samples per instance,
                                 # as the test specifies this with the argument
                                 # --coherent-sample-count 3
-                                if topics[topic][color] != 3:
+                                if topics[topic][color] is not None and topics[topic][color] != 3:
+                                    print(f'Coherent set count for topic {topic} and instance {color} is {topics[topic][color]} instead of 3')
                                     produced_code = ReturnCode.DATA_NOT_CORRECT
                                     break
-                            topics[topic][color] = 1
+                            topics[topic][color] = None
                     if produced_code == ReturnCode.DATA_NOT_CORRECT:
                         break
                     first_time_reading = False
@@ -1125,6 +1076,7 @@ def coherent_sets_w_instances(child_sub, samples_sent, last_sample_saved, timeou
                     and topic_name == list(topics.keys())[0]
                     and instance_color == list(topics[topic_name].keys())[0]):
                 samples_read_per_instance += 1
+            coherent_set_sample_count += 1
         elif index == 1:
             coherent_sets_count += 1
         elif index == 2:

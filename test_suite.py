@@ -124,7 +124,7 @@ rtps_test_suite_1 = {
     'Test_Reliability_0' : {
         'apps' : ['-P -t Square -b -z 0', '-S -t Square -b'],
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
-        'check_function' : tsf.test_reliability_order,
+        'check_function' : tsf.test_order_w_instances,
         'title' : 'Communication between BEST_EFFORT publisher and subscriber',
         'description' : 'Verifies a best effort publisher communicates with a best effort subscriber with no out-of-order '
                             'or duplicate samples\n\n'
@@ -1238,8 +1238,8 @@ rtps_test_suite_1 = {
         'apps' : ['-P -t Square -r -k 0 --ordered --access-scope t -z 0 --num-instances 4 --write-period 100',
                   '-S -t Square -r -k 0 --ordered --access-scope i --take-read --read-period 400',
                   '-S -t Square -r -k 0 --ordered --access-scope t --take-read --read-period 400'],
-        'expected_codes' : [ReturnCode.OK, ReturnCode.OK, ReturnCode.OK],
-        'check_function' : tsf.test_order_w_instances,
+        'expected_codes' : [ReturnCode.OK, ReturnCode.ORDERED_ACCESS_INSTANCE, ReturnCode.ORDERED_ACCESS_TOPIC],
+        'check_function' : tsf.ordered_access_w_instances,
         'title' : 'Test the behavior of ordered access',
         'description' : 'Verifies subscribers receives data correctly depending on the ordered '
                             'access: TOPIC_PRESENTATION and INSTANCE_PRESENTATION.\n\n'
