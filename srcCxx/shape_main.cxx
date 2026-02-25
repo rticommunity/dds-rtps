@@ -1209,6 +1209,16 @@ public:
         DDS::DomainParticipantQos dp_qos;
         dpf->get_default_participant_qos(dp_qos);
 
+#if   defined(RTI_CONNEXT_DDS) || defined(RTI_CONNEXT_MICRO)
+        if (!configure_dp_qos(dp_qos)) {
+            return false;
+        }
+#endif
+
+#ifdef RTI_CONNEXT_DDS
+        configure_participant_announcements_period(dp_qos, options->periodic_announcement_period_us);
+#endif
+
         if (options->datafrag_size > 0) {
             bool result = false;
   #if defined(RTI_CONNEXT_DDS)
@@ -1226,16 +1236,6 @@ public:
                     + std::to_string(options->datafrag_size), Verbosity::DEBUG);
             }
         }
-
-#ifdef RTI_CONNEXT_MICRO
-        if (!configure_dp_qos(dp_qos)) {
-            return false;
-        }
-#endif
-
-#ifdef RTI_CONNEXT_DDS
-        configure_participant_announcements_period(dp_qos, options->periodic_announcement_period_us);
-#endif
 
         dp = dpf->create_participant( options->domain_id, dp_qos, &dp_listener, LISTENER_STATUS_MASK_ALL );
         if (dp == NULL) {
