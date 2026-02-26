@@ -828,7 +828,7 @@ rtps_test_suite_1 = {
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.test_unregistering_w_instances,
         'title' : 'Test the behavior of unregistering instances',
-        'description' : 'Verifies a subscriber receives NOT_ALIVE_NO_WRITERS when the publisher unregister instances\n\n'
+        'description' : 'Verifies a subscriber receives NOT_ALIVE_NO_WRITERS when the publisher unregisters instances\n\n'
                         ' * Configures the publisher to unregister instances upon finalization\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher finishes after running 200 iterations\n'
@@ -843,7 +843,7 @@ rtps_test_suite_1 = {
         'expected_codes' : [ReturnCode.OK, ReturnCode.OK],
         'check_function' : tsf.test_disposing_w_instances,
         'title' : 'Test the behavior of disposing instances',
-        'description' : 'Verifies a subscriber receives NOT_ALIVE_DISPOSED when the publisher unregister instances\n\n'
+        'description' : 'Verifies a subscriber receives NOT_ALIVE_DISPOSED when the publisher disposes instances\n\n'
                         ' * Configures the publisher to dispose instances upon finalization\n'
                         ' * The publisher publishes 4 different instances (using the same data value)\n'
                         ' * The publisher finishes after running 200 iterations\n'
